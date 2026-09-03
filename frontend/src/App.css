@@ -179,6 +179,11 @@ nav {
     border-bottom: 1px solid var(--line);
 }
 
+.brand-header {
+    margin: 0;
+    color: var(--ink);
+}
+
 .breadcrumb {
     display: flex;
     gap: 13px;
@@ -195,6 +200,59 @@ nav {
     display: flex;
     align-items: center;
     gap: 20px;
+}
+
+.top-actions a {
+    color: var(--ink);
+    font-size: 12px;
+    text-decoration: none;
+}
+
+.top-actions a:last-child {
+    padding: 10px 14px;
+    color: var(--ink);
+    background: var(--lime);
+}
+
+.auth-page {
+    display: grid;
+    min-height: 100vh;
+    place-items: center;
+    padding: 24px;
+    background: #e8f1e9;
+}
+
+.auth-panel {
+    width: min(100%, 430px);
+    padding: 42px;
+    background: #fff;
+    border: 1px solid var(--line);
+}
+
+.auth-panel h1 {
+    margin: 18px 0 12px;
+    font-size: 38px;
+    letter-spacing: -1.5px;
+}
+
+.auth-form {
+    display: grid;
+    gap: 12px;
+    margin-top: 28px;
+}
+
+.auth-form input {
+    width: 100%;
+    padding: 13px 12px;
+    color: var(--ink);
+    background: #f8faf8;
+    border: 1px solid var(--line);
+    outline: 0;
+    font-size: 12px;
+}
+
+.auth-form input:focus {
+    border-color: var(--ink);
 }
 
 .status {
@@ -220,6 +278,236 @@ nav {
     display: none;
     color: var(--ink);
     background: transparent;
+}
+
+.home-content {
+    position: relative;
+    display: flex;
+    min-height: calc(100vh - 75px);
+    align-items: center;
+    justify-content: space-between;
+    gap: 48px;
+    max-width: 1440px;
+    margin: auto;
+    overflow: hidden;
+    padding: 72px clamp(22px, 8vw, 120px);
+    background: #e8f1e9;
+}
+
+.home-copy {
+    position: relative;
+    z-index: 1;
+    max-width: 570px;
+}
+
+.home-copy h1 {
+    max-width: 560px;
+    margin: 20px 0 18px;
+    font-size: clamp(42px, 6vw, 82px);
+    font-weight: 600;
+    letter-spacing: -3px;
+    line-height: .98;
+}
+
+.home-copy .subtitle {
+    max-width: 390px;
+    margin-bottom: 30px;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.home-mark {
+    display: grid;
+    width: clamp(180px, 27vw, 360px);
+    aspect-ratio: 1;
+    flex-shrink: 0;
+    place-items: center;
+    color: var(--ink);
+    background: var(--lime);
+    font-size: clamp(100px, 18vw, 250px);
+    font-weight: 700;
+    line-height: 1;
+    transform: rotate(8deg);
+}
+
+.home-section {
+    max-width: 1440px;
+    margin: auto;
+    padding: 82px clamp(22px, 8vw, 120px);
+}
+
+.fleet-section {
+    background: #f8faf8;
+}
+
+.tracks-section {
+    color: #f5f8f3;
+    background: var(--ink);
+}
+
+.section-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 34px;
+}
+
+.section-heading h2 {
+    margin: 14px 0 0;
+    font-size: clamp(28px, 4vw, 48px);
+    font-weight: 600;
+    letter-spacing: -1.5px;
+}
+
+.section-note {
+    max-width: 250px;
+    margin: 0;
+    color: #82908b;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.kart-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.kart-card {
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid var(--line);
+}
+
+.kart-card img,
+.track-feature img {
+    display: block;
+    width: 100%;
+    object-fit: cover;
+}
+
+.kart-card img {
+    height: 205px;
+}
+
+.kart-card-copy {
+    padding: 22px;
+}
+
+.card-label {
+    color: #8b9a92;
+    font: 500 10px 'DM Mono', monospace;
+    letter-spacing: 1px;
+}
+
+.kart-card h3,
+.race-feature h3 {
+    margin: 11px 0 8px;
+    font-size: 23px;
+    font-weight: 600;
+}
+
+.kart-card p,
+.race-feature p {
+    min-height: 36px;
+    margin: 0 0 20px;
+    color: #84938c;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.availability {
+    color: #8da51e;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.tracks-section .eyebrow,
+.tracks-section .card-label {
+    color: #9caea5;
+}
+
+.outline-button {
+    padding: 11px 15px;
+    color: #e8f1e9;
+    background: transparent;
+    border: 1px solid #607069;
+    font-size: 11px;
+}
+
+.outline-button:hover {
+    color: var(--lime);
+    border-color: var(--lime);
+}
+
+.tracks-layout {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 48px;
+    align-items: start;
+}
+
+.track-feature {
+    background: #273431;
+}
+
+.track-feature img {
+    height: 260px;
+}
+
+.track-feature>div {
+    padding: 22px;
+}
+
+.track-feature h3 {
+    color: #f5f8f3;
+}
+
+.track-feature p {
+    min-height: 0;
+    margin-bottom: 0;
+    color: #afbbb4;
+}
+
+.track-list-home {
+    border-top: 1px solid #43514c;
+}
+
+.track-home-row {
+    display: grid;
+    grid-template-columns: 65px 1fr 20px;
+    gap: 18px;
+    align-items: center;
+    min-height: 86px;
+    border-bottom: 1px solid #43514c;
+}
+
+.track-number {
+    color: var(--lime);
+    font: 500 15px 'DM Mono', monospace;
+}
+
+.track-home-row strong,
+.track-home-row small {
+    display: block;
+}
+
+.track-home-row strong {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.track-home-row small {
+    margin-top: 5px;
+    color: #98a9a0;
+    font-size: 11px;
+}
+
+.track-home-row i {
+    color: var(--lime);
+    font-size: 19px;
+    font-style: normal;
 }
 
 .content-wrap {
@@ -726,6 +1014,55 @@ nav {
     .topbar {
         height: 62px;
         padding: 0 20px;
+    }
+
+    .brand-header {
+        font-size: 12px;
+    }
+
+    .top-actions {
+        gap: 12px;
+    }
+
+    .home-content {
+        min-height: 560px;
+        align-items: start;
+        flex-direction: column;
+        gap: 50px;
+        padding: 60px 22px;
+    }
+
+    .home-copy h1 {
+        font-size: 49px;
+        letter-spacing: -2px;
+    }
+
+    .home-mark {
+        align-self: end;
+        width: 155px;
+    }
+
+    .home-section {
+        padding: 58px 22px;
+    }
+
+    .section-heading {
+        align-items: start;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .kart-grid,
+    .tracks-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .kart-card img {
+        height: 220px;
+    }
+
+    .track-feature img {
+        height: 220px;
     }
 
     .status {

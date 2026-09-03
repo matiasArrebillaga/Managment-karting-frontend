@@ -1,95 +1,84 @@
-import { useState } from "react";
-import {
-  CalendarDays,
-  ChevronDown,
-  Flag,
-  Gauge,
-  LayoutDashboard,
-  Menu,
-  Settings,
-  Users,
-  X,
-} from "lucide-react";
-import Dashboard from "./components/dashboard";
 import "./App.css";
 
 function App () {
-  const [activePage, setActivePage] = useState("Dashboard");
-  const [showMenu, setShowMenu] = useState(false);
-  const navigation = [
-    { label: "Dashboard", icon: LayoutDashboard },
-    { label: "Carreras", icon: Flag },
-    { label: "Reservas", icon: CalendarDays },
-    { label: "Pilotos", icon: Users },
-    { label: "Kartings", icon: Gauge },
-  ];
-
-
   return (
     <div className="app-shell">
-      <aside className={`sidebar ${showMenu ? "sidebar-open" : ""}`}>
-        <div className="brand">
-          <span className="brand-mark">K</span>
-          <span>
-            KART<span className="brand-accent">/</span>CONTROL
-          </span>
-        </div>
-        <div className="workspace-label">CENTRO ROSARIO</div>
-        <nav>
-          {navigation.map(({ label, icon: Icon }) => (
-            <button
-              className={activePage === label ? "nav-item active" : "nav-item"}
-              key={label}
-              onClick={() => {
-                setActivePage(label);
-                setShowMenu(false);
-              }}
-            >
-              <Icon size={18} />
-              <span>{label}</span>
-              {label === "Carreras" && <span className="nav-count">4</span>}
-            </button>
-          ))}
-        </nav>
-        <div className="sidebar-bottom">
-          <button className="nav-item">
-            <Settings size={18} />
-            <span>Configuración</span>
-          </button>
-          <div className="profile">
-            <div className="avatar">MR</div>
-            <div>
-              <strong>Matias R.</strong>
-              <small>Administrador</small>
-            </div>
-            <ChevronDown size={15} />
-          </div>
-        </div>
-      </aside>
       <main className="main-content">
-        <header className="topbar">
-          <button
-            className="mobile-menu"
-            onClick={() => setShowMenu(!showMenu)}
-            aria-label="Abrir menú"
-          >
-            {showMenu ? <X size={20} /> : <Menu size={20} />}
-          </button>
-          <div className="breadcrumb">
-            <span>Operaciones</span>
-            <span>/</span>
-            <strong>{activePage}</strong>
+        <section className="home-content">
+          <div className="home-copy">
+            <p className="eyebrow">CENTRO ROSARIO</p>
+            <h1>Tu próxima carrera empieza acá.</h1>
+            <p className="subtitle">
+              Reservá tu kart, organizá tus carreras y disfrutá la pista.
+            </p>
+            <button className="primary-button">Ver nuestras carreras</button>
           </div>
-          <div className="top-actions">
-            <div className="status">
-              <i></i> Sistema operativo
+          <div className="home-mark" aria-hidden="true">K</div>
+        </section>
+        <section className="home-section fleet-section">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">LA FLOTA</p>
+              <h2>Kartings listos para la pista</h2>
             </div>
-            <div className="mini-avatar">MR</div>
+            <p className="section-note">Seguridad, velocidad y diversión para todos los niveles.</p>
           </div>
-        </header>
-        {activePage === "Dashboard" ? <Dashboard /> : ""}
+          <div className="kart-grid">
+            <article className="kart-card">
+              <img src="https://loremflickr.com/900/600/go-kart?lock=1" alt="Kart en una pista" />
+              <div className="kart-card-copy">
+                <span className="card-label">KART 01 / ADULTOS</span>
+                <h3>Raptor 200</h3>
+                <p>Potencia y control para acelerar a fondo.</p>
+                <strong className="availability">Disponible hoy</strong>
+              </div>
+            </article>
+            <article className="kart-card">
+              <img src="https://loremflickr.com/900/600/go-kart?lock=2" alt="Kart de competición en circuito" />
+              <div className="kart-card-copy">
+                <span className="card-label">KART 07 / COMPETICIÓN</span>
+                <h3>Vortex Pro</h3>
+                <p>Respuesta rápida para quienes buscan superarse.</p>
+                <strong className="availability">Disponible hoy</strong>
+              </div>
+            </article>
+            <article className="kart-card">
+              <img src="https://loremflickr.com/900/600/karting?lock=3" alt="Karting en pista" />
+              <div className="kart-card-copy">
+                <span className="card-label">KART 12 / INICIACIÓN</span>
+                <h3>Mini Sprint</h3>
+                <p>La mejor forma de descubrir tu pasión por las carreras.</p>
+                <strong className="availability">Disponible hoy</strong>
+              </div>
+            </article>
+          </div>
+        </section>
+        <section className="home-section tracks-section">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">PISTAS ROSARIO</p>
+              <h2>Elegí dónde correr</h2>
+            </div>
+            <button className="outline-button">Reservar una pista</button>
+          </div>
+          <div className="tracks-layout">
+            <div className="track-feature">
+              <img src="https://loremflickr.com/1200/800/go-kart-track?lock=4" alt="Pista de karting con curvas" />
+              <div>
+                <span className="card-label">LA MÁS ELEGIDA / HASTA 12 PERSONAS</span>
+                <h3>Circuito Central</h3>
+                <p>Curvas técnicas y rectas rápidas para compartir una carrera con amigos.</p>
+              </div>
+            </div>
+            <div className="track-list-home">
+              <div className="track-home-row"><span className="track-number">01</span><span><strong>Circuito Central</strong><small>Intermedio · 8 a 12 personas</small></span><i>→</i></div>
+              <div className="track-home-row"><span className="track-number">02</span><span><strong>Pista Junior</strong><small>Inicial · Ideal para familias</small></span><i>→</i></div>
+              <div className="track-home-row"><span className="track-number">03</span><span><strong>Desafío Pro</strong><small>Avanzado · Hasta 10 personas</small></span><i>→</i></div>
+            </div>
+          </div>
+        </section>
       </main>
-    </div >
+    </div>
   );
 }
 

@@ -1,3 +1,5 @@
+import type {Localidad} from '../types'
+
 export type Race = {
   id: number
   time: string
@@ -34,4 +36,10 @@ export const activity = [
   { title: 'Nueva reserva confirmada', detail: 'Maria Gomez · Circuito 02', time: 'Hace 12 min', tone: 'lime' },
   { title: 'Karting enviado a mantenimiento', detail: 'K03 · Revisión preventiva', time: 'Hace 38 min', tone: 'orange' },
   { title: 'Piloto registrado', detail: 'Agustina Castro · Rosario', time: 'Hace 1 h', tone: 'blue' },
+]
+
+export const localidades: Localidad[] = [
+  { id: 1, nombre: 'Rosario', provincia: 'Santa Fe', codigoPostal: 'S2000' },
+  { id: 2, nombre: 'Funes', provincia: 'Santa Fe', codigoPostal: 'S2132' },
+  { id: 3, nombre: 'Cordoba', provincia: 'Cordoba', codigoPostal: 'X5000' },
 ]

@@ -13,6 +13,7 @@ function Header () {
                 </div>
             </Link>
             <div className="top-actions">
+                <Link to="/localidades">Localidades</Link>
                 <Link to="/login">Login</Link>
                 <Link to="/register">Register</Link>
             </div>

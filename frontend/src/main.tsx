@@ -10,6 +10,7 @@ import Header from './components/Header.tsx'
 import LocalidadesPage  from './features/localidades/LocalidadesPage.tsx'
 import TiposLicenciaPage from './features/tiposLicencia/TiposLicenciaPage.tsx'
 import CircuitosPage from './features/circuitos/CircuitosPage.tsx'
+import KartingsPage from './features/kartings/KartingsPage.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -24,6 +25,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/localidades" element={<LocalidadesPage />} />
         <Route path="/tipos-licencia" element={<TiposLicenciaPage />} />
         <Route path="/circuitos" element={<CircuitosPage />} />
+        <Route path="/kartings" element={<KartingsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

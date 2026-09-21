@@ -1,6 +1,7 @@
 import type {Localidad} from '../types'
 import type { TipoLicencia } from '../types'
 import type { Circuito } from '../types'
+import type { Karting } from '../types'
 
 export type Race = {
   id: number
@@ -56,4 +57,10 @@ export const circuitos: Circuito[] = [
   { id: 1, nombre: 'Circuito Rosario', distancia: 850, dificultad: 'Facil', capacidadMaxima: 12 },
   { id: 2, nombre: 'Circuito Funes', distancia: 1200, dificultad: 'Media', capacidadMaxima: 15 },
   { id: 3, nombre: 'Circuito Cordoba', distancia: 1500, dificultad: 'Dificil', capacidadMaxima: 20 },
+]
+
+export const kartings: Karting[] = [
+  { id: 1, numero: 1, modelo: 'Sodikart RT8', categoria: 'Junior', estado: 'Disponible', fechaAdquisicion: '2024-03-15', fechaUltimoMantenimiento: '2026-08-01' },
+  { id: 2, numero: 2, modelo: 'Sodikart RT8', categoria: 'Junior', estado: 'Mantenimiento', fechaAdquisicion: '2024-03-15', fechaUltimoMantenimiento: '2026-09-10' },
+  { id: 3, numero: 3, modelo: 'Birel ART', categoria: 'Senior', estado: 'Disponible', fechaAdquisicion: '2025-01-20' },
 ]

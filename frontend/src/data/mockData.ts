@@ -1,4 +1,5 @@
 import type {Localidad} from '../types'
+import type { TipoLicencia } from '../types'
 
 export type Race = {
   id: number
@@ -42,4 +43,10 @@ export const localidades: Localidad[] = [
   { id: 1, nombre: 'Rosario', provincia: 'Santa Fe', codigoPostal: 'S2000' },
   { id: 2, nombre: 'Funes', provincia: 'Santa Fe', codigoPostal: 'S2132' },
   { id: 3, nombre: 'Cordoba', provincia: 'Cordoba', codigoPostal: 'X5000' },
+]
+
+export const tiposLicencia: TipoLicencia[] = [
+  { id: 1, nombre: 'Principiante', edadMinima: 8, descripcion:'Para pilotos que recién empiezan'},
+  { id: 2, nombre: 'Intermedia', edadMinima: 12},
+  { id: 3, nombre: 'Avanzada', edadMinima: 16, descripcion:'Habilita a correr en circuitos de mayor velocidad'},
 ]

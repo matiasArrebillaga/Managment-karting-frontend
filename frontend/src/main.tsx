@@ -9,6 +9,7 @@ import AuthPage from './components/AuthPage.tsx'
 import Header from './components/Header.tsx'
 import LocalidadesPage  from './features/localidades/LocalidadesPage.tsx'
 import TiposLicenciaPage from './features/tiposLicencia/TiposLicenciaPage.tsx'
+import CircuitosPage from './features/circuitos/CircuitosPage.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -22,6 +23,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/localidades" element={<LocalidadesPage />} />
         <Route path="/tipos-licencia" element={<TiposLicenciaPage />} />
+        <Route path="/circuitos" element={<CircuitosPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

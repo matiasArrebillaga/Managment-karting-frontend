@@ -1,5 +1,6 @@
 import type {Localidad} from '../types'
 import type { TipoLicencia } from '../types'
+import type { Circuito } from '../types'
 
 export type Race = {
   id: number
@@ -49,4 +50,10 @@ export const tiposLicencia: TipoLicencia[] = [
   { id: 1, nombre: 'Principiante', edadMinima: 8, descripcion:'Para pilotos que recién empiezan'},
   { id: 2, nombre: 'Intermedia', edadMinima: 12},
   { id: 3, nombre: 'Avanzada', edadMinima: 16, descripcion:'Habilita a correr en circuitos de mayor velocidad'},
+]
+
+export const circuitos: Circuito[] = [
+  { id: 1, nombre: 'Circuito Rosario', distancia: 850, dificultad: 'Facil', capacidadMaxima: 12 },
+  { id: 2, nombre: 'Circuito Funes', distancia: 1200, dificultad: 'Media', capacidadMaxima: 15 },
+  { id: 3, nombre: 'Circuito Cordoba', distancia: 1500, dificultad: 'Dificil', capacidadMaxima: 20 },
 ]

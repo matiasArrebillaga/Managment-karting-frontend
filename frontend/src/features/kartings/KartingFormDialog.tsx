@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react"
 import { createKarting, updateKarting } from "../../services/kartingService"
+import { getTiposKarting } from "../../services/tipoKartingService"
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Stack, TextField } from "@mui/material"
-import type { Karting } from "../../types"
+import type { Karting, TipoKarting } from "../../types"
 
-const CATEGORIAS = ['Junior', 'Senior']
 const ESTADOS = ['Disponible', 'Mantenimiento']
 
 type Props = {
@@ -14,31 +14,35 @@ type Props = {
 }
 
 function KartingFormDialog({ abierto, karting, onCerrar, onGuardado }: Props) {
-    const [numero, setNumero] = useState('')
-    const [modelo, setModelo] = useState('')
     const [categoria, setCategoria] = useState('')
+    const [modelo, setModelo] = useState('')
     const [estado, setEstado] = useState('')
     const [fechaAdquisicion, setFechaAdquisicion] = useState('')
-    const [fechaUltimoMantenimiento, setFechaUltimoMantenimiento] = useState('')
+    const [tipoKartingId, setTipoKartingId] = useState('')
+    const [tiposKarting, setTiposKarting] = useState<TipoKarting[]>([])
     const [guardando, setGuardando] = useState(false)
 
     const editando = Boolean(karting)
 
     useEffect(() => {
+        if (abierto) {
+            getTiposKarting().then((datos) => setTiposKarting(datos))
+        }
+    }, [abierto])
+
+    useEffect(() => {
         if (karting) {
-            setNumero(String(karting.numero))
-            setModelo(karting.modelo)
             setCategoria(karting.categoria)
+            setModelo(karting.modelo)
             setEstado(karting.estado)
             setFechaAdquisicion(karting.fechaAdquisicion)
-            setFechaUltimoMantenimiento(karting.fechaUltimoMantenimiento ?? '')
+            setTipoKartingId(String(karting.TiposKarting_idTiposKarting))
         } else {
-            setNumero('')
-            setModelo('')
             setCategoria('')
+            setModelo('')
             setEstado('')
             setFechaAdquisicion('')
-            setFechaUltimoMantenimiento('')
+            setTipoKartingId('')
         }
     }, [karting, abierto])
 
@@ -46,15 +50,14 @@ function KartingFormDialog({ abierto, karting, onCerrar, onGuardado }: Props) {
         setGuardando(true)
         try {
             const datos = {
-                numero: Number(numero),
-                modelo,
                 categoria,
+                modelo,
                 estado,
                 fechaAdquisicion,
-                fechaUltimoMantenimiento: fechaUltimoMantenimiento || undefined,
+                TiposKarting_idTiposKarting: Number(tipoKartingId),
             }
             if (editando && karting) {
-                await updateKarting(karting.id, datos)
+                await updateKarting(karting.idKartings, datos)
             } else {
                 await createKarting(datos)
             }
@@ -70,10 +73,9 @@ function KartingFormDialog({ abierto, karting, onCerrar, onGuardado }: Props) {
             <DialogContent>
                 <Stack spacing={2} sx={{ mt: 1 }}>
                     <TextField
-                        label="Numero"
-                        type="number"
-                        value={numero}
-                        onChange={(e) => setNumero(e.target.value)}
+                        label="Categoria"
+                        value={categoria}
+                        onChange={(e) => setCategoria(e.target.value)}
                         fullWidth
                     />
                     <TextField
@@ -84,13 +86,13 @@ function KartingFormDialog({ abierto, karting, onCerrar, onGuardado }: Props) {
                     />
                     <TextField
                         select
-                        label="Categoria"
-                        value={categoria}
-                        onChange={(e) => setCategoria(e.target.value)}
+                        label="Tipo de Karting"
+                        value={tipoKartingId}
+                        onChange={(e) => setTipoKartingId(e.target.value)}
                         fullWidth
                     >
-                        {CATEGORIAS.map((c) => (
-                            <MenuItem key={c} value={c}>{c}</MenuItem>
+                        {tiposKarting.map((t) => (
+                            <MenuItem key={t.idTiposKarting} value={String(t.idTiposKarting)}>{t.nombre}</MenuItem>
                         ))}
                     </TextField>
                     <TextField
@@ -109,14 +111,6 @@ function KartingFormDialog({ abierto, karting, onCerrar, onGuardado }: Props) {
                         type="date"
                         value={fechaAdquisicion}
                         onChange={(e) => setFechaAdquisicion(e.target.value)}
-                        slotProps={{ inputLabel: { shrink: true } }}
-                        fullWidth
-                    />
-                    <TextField
-                        label="Ultimo mantenimiento (opcional)"
-                        type="date"
-                        value={fechaUltimoMantenimiento}
-                        onChange={(e) => setFechaUltimoMantenimiento(e.target.value)}
                         slotProps={{ inputLabel: { shrink: true } }}
                         fullWidth
                     />

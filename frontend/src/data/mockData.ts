@@ -1,7 +1,10 @@
-import type {Localidad} from '../types'
+import type { Localidad } from '../types'
 import type { TipoLicencia } from '../types'
 import type { Circuito } from '../types'
 import type { Karting } from '../types'
+import type { TipoKarting } from '../types'
+import type { Licencia } from '../types'
+import type { Persona } from '../types'
 
 export type Race = {
   id: number
@@ -41,26 +44,47 @@ export const activity = [
   { title: 'Piloto registrado', detail: 'Agustina Castro · Rosario', time: 'Hace 1 h', tone: 'blue' },
 ]
 
+// A partir de aca, los datos siguen exactamente la estructura de prisma/schema.prisma del backend real.
+
 export const localidades: Localidad[] = [
-  { id: 1, nombre: 'Rosario', provincia: 'Santa Fe', codigoPostal: 'S2000' },
-  { id: 2, nombre: 'Funes', provincia: 'Santa Fe', codigoPostal: 'S2132' },
-  { id: 3, nombre: 'Cordoba', provincia: 'Cordoba', codigoPostal: 'X5000' },
+  { idLocalidades: 1, nombre: 'Rosario' },
+  { idLocalidades: 2, nombre: 'Funes' },
+  { idLocalidades: 3, nombre: 'Cordoba' },
 ]
 
 export const tiposLicencia: TipoLicencia[] = [
-  { id: 1, nombre: 'Principiante', edadMinima: 8, descripcion:'Para pilotos que recién empiezan'},
-  { id: 2, nombre: 'Intermedia', edadMinima: 12},
-  { id: 3, nombre: 'Avanzada', edadMinima: 16, descripcion:'Habilita a correr en circuitos de mayor velocidad'},
+  { idTipoLicencia: 1, nombre: 'Principiante', descripcion: 'Para pilotos que recien empiezan', nivel: 1 },
+  { idTipoLicencia: 2, nombre: 'Intermedia', descripcion: 'Habilita circuitos de dificultad media', nivel: 2 },
+  { idTipoLicencia: 3, nombre: 'Avanzada', descripcion: 'Habilita a correr en circuitos de mayor velocidad', nivel: 3 },
 ]
 
 export const circuitos: Circuito[] = [
-  { id: 1, nombre: 'Circuito Rosario', distancia: 850, dificultad: 'Facil', capacidadMaxima: 12 },
-  { id: 2, nombre: 'Circuito Funes', distancia: 1200, dificultad: 'Media', capacidadMaxima: 15 },
-  { id: 3, nombre: 'Circuito Cordoba', distancia: 1500, dificultad: 'Dificil', capacidadMaxima: 20 },
+  { idCircuitos: 1, distancia: 850, dificultad: 'Facil', maximo: 12 },
+  { idCircuitos: 2, distancia: 1200, dificultad: 'Media', maximo: 15 },
+  { idCircuitos: 3, distancia: 1500, dificultad: 'Dificil', maximo: 20 },
+]
+
+export const tiposKarting: TipoKarting[] = [
+  { idTiposKarting: 1, nombre: 'Junior', descripcion: 'Para pilotos de menor edad y peso', TiposLicencias_idTipoLicenciaMinima: 1 },
+  { idTiposKarting: 2, nombre: 'Senior', descripcion: 'Motor estandar de competicion', TiposLicencias_idTipoLicenciaMinima: 2 },
+  { idTiposKarting: 3, nombre: 'Profesional', descripcion: 'Motor de alta cilindrada para competicion', TiposLicencias_idTipoLicenciaMinima: 3 },
 ]
 
 export const kartings: Karting[] = [
-  { id: 1, numero: 1, modelo: 'Sodikart RT8', categoria: 'Junior', estado: 'Disponible', fechaAdquisicion: '2024-03-15', fechaUltimoMantenimiento: '2026-08-01' },
-  { id: 2, numero: 2, modelo: 'Sodikart RT8', categoria: 'Junior', estado: 'Mantenimiento', fechaAdquisicion: '2024-03-15', fechaUltimoMantenimiento: '2026-09-10' },
-  { id: 3, numero: 3, modelo: 'Birel ART', categoria: 'Senior', estado: 'Disponible', fechaAdquisicion: '2025-01-20' },
+  { idKartings: 1, categoria: 'Junior', modelo: 'Sodikart RT8', estado: 'Disponible', fechaAdquisicion: '2024-03-15', TiposKarting_idTiposKarting: 1 },
+  { idKartings: 2, categoria: 'Junior', modelo: 'Sodikart RT8', estado: 'Mantenimiento', fechaAdquisicion: '2024-03-15', TiposKarting_idTiposKarting: 1 },
+  { idKartings: 3, categoria: 'Senior', modelo: 'Birel ART', estado: 'Disponible', fechaAdquisicion: '2025-01-20', TiposKarting_idTiposKarting: 2 },
+]
+
+// Personas: version minima solo para poblar el desplegable de Licencia.
+export const personas: Persona[] = [
+  { idPersona: 1, nombre: 'Maria', apellido: 'Gomez' },
+  { idPersona: 2, nombre: 'Agustina', apellido: 'Castro' },
+  { idPersona: 3, nombre: 'Tomas', apellido: 'Ibarra' },
+]
+
+export const licencias: Licencia[] = [
+  { idLicencias: 1, fechaEmision: '2025-02-10', fechaVencimiento: '2027-02-10', Personas_idPersona: 1, TiposLicencias_idTipoLicencia: 2 },
+  { idLicencias: 2, fechaEmision: '2026-01-05', fechaVencimiento: '2028-01-05', Personas_idPersona: 2, TiposLicencias_idTipoLicencia: 1 },
+  { idLicencias: 3, fechaEmision: '2024-11-20', fechaVencimiento: '2026-11-20', Personas_idPersona: 3, TiposLicencias_idTipoLicencia: 3 },
 ]

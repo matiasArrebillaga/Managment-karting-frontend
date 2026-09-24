@@ -13,25 +13,22 @@ type Props = {
 }
 
 function CircuitoFormDialog({ abierto, circuito, onCerrar, onGuardado }: Props) {
-    const [nombre, setNombre] = useState('')
     const [distancia, setDistancia] = useState('')
     const [dificultad, setDificultad] = useState('')
-    const [capacidadMaxima, setCapacidadMaxima] = useState('')
+    const [maximo, setMaximo] = useState('')
     const [guardando, setGuardando] = useState(false)
 
     const editando = Boolean(circuito)
 
     useEffect(() => {
         if (circuito) {
-            setNombre(circuito.nombre)
             setDistancia(String(circuito.distancia))
             setDificultad(circuito.dificultad)
-            setCapacidadMaxima(String(circuito.capacidadMaxima))
+            setMaximo(String(circuito.maximo))
         } else {
-            setNombre('')
             setDistancia('')
             setDificultad('')
-            setCapacidadMaxima('')
+            setMaximo('')
         }
     }, [circuito, abierto])
 
@@ -39,13 +36,12 @@ function CircuitoFormDialog({ abierto, circuito, onCerrar, onGuardado }: Props) 
         setGuardando(true)
         try {
             const datos = {
-                nombre,
                 distancia: Number(distancia),
                 dificultad,
-                capacidadMaxima: Number(capacidadMaxima),
+                maximo: Number(maximo),
             }
             if (editando && circuito) {
-                await updateCircuito(circuito.id, datos)
+                await updateCircuito(circuito.idCircuitos, datos)
             } else {
                 await createCircuito(datos)
             }
@@ -60,12 +56,6 @@ function CircuitoFormDialog({ abierto, circuito, onCerrar, onGuardado }: Props) 
             <DialogTitle>{editando ? 'Editar Circuito' : 'Nuevo Circuito'}</DialogTitle>
             <DialogContent>
                 <Stack spacing={2} sx={{ mt: 1 }}>
-                    <TextField
-                        label="Nombre"
-                        value={nombre}
-                        onChange={(e) => setNombre(e.target.value)}
-                        fullWidth
-                    />
                     <TextField
                         label="Distancia (metros)"
                         type="number"
@@ -87,8 +77,8 @@ function CircuitoFormDialog({ abierto, circuito, onCerrar, onGuardado }: Props) 
                     <TextField
                         label="Capacidad maxima"
                         type="number"
-                        value={capacidadMaxima}
-                        onChange={(e) => setCapacidadMaxima(e.target.value)}
+                        value={maximo}
+                        onChange={(e) => setMaximo(e.target.value)}
                         fullWidth
                     />
                 </Stack>

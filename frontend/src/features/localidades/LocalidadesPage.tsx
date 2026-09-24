@@ -5,9 +5,9 @@ import Typography from '@mui/material/Typography'
 import TableRow from '@mui/material/TableRow'
 import TableHead from '@mui/material/TableHead'
 import TableBody from '@mui/material/TableBody'
-import { deleteLocalidad, getLocalidades } from '../../services/localidadService'
-import type {Localidad} from '../../types'
-import { Button } from '@mui/material'
+import Button from '@mui/material/Button'
+import { getLocalidades, deleteLocalidad } from '../../services/localidadService'
+import type { Localidad } from '../../types'
 import LocalidadFormDialog from './LocalidadFormDialog'
 
 function LocalidadesPage() {
@@ -22,7 +22,7 @@ function LocalidadesPage() {
             .then((datos) => setLocalidades(datos))
             .finally(() => setCargando(false))
     }
-    
+
     useEffect(() => {
         cargarLocalidades()
     }, [])
@@ -32,7 +32,7 @@ function LocalidadesPage() {
         setAbierto(true)
     }
 
-    function handleEditar(localidad : Localidad){
+    function handleEditar(localidad: Localidad) {
         setLocalidadEditando(localidad)
         setAbierto(true)
     }
@@ -44,47 +44,50 @@ function LocalidadesPage() {
     }
 
     async function handleEliminar(id: number) {
-        const confirmar = window.confirm('Esta seguro de eliminar esta localidad')
-        if(!confirmar) return
+        const confirmar = window.confirm('¿Seguro que querés eliminar esta localidad?')
+        if (!confirmar) return
 
         try {
             await deleteLocalidad(id)
             cargarLocalidades()
         } catch (error) {
-            alert('No se pudo eliminar la localidad')
+            alert(error instanceof Error ? error.message : 'No se pudo eliminar la localidad')
             console.error(error)
         }
     }
 
     if (cargando) {
-        return <Typography sx={{p:3}}>Cargando...</Typography>
+        return <Typography sx={{ p: 3 }}>Cargando...</Typography>
     }
 
     return (
-        <div style={{padding: 24}}>
+        <div style={{ padding: 24 }}>
             <Typography variant="h4" gutterBottom>
                 Localidades
             </Typography>
 
-            <Button variant="contained" onClick={handleNueva} sx={{mb: 2}}>Nueva Localidad</Button>
+            <Button variant="contained" onClick={handleNueva} sx={{ mb: 2 }}>
+                Nueva Localidad
+            </Button>
+
             <Table>
                 <TableHead>
                     <TableRow>
                         <TableCell>Nombre</TableCell>
-                        <TableCell>Provincia</TableCell>
-                        <TableCell>Codigo Postal</TableCell>
-                        <TableCell></TableCell>
+                        <TableCell>Acciones</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
                     {localidades.map((localidad) => (
-                        <TableRow key={localidad.id}>
+                        <TableRow key={localidad.idLocalidades}>
                             <TableCell>{localidad.nombre}</TableCell>
-                            <TableCell>{localidad.provincia}</TableCell>
-                            <TableCell>{localidad.codigoPostal}</TableCell>
                             <TableCell>
-                                <Button size="small" onClick={() => handleEditar(localidad)}>Editar</Button>
-                                <Button size="small" color="error" onClick={() => handleEliminar(localidad.id)}>Eliminar</Button>
+                                <Button size="small" onClick={() => handleEditar(localidad)}>
+                                    Editar
+                                </Button>
+                                <Button size="small" color="error" onClick={() => handleEliminar(localidad.idLocalidades)}>
+                                    Eliminar
+                                </Button>
                             </TableCell>
                         </TableRow>
                     ))}

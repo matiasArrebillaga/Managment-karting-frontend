@@ -51,7 +51,7 @@ function CircuitosPage() {
             await deleteCircuito(id)
             cargarCircuitos()
         } catch (error) {
-            alert('No se pudo eliminar el circuito')
+            alert(error instanceof Error ? error.message : 'No se pudo eliminar el circuito')
             console.error(error)
         }
     }
@@ -73,7 +73,7 @@ function CircuitosPage() {
             <Table>
                 <TableHead>
                     <TableRow>
-                        <TableCell>Nombre</TableCell>
+                        <TableCell>ID</TableCell>
                         <TableCell>Distancia (m)</TableCell>
                         <TableCell>Dificultad</TableCell>
                         <TableCell>Capacidad Maxima</TableCell>
@@ -82,16 +82,16 @@ function CircuitosPage() {
                 </TableHead>
                 <TableBody>
                     {circuitos.map((circuito) => (
-                        <TableRow key={circuito.id}>
-                            <TableCell>{circuito.nombre}</TableCell>
+                        <TableRow key={circuito.idCircuitos}>
+                            <TableCell>{circuito.idCircuitos}</TableCell>
                             <TableCell>{circuito.distancia}</TableCell>
                             <TableCell>{circuito.dificultad}</TableCell>
-                            <TableCell>{circuito.capacidadMaxima}</TableCell>
+                            <TableCell>{circuito.maximo}</TableCell>
                             <TableCell>
                                 <Button size="small" onClick={() => handleEditar(circuito)}>
                                     Editar
                                 </Button>
-                                <Button size="small" color="error" onClick={() => handleEliminar(circuito.id)}>
+                                <Button size="small" color="error" onClick={() => handleEliminar(circuito.idCircuitos)}>
                                     Eliminar
                                 </Button>
                             </TableCell>

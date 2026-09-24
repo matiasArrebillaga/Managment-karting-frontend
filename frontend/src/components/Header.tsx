@@ -17,6 +17,8 @@ function Header () {
                 <Link to="/tipos-licencia">Tipos de Licencia</Link>
                 <Link to="/circuitos">Circuitos</Link>
                 <Link to="/kartings">Kartings</Link>
+                <Link to="/tipos-karting">Tipos de Karting</Link>
+                <Link to="/licencias">Licencias</Link>
                 <Link to="/login">Login</Link>
                 <Link to="/register">Register</Link>
             </div>

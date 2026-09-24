@@ -7,20 +7,29 @@ import TableHead from '@mui/material/TableHead'
 import TableBody from '@mui/material/TableBody'
 import Button from '@mui/material/Button'
 import { getKartings, deleteKarting } from '../../services/kartingService'
-import type { Karting } from '../../types'
+import { getTiposKarting } from '../../services/tipoKartingService'
+import type { Karting, TipoKarting } from '../../types'
 import KartingFormDialog from './KartingFormDialog'
 
 function KartingsPage() {
     const [kartings, setKartings] = useState<Karting[]>([])
+    const [tiposKarting, setTiposKarting] = useState<TipoKarting[]>([])
     const [cargando, setCargando] = useState(true)
     const [abierto, setAbierto] = useState(false)
     const [kartingEditando, setKartingEditando] = useState<Karting | null>(null)
 
     function cargarKartings() {
         setCargando(true)
-        getKartings()
-            .then((datos) => setKartings(datos))
+        Promise.all([getKartings(), getTiposKarting()])
+            .then(([datosKartings, datosTipos]) => {
+                setKartings(datosKartings)
+                setTiposKarting(datosTipos)
+            })
             .finally(() => setCargando(false))
+    }
+
+    function nombreTipoKarting(id: number) {
+        return tiposKarting.find((t) => t.idTiposKarting === id)?.nombre ?? '-'
     }
 
     useEffect(() => {
@@ -51,7 +60,7 @@ function KartingsPage() {
             await deleteKarting(id)
             cargarKartings()
         } catch (error) {
-            alert('No se pudo eliminar el karting')
+            alert(error instanceof Error ? error.message : 'No se pudo eliminar el karting')
             console.error(error)
         }
     }
@@ -73,29 +82,27 @@ function KartingsPage() {
             <Table>
                 <TableHead>
                     <TableRow>
-                        <TableCell>Numero</TableCell>
                         <TableCell>Modelo</TableCell>
                         <TableCell>Categoria</TableCell>
+                        <TableCell>Tipo de Karting</TableCell>
                         <TableCell>Estado</TableCell>
                         <TableCell>Fecha Adquisicion</TableCell>
-                        <TableCell>Ultimo Mantenimiento</TableCell>
                         <TableCell>Acciones</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
                     {kartings.map((karting) => (
-                        <TableRow key={karting.id}>
-                            <TableCell>{karting.numero}</TableCell>
+                        <TableRow key={karting.idKartings}>
                             <TableCell>{karting.modelo}</TableCell>
                             <TableCell>{karting.categoria}</TableCell>
+                            <TableCell>{nombreTipoKarting(karting.TiposKarting_idTiposKarting)}</TableCell>
                             <TableCell>{karting.estado}</TableCell>
                             <TableCell>{karting.fechaAdquisicion}</TableCell>
-                            <TableCell>{karting.fechaUltimoMantenimiento}</TableCell>
                             <TableCell>
                                 <Button size="small" onClick={() => handleEditar(karting)}>
                                     Editar
                                 </Button>
-                                <Button size="small" color="error" onClick={() => handleEliminar(karting.id)}>
+                                <Button size="small" color="error" onClick={() => handleEliminar(karting.idKartings)}>
                                     Eliminar
                                 </Button>
                             </TableCell>

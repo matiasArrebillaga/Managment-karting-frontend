@@ -11,6 +11,8 @@ import LocalidadesPage  from './features/localidades/LocalidadesPage.tsx'
 import TiposLicenciaPage from './features/tiposLicencia/TiposLicenciaPage.tsx'
 import CircuitosPage from './features/circuitos/CircuitosPage.tsx'
 import KartingsPage from './features/kartings/KartingsPage.tsx'
+import TiposKartingPage from './features/tiposKarting/TiposKartingPage.tsx'
+import LicenciasPage from './features/licencias/LicenciasPage.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -26,6 +28,8 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/tipos-licencia" element={<TiposLicenciaPage />} />
         <Route path="/circuitos" element={<CircuitosPage />} />
         <Route path="/kartings" element={<KartingsPage />} />
+        <Route path="/tipos-karting" element={<TiposKartingPage />} />
+        <Route path="/licencias" element={<LicenciasPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

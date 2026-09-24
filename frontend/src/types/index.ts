@@ -1,31 +1,50 @@
 export interface Localidad {
-    id: number
+    idLocalidades: number
     nombre: string
-    provincia: string
-    codigoPostal: string
 }
 
 export interface Circuito {
-    id: number
-    nombre: string
+    idCircuitos: number
     distancia: number
     dificultad: string
-    capacidadMaxima: number
+    maximo: number
 }
 
 export interface TipoLicencia {
-    id: number
+    idTipoLicencia: number
     nombre: string
-    edadMinima: number
-    descripcion?: string
+    descripcion: string
+    nivel: number
+}
+
+export interface TipoKarting {
+    idTiposKarting: number
+    nombre: string
+    descripcion: string
+    TiposLicencias_idTipoLicenciaMinima: number
 }
 
 export interface Karting {
-    id: number
-    numero: number
-    modelo: string
+    idKartings: number
     categoria: string
+    modelo: string
     estado: string
     fechaAdquisicion: string
-    fechaUltimoMantenimiento?: string
+    TiposKarting_idTiposKarting: number
+}
+
+export interface Licencia {
+    idLicencias: number
+    fechaEmision: string
+    fechaVencimiento: string
+    Personas_idPersona: number
+    TiposLicencias_idTipoLicencia: number
+}
+
+// Version minima, solo para los desplegables de Licencia.
+// El CRUD completo de Persona (con localidad, rol, login) no esta hecho todavia.
+export interface Persona {
+    idPersona: number
+    nombre: string
+    apellido: string
 }

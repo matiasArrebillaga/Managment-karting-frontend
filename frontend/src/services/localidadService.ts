@@ -13,37 +13,37 @@ export async function getLocalidades(): Promise<Localidad[]> {
 
 export async function getLocalidad(id: number): Promise<Localidad> {
     await demora()
-    const localidad = localidades.find((l) => l.id === id)
+    const localidad = localidades.find((l) => l.idLocalidades === id)
     if (!localidad) {
         throw new Error(`No existe una localidad con id ${id}`)
     }
     return localidad
 }
 
-export async function createLocalidad(datos: Omit<Localidad, 'id'>) : Promise<Localidad> {
+export async function createLocalidad(datos: Omit<Localidad, 'idLocalidades'>) : Promise<Localidad> {
     await demora()
-    const nueva: Localidad = {id: siguienteId, ...datos}
+    const nueva: Localidad = {idLocalidades: siguienteId, ...datos}
     siguienteId++
     localidades.push(nueva)
     return nueva
 }
 
-export async function updateLocalidad(id: number, datos: Omit<Localidad, 'id'>) : Promise<Localidad> {
+export async function updateLocalidad(id: number, datos: Omit<Localidad, 'idLocalidades'>) : Promise<Localidad> {
     await demora()
-    const indice = localidades.findIndex((l) => l.id === id)
+    const indice = localidades.findIndex((l) => l.idLocalidades === id)
     if (indice === -1) {
         throw new Error(`No existe una localidad con id ${id}`)
     }
-    const actualizada: Localidad = {id, ...datos}
+    const actualizada: Localidad = {idLocalidades: id, ...datos}
     localidades[indice] = actualizada
     return actualizada
 }
 
 export async function deleteLocalidad(id:number): Promise<void> {
     await demora()
-    const indice = localidades.findIndex((l) => l.id === id)
+    const indice = localidades.findIndex((l) => l.idLocalidades === id)
     if (indice === -1) {
         throw new Error(`No existe una localidad con id ${id}`)
     }
     localidades.splice(indice,1)
-} 
+}

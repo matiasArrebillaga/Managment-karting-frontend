@@ -12,8 +12,8 @@ type Props = {
 
 function TipoLicenciaFormDialog({ abierto, tipoLicencia, onCerrar, onGuardado }: Props) {
     const [nombre, setNombre] = useState('')
-    const [edadMinima, setEdadMinima] = useState('')
     const [descripcion, setDescripcion] = useState('')
+    const [nivel, setNivel] = useState('')
     const [guardando, setGuardando] = useState(false)
 
     const editando = Boolean(tipoLicencia)
@@ -21,12 +21,12 @@ function TipoLicenciaFormDialog({ abierto, tipoLicencia, onCerrar, onGuardado }:
     useEffect(() => {
         if (tipoLicencia) {
             setNombre(tipoLicencia.nombre)
-            setEdadMinima(String(tipoLicencia.edadMinima))
-            setDescripcion(tipoLicencia.descripcion ?? '')
+            setDescripcion(tipoLicencia.descripcion)
+            setNivel(String(tipoLicencia.nivel))
         } else {
             setNombre('')
-            setEdadMinima('')
             setDescripcion('')
+            setNivel('')
         }
     }, [tipoLicencia, abierto])
 
@@ -35,11 +35,11 @@ function TipoLicenciaFormDialog({ abierto, tipoLicencia, onCerrar, onGuardado }:
         try {
             const datos = {
                 nombre,
-                edadMinima: Number(edadMinima),
-                descripcion: descripcion || undefined,
+                descripcion,
+                nivel: Number(nivel),
             }
             if (editando && tipoLicencia) {
-                await updateTipoLicencia(tipoLicencia.id, datos)
+                await updateTipoLicencia(tipoLicencia.idTipoLicencia, datos)
             } else {
                 await createTipoLicencia(datos)
             }
@@ -61,14 +61,14 @@ function TipoLicenciaFormDialog({ abierto, tipoLicencia, onCerrar, onGuardado }:
                         fullWidth
                     />
                     <TextField
-                        label="Edad minima"
+                        label="Nivel"
                         type="number"
-                        value={edadMinima}
-                        onChange={(e) => setEdadMinima(e.target.value)}
+                        value={nivel}
+                        onChange={(e) => setNivel(e.target.value)}
                         fullWidth
                     />
                     <TextField
-                        label="Descripcion (opcional)"
+                        label="Descripcion"
                         value={descripcion}
                         onChange={(e) => setDescripcion(e.target.value)}
                         fullWidth

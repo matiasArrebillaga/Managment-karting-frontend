@@ -1,7 +1,16 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 
 function Header () {
+    const { persona, logout } = useAuth()
+    const navigate = useNavigate()
+
+    function handleLogout() {
+        logout()
+        navigate('/')
+    }
+
     return (
         <header className="topbar">
             <Link to="/">
@@ -19,8 +28,17 @@ function Header () {
                 <Link to="/kartings">Kartings</Link>
                 <Link to="/tipos-karting">Tipos de Karting</Link>
                 <Link to="/licencias">Licencias</Link>
-                <Link to="/login">Login</Link>
-                <Link to="/register">Register</Link>
+                {persona ? (
+                    <>
+                        <span>Hola, {persona.nombre} ({persona.rol.nombre})</span>
+                        <button onClick={handleLogout}>Salir</button>
+                    </>
+                ) : (
+                    <>
+                        <Link to="/login">Login</Link>
+                        <Link to="/register">Register</Link>
+                    </>
+                )}
             </div>
         </header>
     )

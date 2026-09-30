@@ -13,25 +13,38 @@ import CircuitosPage from './features/circuitos/CircuitosPage.tsx'
 import KartingsPage from './features/kartings/KartingsPage.tsx'
 import TiposKartingPage from './features/tiposKarting/TiposKartingPage.tsx'
 import LicenciasPage from './features/licencias/LicenciasPage.tsx'
+import { AuthProvider } from './context/AuthContext.tsx'
+import RutaProtegida from './components/RutaProtegida.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <CssBaseline />
-      <Header />
-      <Routes>
-        <Route path="/" element={<App />} />
-        <Route path="/login" element={<AuthPage mode="login" />} />
-        <Route path="/register" element={<AuthPage mode="register" />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/localidades" element={<LocalidadesPage />} />
-        <Route path="/tipos-licencia" element={<TiposLicenciaPage />} />
-        <Route path="/circuitos" element={<CircuitosPage />} />
-        <Route path="/kartings" element={<KartingsPage />} />
-        <Route path="/tipos-karting" element={<TiposKartingPage />} />
-        <Route path="/licencias" element={<LicenciasPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <AuthProvider>
+        <CssBaseline />
+        <Header />
+        <Routes>
+          <Route path="/" element={<App />} />
+          <Route path="/login" element={<AuthPage mode="login" />} />
+          <Route path="/register" element={<AuthPage mode="register" />} />
+          <Route path="/dashboard" element={<RutaProtegida><Dashboard /></RutaProtegida>} />
+          <Route path="/localidades" element={<RutaProtegida><LocalidadesPage /></RutaProtegida>} />
+          <Route path="/circuitos" element={<RutaProtegida><CircuitosPage /></RutaProtegida>} />
+          <Route path="/kartings" element={<RutaProtegida><KartingsPage /></RutaProtegida>} />
+          <Route
+            path="/tipos-licencia"
+            element={<RutaProtegida rolesPermitidos={['ADMIN', 'EMPLEADO']}><TiposLicenciaPage /></RutaProtegida>}
+          />
+          <Route
+            path="/tipos-karting"
+            element={<RutaProtegida rolesPermitidos={['ADMIN', 'EMPLEADO']}><TiposKartingPage /></RutaProtegida>}
+          />
+          <Route
+            path="/licencias"
+            element={<RutaProtegida rolesPermitidos={['ADMIN', 'EMPLEADO']}><LicenciasPage /></RutaProtegida>}
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   </StrictMode>,
 )

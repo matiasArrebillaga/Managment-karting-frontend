@@ -9,6 +9,78 @@ export interface Circuito {
     dificultad: string
     maximo: number
 }
+ 
+export interface ITorneos {
+    idTorneos: number
+    nombre: string
+    descripcion: string
+    cupoMaximo: number
+    fechaInicio: Date
+    fechaFin: Date
+}
+
+export type CreateTorneos = Omit<ITorneos, 'idTorneos'>
+export type UpdateTorneos = Partial<CreateTorneos>
+
+export interface IInscripcion {
+    Torneos_idTorneos: number
+    Personas_idPersona: number
+    fecha_inscripcion: Date
+    hora_inscripcion: Date
+}
+
+export type CreatePersonaTorneo = Pick<IInscripcion, 'Torneos_idTorneos' | 'Personas_idPersona'>
+
+export interface ICarrera {
+    idCarreras: number
+    fechaCarrera: Date
+    horaInicio: Date
+    horaFin: Date
+    Torneos_idTorneos: number
+    Circuitos_idCircuitos: number
+}
+
+export type CreateCarrera = Omit<ICarrera, 'idCarreras' | 'horaInicio' | 'horaFin'> & {
+    horaInicio: Date | string
+    horaFin: Date | string
+}
+
+export type UpdateCarrera = Partial<Omit<ICarrera, 'idCarreras'>> & {
+    horaInicio?: Date | string
+    horaFin?: Date | string
+}
+
+export interface IReserva {
+    idReservas?: number
+    fechaReserva: Date
+    horaInicio: Date
+    horaFin: Date
+    Personas_idPersona: number
+    Circuitos_idCircuitos: number
+    Kartings_idKartings: number
+}
+
+export type CreateReserva = Omit<IReserva, 'idReservas'>
+export type UpdateReserva = Partial<CreateReserva>
+
+export type CreateReservaInput = Omit<CreateReserva, 'fechaReserva' | 'horaInicio' | 'horaFin'> & {
+    fechaReserva: Date | string
+    horaInicio: Date | string
+    horaFin: Date | string
+}
+
+export type UpdateReservaInput = Partial<CreateReservaInput>
+
+export interface IParticipacion {
+    Carrera_Kartings_idKartings: number
+    Carrera_Torneos_idTorneos: number
+    Carrera_Circuitos_idCircuitos: number
+    Carrera_Fecha: Date
+    Personas_idPersona: number
+    puntos: number
+    tiempo: string
+    posicion_final: number
+}
 
 export interface TipoLicencia {
     idTipoLicencia: number

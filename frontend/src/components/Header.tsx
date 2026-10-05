@@ -6,7 +6,7 @@ function Header () {
     const { persona, logout } = useAuth()
     const navigate = useNavigate()
 
-    function handleLogout() {
+    function handleLogout () {
         logout()
         navigate('/')
     }
@@ -22,14 +22,22 @@ function Header () {
                 </div>
             </Link>
             <div className="top-actions">
-                <Link to="/localidades">Localidades</Link>
-                <Link to="/tipos-licencia">Tipos de Licencia</Link>
-                <Link to="/circuitos">Circuitos</Link>
-                <Link to="/kartings">Kartings</Link>
-                <Link to="/tipos-karting">Tipos de Karting</Link>
-                <Link to="/licencias">Licencias</Link>
                 {persona ? (
                     <>
+                        <Link to="/carreras">Carreras</Link>
+                        <Link to="/torneos">Torneos</Link>
+                        <Link to="/torneos/listado">Estado de Torneos</Link>
+                        <Link to="/reservas">Reservas</Link>
+                        <Link to="/circuitos">Circuitos</Link>
+                        <Link to="/kartings">Kartings</Link>
+                        {persona.rol.nombre !== "CLIENTE" ? (
+                            <>
+                                <Link to="/localidades">Localidades</Link>
+                                <Link to="/tipos-licencia">Tipos de Licencia</Link>
+                                <Link to="/tipos-karting">Tipos de Karting</Link>
+                                <Link to="/participaciones">Participaciones</Link>
+                                <Link to="/licencias">Licencias</Link></>) : (<></>)
+                        }
                         <span>Hola, {persona.nombre} ({persona.rol.nombre})</span>
                         <button onClick={handleLogout}>Salir</button>
                     </>
@@ -40,7 +48,7 @@ function Header () {
                     </>
                 )}
             </div>
-        </header>
+        </header >
     )
 }
 

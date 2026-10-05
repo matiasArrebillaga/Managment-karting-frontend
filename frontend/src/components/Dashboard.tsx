@@ -1,13 +1,9 @@
 import { useState } from "react";
 import {
     ArrowUpRight,
-    CalendarDays,
     ChevronDown,
-    Gauge,
     Plus,
     Search,
-    Trophy,
-    Users,
     Wrench,
 } from "lucide-react";
 import { activity, karts, races } from "../data/mockData";
@@ -36,61 +32,6 @@ function Dashboard () {
                 <button className="primary-button">
                     <Plus size={18} /> Nueva reserva
                 </button>
-            </section>
-            <section className="metrics-grid">
-                <article className="metric-card dark">
-                    <div className="metric-icon">
-                        <Trophy size={17} />
-                    </div>
-                    <p>Reservas de hoy</p>
-                    <strong>24</strong>
-                    <small className="positive">
-                        +12.5% <span>vs. ayer</span>
-                    </small>
-                    <div className="sparkline">
-                        <b></b>
-                        <b></b>
-                        <b></b>
-                        <b></b>
-                        <b></b>
-                        <b></b>
-                        <b></b>
-                        <b></b>
-                    </div>
-                </article>
-                <article className="metric-card">
-                    <div className="metric-icon lime">
-                        <Users size={17} />
-                    </div>
-                    <p>Pilotos activos</p>
-                    <strong>86</strong>
-                    <small className="positive">
-                        +8.2% <span>este mes</span>
-                    </small>
-                </article>
-                <article className="metric-card">
-                    <div className="metric-icon orange">
-                        <Gauge size={17} />
-                    </div>
-                    <p>Kartings disponibles</p>
-                    <strong>
-                        08 <small>/ 10</small>
-                    </strong>
-                    <small className="warning">2 en mantenimiento</small>
-                    <div className="progress">
-                        <span></span>
-                    </div>
-                </article>
-                <article className="metric-card">
-                    <div className="metric-icon blue">
-                        <CalendarDays size={17} />
-                    </div>
-                    <p>Próxima carrera</p>
-                    <strong>
-                        11:00 <small>AM</small>
-                    </strong>
-                    <small className="muted">Torneo Primavera</small>
-                </article>
             </section>
             <section className="dashboard-grid">
                 <article className="panel schedule-panel">

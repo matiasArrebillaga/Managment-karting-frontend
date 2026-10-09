@@ -1,8 +1,9 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
-import { login as loginService, register as registerService, type DatosRegistro, type PersonaConRol, type Sesion } from "../services/authService"
+import { login as loginService, register as registerService, type DatosRegistro, type Sesion } from "../services/authService"
+import type { PersonaAuth } from "../types"
 
 type AuthContextValue = {
-    persona: PersonaConRol | null
+    persona: PersonaAuth | null
     cargando: boolean
     login: (mail: string, contraseña: string) => Promise<void>
     register: (datos: DatosRegistro) => Promise<void>
@@ -14,7 +15,7 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 const CLAVE_STORAGE = 'karting_sesion'
 
 export function AuthProvider ({ children }: { children: ReactNode }) {
-    const [persona, setPersona] = useState<PersonaConRol | null>(null)
+    const [persona, setPersona] = useState<PersonaAuth | null>(null)
     const [cargando, setCargando] = useState(true)
 
     useEffect(() => {

@@ -1,12 +1,28 @@
 import type {Localidad} from '../types'
 import {localidades as seed} from '../data/mockData'
 
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api'
+const USE_MOCKS = import.meta.env.VITE_USE_MOCKS === 'true'
+
 let localidades: Localidad[] = [...seed]
 let siguienteId = localidades.length + 1
 
 const demora = () => new Promise((resolve) => setTimeout(resolve, 300))
 
+export async function getLocalidadesParaRegistro(): Promise<Localidad[]> {
+    return [...seed]
+}
+
 export async function getLocalidades(): Promise<Localidad[]> {
+    if (!USE_MOCKS) {
+        const response = await fetch(`${API_URL}/localidades`)
+        if (!response.ok) {
+            const error = await response.json().catch(() => null)
+            throw new Error(error?.message ?? 'No se pudieron cargar las localidades')
+        }
+        return response.json()
+    }
+
     await demora()
     return localidades
 }

@@ -241,7 +241,8 @@ nav {
     margin-top: 28px;
 }
 
-.auth-form input {
+.auth-form input,
+.auth-form select {
     width: 100%;
     padding: 13px 12px;
     color: var(--ink);
@@ -251,7 +252,8 @@ nav {
     font-size: 12px;
 }
 
-.auth-form input:focus {
+.auth-form input:focus,
+.auth-form select:focus {
     border-color: var(--ink);
 }
 

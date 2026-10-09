@@ -3,6 +3,33 @@ export interface Localidad {
     nombre: string
 }
 
+export type Rol = 'ADMIN' | 'EMPLEADO' | 'CLIENTE'
+
+export interface PersonaAuth {
+    idPersona: number
+    nombre: string
+    apellido: string
+    mail: string
+    rol: { idRol: number; nombre: Rol }
+}
+
+export interface Sesion {
+    token: string
+    persona: PersonaAuth
+}
+
+export interface DatosRegistro {
+    nombre: string
+    apellido: string
+    dni: string
+    fechaNacimiento: string
+    mail: string
+    telefono: string
+    contraseña: string
+    Localidades_idLocalidades: number
+    idRol: number
+}
+
 export interface Circuito {
     idCircuitos: number
     distancia: number

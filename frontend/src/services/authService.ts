@@ -1,126 +1,122 @@
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api'
-const USE_MOCKS = import.meta.env.VITE_USE_MOCKS !== 'false'
+import type { DatosRegistro, Rol, Sesion } from '../types'
 
-export type Rol = 'ADMIN' | 'EMPLEADO' | 'CLIENTE'
+const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api').replace(/\/+$/, '')
 
-export interface PersonaConRol {
-    idPersona: number
-    nombre: string
-    apellido: string
-    mail: string
-    rol: { idRol: number; nombre: Rol }
+export type { DatosRegistro, Rol, Sesion }
+
+function esObjeto(valor: unknown): valor is Record<string, unknown> {
+    return typeof valor === 'object' && valor !== null
 }
 
-export interface Sesion {
-    token: string
-    persona: PersonaConRol
+async function leerError(response: Response, mensajePorDefecto: string): Promise<Error> {
+    const cuerpo: unknown = await response.json().catch(() => null)
+    if (esObjeto(cuerpo) && typeof cuerpo.message === 'string') {
+        return new Error(cuerpo.message)
+    }
+    return new Error(mensajePorDefecto)
 }
 
-export interface DatosRegistro {
-    nombre: string
-    apellido: string
-    mail: string
-    contraseña: string
+function leerRol(valor: unknown): Rol | null {
+    const rol = typeof valor === 'string'
+        ? valor
+        : esObjeto(valor) && typeof valor.nombre === 'string'
+            ? valor.nombre
+            : null
+
+    return rol === 'ADMIN' || rol === 'EMPLEADO' || rol === 'CLIENTE' ? rol : null
 }
 
-type UsuarioMock = {
-    idPersona: number
-    nombre: string
-    apellido: string
-    mail: string
-    contraseña: string
-    idRol: number
-    rol: Rol
-}
+function decodificarRol(token: string): Rol | null {
+    const segmentoPayload = token.split('.')[1]
+    if (!segmentoPayload) return null
 
-// Usuarios de prueba para poder loguearse sin el backend real (VITE_USE_MOCKS=true).
-// Los idPersona coinciden con los de data/mockData.ts (Maria Gomez, Agustina Castro, Tomas Ibarra).
-const USUARIOS_MOCK: UsuarioMock[] = [
-    { idPersona: 1, nombre: 'Maria', apellido: 'Gomez', mail: 'admin@karting.com', contraseña: '1234', idRol: 1, rol: 'ADMIN' },
-    { idPersona: 2, nombre: 'Agustina', apellido: 'Castro', mail: 'empleado@karting.com', contraseña: '1234', idRol: 2, rol: 'EMPLEADO' },
-    { idPersona: 3, nombre: 'Tomas', apellido: 'Ibarra', mail: 'cliente@karting.com', contraseña: '1234', idRol: 3, rol: 'CLIENTE' },
-]
-
-const CLAVE_USUARIOS_REGISTRADOS = 'karting_usuarios_registrados'
-const demora = () => new Promise((resolve) => setTimeout(resolve, 300))
-
-function usuariosRegistrados(): UsuarioMock[] {
     try {
-        return JSON.parse(localStorage.getItem(CLAVE_USUARIOS_REGISTRADOS) ?? '[]') as UsuarioMock[]
+        const base64 = segmentoPayload.replace(/-/g, '+').replace(/_/g, '/')
+        const bytes = Uint8Array.from(atob(base64), (caracter) => caracter.charCodeAt(0))
+        const payload: unknown = JSON.parse(new TextDecoder().decode(bytes))
+        return esObjeto(payload) ? leerRol(payload.rol) : null
     } catch {
-        return []
+        return null
     }
 }
 
-function crearSesion(usuario: UsuarioMock): Sesion {
+function normalizarSesion(respuesta: unknown): Sesion {
+    if (
+        !esObjeto(respuesta)
+        || typeof respuesta.token !== 'string'
+        || !esObjeto(respuesta.persona)
+    ) {
+        throw new Error('El servidor devolvió una respuesta de inicio de sesión inválida')
+    }
+
+    const persona = respuesta.persona
+    if (
+        typeof persona.idPersona !== 'number'
+        || typeof persona.nombre !== 'string'
+        || typeof persona.apellido !== 'string'
+        || typeof persona.mail !== 'string'
+    ) {
+        throw new Error('El servidor devolvió datos de persona incompletos')
+    }
+
+    const rol = decodificarRol(respuesta.token) ?? leerRol(persona.rol)
+    if (!rol) {
+        throw new Error('La respuesta de inicio de sesión no contiene un rol válido')
+    }
+
+    const idRol = esObjeto(persona.rol) && typeof persona.rol.idRol === 'number'
+        ? persona.rol.idRol
+        : rol === 'ADMIN' ? 1 : rol === 'EMPLEADO' ? 2 : 3
+
     return {
-        token: `mock-token-${usuario.idPersona}`,
+        token: respuesta.token,
         persona: {
-            idPersona: usuario.idPersona,
-            nombre: usuario.nombre,
-            apellido: usuario.apellido,
-            mail: usuario.mail,
-            rol: { idRol: usuario.idRol, nombre: usuario.rol },
+            idPersona: persona.idPersona,
+            nombre: persona.nombre,
+            apellido: persona.apellido,
+            mail: persona.mail,
+            rol: { idRol, nombre: rol },
         },
     }
 }
 
 export async function login(mail: string, contraseña: string): Promise<Sesion> {
-    if (USE_MOCKS) {
-        await demora()
-        const todosLosUsuarios = [...USUARIOS_MOCK, ...usuariosRegistrados()]
-        const usuario = todosLosUsuarios.find(
-            (u) => u.mail.toLowerCase() === mail.trim().toLowerCase() && u.contraseña === contraseña,
-        )
-        if (!usuario) {
-            throw new Error('Credenciales invalidas')
-        }
-        return crearSesion(usuario)
-    }
-
     const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mail, contraseña }),
+        body: JSON.stringify({ mail: mail.trim(), contraseña }),
     })
+
     if (!response.ok) {
-        const error = await response.json().catch(() => null)
-        throw new Error(error?.message ?? 'Credenciales invalidas')
+        throw await leerError(response, 'No se pudo iniciar sesión')
     }
-    return response.json()
+
+    return normalizarSesion(await response.json())
 }
 
 export async function register(datos: DatosRegistro): Promise<Sesion> {
-    if (USE_MOCKS) {
-        await demora()
-        const mail = datos.mail.trim().toLowerCase()
-        const registrados = usuariosRegistrados()
-        const existe = [...USUARIOS_MOCK, ...registrados].some((usuario) => usuario.mail.toLowerCase() === mail)
-        if (existe) {
-            throw new Error('Ya existe una cuenta con ese email')
-        }
-
-        const usuario: UsuarioMock = {
-            idPersona: Math.max(0, ...USUARIOS_MOCK.map((u) => u.idPersona), ...registrados.map((u) => u.idPersona)) + 1,
-            nombre: datos.nombre.trim(),
-            apellido: datos.apellido.trim(),
-            mail,
-            contraseña: datos.contraseña,
-            idRol: 3,
-            rol: 'CLIENTE',
-        }
-        localStorage.setItem(CLAVE_USUARIOS_REGISTRADOS, JSON.stringify([...registrados, usuario]))
-        return crearSesion(usuario)
-    }
-
     const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(datos),
+        body: JSON.stringify({
+            ...datos,
+            nombre: datos.nombre.trim(),
+            apellido: datos.apellido.trim(),
+            dni: datos.dni.trim(),
+            mail: datos.mail.trim(),
+            telefono: datos.telefono.trim(),
+            idRol: 3,
+        }),
     })
+
     if (!response.ok) {
-        const error = await response.json().catch(() => null)
-        throw new Error(error?.message ?? 'No se pudo crear la cuenta')
+        throw await leerError(response, 'No se pudo crear la cuenta')
     }
-    return response.json()
+
+    try {
+        return await login(datos.mail, datos.contraseña)
+    } catch (error) {
+        const detalle = error instanceof Error ? error.message : 'Error desconocido'
+        throw new Error(`La cuenta se creó, pero no se pudo iniciar sesión automáticamente: ${detalle}`)
+    }
 }

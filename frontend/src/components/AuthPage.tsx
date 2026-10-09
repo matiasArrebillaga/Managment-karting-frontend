@@ -1,6 +1,8 @@
-import { useState, type FormEvent } from "react"
+import { useEffect, useState, type FormEvent } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
+import { getLocalidadesParaRegistro } from "../services/localidadService"
+import type { DatosRegistro, Localidad } from "../types"
 
 function AuthPage ({ mode }: { mode: 'login' | 'register' }) {
     const isLogin = mode === 'login'
@@ -9,11 +11,28 @@ function AuthPage ({ mode }: { mode: 'login' | 'register' }) {
 
     const [nombre, setNombre] = useState('')
     const [apellido, setApellido] = useState('')
+    const [dni, setDni] = useState('')
+    const [fechaNacimiento, setFechaNacimiento] = useState('')
     const [mail, setMail] = useState('')
+    const [telefono, setTelefono] = useState('')
+    const [localidadId, setLocalidadId] = useState('')
+    const [localidades, setLocalidades] = useState<Localidad[]>([])
+    const [cargandoLocalidades, setCargandoLocalidades] = useState(!isLogin)
     const [contraseña, setContraseña] = useState('')
     const [confirmarContraseña, setConfirmarContraseña] = useState('')
     const [error, setError] = useState('')
     const [enviando, setEnviando] = useState(false)
+
+    useEffect(() => {
+        if (isLogin) return
+
+        getLocalidadesParaRegistro()
+            .then(setLocalidades)
+            .catch((error: unknown) => {
+                setError(error instanceof Error ? error.message : 'No se pudieron cargar las localidades')
+            })
+            .finally(() => setCargandoLocalidades(false))
+    }, [isLogin])
 
     async function handleSubmit (evento: FormEvent) {
         evento.preventDefault()
@@ -28,7 +47,18 @@ function AuthPage ({ mode }: { mode: 'login' | 'register' }) {
                     setError('Las contraseñas no coinciden')
                     return
                 }
-                await register({ nombre, apellido, mail, contraseña })
+                const datos: DatosRegistro = {
+                    nombre,
+                    apellido,
+                    dni,
+                    fechaNacimiento,
+                    mail,
+                    telefono,
+                    contraseña,
+                    Localidades_idLocalidades: Number(localidadId),
+                    idRol: 3,
+                }
+                await register(datos)
             }
             navigate('/dashboard')
         } catch (error) {
@@ -68,6 +98,23 @@ function AuthPage ({ mode }: { mode: 'login' | 'register' }) {
                             onChange={(e) => setApellido(e.target.value)}
                             required
                         />
+                        <input
+                            type="text"
+                            placeholder="DNI"
+                            aria-label="DNI"
+                            autoComplete="off"
+                            value={dni}
+                            onChange={(e) => setDni(e.target.value)}
+                            required
+                        />
+                        <input
+                            type="date"
+                            aria-label="Fecha de nacimiento"
+                            autoComplete="bday"
+                            value={fechaNacimiento}
+                            onChange={(e) => setFechaNacimiento(e.target.value)}
+                            required
+                        />
                     </>}
                     <input
                         type="email"
@@ -78,6 +125,34 @@ function AuthPage ({ mode }: { mode: 'login' | 'register' }) {
                         onChange={(e) => setMail(e.target.value)}
                         required
                     />
+                    {!isLogin && <>
+                        <input
+                            type="tel"
+                            placeholder="Teléfono"
+                            aria-label="Teléfono"
+                            autoComplete="tel"
+                            value={telefono}
+                            onChange={(e) => setTelefono(e.target.value)}
+                            required
+                        />
+                        <select
+                            aria-label="Localidad"
+                            autoComplete="address-level2"
+                            value={localidadId}
+                            onChange={(e) => setLocalidadId(e.target.value)}
+                            disabled={cargandoLocalidades || localidades.length === 0}
+                            required
+                        >
+                            <option value="">
+                                {cargandoLocalidades ? 'Cargando localidades...' : 'Seleccioná tu localidad'}
+                            </option>
+                            {localidades.map((localidad) => (
+                                <option key={localidad.idLocalidades} value={localidad.idLocalidades}>
+                                    {localidad.nombre}
+                                </option>
+                            ))}
+                        </select>
+                    </>}
                     <input
                         type="password"
                         placeholder="Contraseña"
@@ -98,7 +173,11 @@ function AuthPage ({ mode }: { mode: 'login' | 'register' }) {
                         required
                     />}
                     {error && <p style={{ color: '#d32f2f' }}>{error}</p>}
-                    <button className="primary-button" type="submit" disabled={enviando}>
+                    <button
+                        className="primary-button"
+                        type="submit"
+                        disabled={enviando || (!isLogin && (cargandoLocalidades || localidades.length === 0))}
+                    >
                         {isLogin
                             ? (enviando ? 'Ingresando...' : 'Ingresar')
                             : (enviando ? 'Creando cuenta...' : 'Registrarme')}

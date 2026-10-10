@@ -38,7 +38,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/reservas" element={<RutaProtegida><ReservasPage /></RutaProtegida>} />
           <Route
             path="/participaciones"
-            element={<RutaProtegida rolesPermitidos={['ADMIN', 'EMPLEADO']}><ParticipacionesPage /></RutaProtegida>}
+            element={<RutaProtegida rolesPermitidos={['EMPLEADO']}><ParticipacionesPage /></RutaProtegida>}
           />
           <Route path="/localidades" element={<RutaProtegida><LocalidadesPage /></RutaProtegida>} />
           <Route path="/circuitos" element={<RutaProtegida><CircuitosPage /></RutaProtegida>} />

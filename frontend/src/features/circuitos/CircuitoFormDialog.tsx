@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { createCircuito, updateCircuito } from "../../services/circuitoService"
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Stack, TextField } from "@mui/material"
+import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Stack, TextField } from "@mui/material"
 import type { Circuito } from "../../types"
 
 const DIFICULTADES = ['Facil', 'Media', 'Dificil']
@@ -17,8 +17,14 @@ function CircuitoFormDialog({ abierto, circuito, onCerrar, onGuardado }: Props) 
     const [dificultad, setDificultad] = useState('')
     const [maximo, setMaximo] = useState('')
     const [guardando, setGuardando] = useState(false)
+    const [error, setError] = useState('')
 
     const editando = Boolean(circuito)
+    const puedeGuardar = Number.isInteger(Number(distancia))
+        && Number(distancia) > 0
+        && dificultad !== ''
+        && Number.isInteger(Number(maximo))
+        && Number(maximo) > 0
 
     useEffect(() => {
         if (circuito) {
@@ -33,7 +39,12 @@ function CircuitoFormDialog({ abierto, circuito, onCerrar, onGuardado }: Props) 
     }, [circuito, abierto])
 
     async function handleGuardar() {
+        if (!puedeGuardar) {
+            setError('Ingresá una distancia y capacidad válidas, y seleccioná la dificultad')
+            return
+        }
         setGuardando(true)
+        setError('')
         try {
             const datos = {
                 distancia: Number(distancia),
@@ -46,6 +57,8 @@ function CircuitoFormDialog({ abierto, circuito, onCerrar, onGuardado }: Props) 
                 await createCircuito(datos)
             }
             onGuardado()
+        } catch (motivo) {
+            setError(motivo instanceof Error ? motivo.message : 'No se pudo guardar el circuito')
         } finally {
             setGuardando(false)
         }
@@ -61,6 +74,8 @@ function CircuitoFormDialog({ abierto, circuito, onCerrar, onGuardado }: Props) 
                         type="number"
                         value={distancia}
                         onChange={(e) => setDistancia(e.target.value)}
+                        slotProps={{ htmlInput: { min: 1, step: 1 } }}
+                        required
                         fullWidth
                     />
                     <TextField
@@ -68,6 +83,7 @@ function CircuitoFormDialog({ abierto, circuito, onCerrar, onGuardado }: Props) 
                         label="Dificultad"
                         value={dificultad}
                         onChange={(e) => setDificultad(e.target.value)}
+                        required
                         fullWidth
                     >
                         {DIFICULTADES.map((d) => (
@@ -79,13 +95,16 @@ function CircuitoFormDialog({ abierto, circuito, onCerrar, onGuardado }: Props) 
                         type="number"
                         value={maximo}
                         onChange={(e) => setMaximo(e.target.value)}
+                        slotProps={{ htmlInput: { min: 1, step: 1 } }}
+                        required
                         fullWidth
                     />
+                    {error && <Alert severity="error">{error}</Alert>}
                 </Stack>
             </DialogContent>
             <DialogActions>
                 <Button onClick={onCerrar}>Cancelar</Button>
-                <Button variant="contained" onClick={handleGuardar} disabled={guardando}>Guardar</Button>
+                <Button variant="contained" onClick={handleGuardar} disabled={guardando || !puedeGuardar}>Guardar</Button>
             </DialogActions>
         </Dialog>
     )

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from '@mui/material'
+import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from '@mui/material'
 import { createTorneo, updateTorneo } from '../../services/torneoService'
 import type { CreateTorneos, ITorneos } from '../../types'
 
@@ -24,6 +24,7 @@ function TorneoFormDialog ({ abierto, torneo, onCerrar, onGuardado }: Props) {
     const [fechaInicio, setFechaInicio] = useState('')
     const [fechaFin, setFechaFin] = useState('')
     const [guardando, setGuardando] = useState(false)
+    const [error, setError] = useState('')
 
     const editando = Boolean(torneo)
     const fechasValidas = fechaInicio !== '' && fechaFin !== '' && fechaInicio <= fechaFin
@@ -49,6 +50,7 @@ function TorneoFormDialog ({ abierto, torneo, onCerrar, onGuardado }: Props) {
         if (!puedeGuardar) return
 
         setGuardando(true)
+        setError('')
         try {
             const datos: CreateTorneos = {
                 nombre: nombre.trim(),
@@ -63,6 +65,8 @@ function TorneoFormDialog ({ abierto, torneo, onCerrar, onGuardado }: Props) {
                 await createTorneo(datos)
             }
             onGuardado()
+        } catch (motivo) {
+            setError(motivo instanceof Error ? motivo.message : 'No se pudo guardar el torneo')
         } finally {
             setGuardando(false)
         }
@@ -117,6 +121,7 @@ function TorneoFormDialog ({ abierto, torneo, onCerrar, onGuardado }: Props) {
                         required
                         fullWidth
                     />
+                    {error && <Alert severity="error">{error}</Alert>}
                 </Stack>
             </DialogContent>
             <DialogActions>

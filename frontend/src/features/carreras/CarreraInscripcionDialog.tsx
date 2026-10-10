@@ -19,7 +19,7 @@ function CarreraInscripcionDialog ({ abierto, carrera, idPersona, onCerrar, onIn
     const [error, setError] = useState('')
 
     useEffect(() => {
-        if (!abierto || !carrera) return
+        if (!abierto || !carrera || carrera.idCarreras === undefined) return
 
         setCargando(true)
         setError('')
@@ -33,7 +33,7 @@ function CarreraInscripcionDialog ({ abierto, carrera, idPersona, onCerrar, onIn
     }, [abierto, carrera])
 
     async function handleConfirmar () {
-        if (!carrera || !kartingId) return
+        if (!carrera || carrera.idCarreras === undefined || !kartingId) return
 
         setGuardando(true)
         setError('')

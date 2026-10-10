@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Button, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material'
+import { Alert, Button, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material'
 import { useAuth } from '../../context/AuthContext'
-import { deleteReserva, getReservas } from '../../services/reservaService'
+import { deleteReserva, getMisReservas, getReservas } from '../../services/reservaService'
 import { getCircuitos } from '../../services/circuitoService'
 import { getKartings } from '../../services/kartingService'
 import { getPersonas } from '../../services/personaService'
+import { usaMocks } from '../../services/httpClient'
 import type { Circuito, IReserva, Karting, Persona } from '../../types'
 import ReservaFormDialog from './ReservaFormDialog'
 
@@ -15,28 +16,40 @@ function ReservasPage () {
     const [kartings, setKartings] = useState<Karting[]>([])
     const [personas, setPersonas] = useState<Persona[]>([])
     const [cargando, setCargando] = useState(true)
+    const [error, setError] = useState('')
     const [abierto, setAbierto] = useState(false)
     const [reservaEditando, setReservaEditando] = useState<IReserva | null>(null)
     const puedeGestionar = persona?.rol.nombre === 'ADMIN' || persona?.rol.nombre === 'EMPLEADO'
-    const reservasVisibles = puedeGestionar
-        ? reservas
-        : reservas.filter((reserva) => reserva.Personas_idPersona === persona?.idPersona)
+    const puedeCrearReserva = usaMocks || persona?.rol.nombre === 'EMPLEADO'
+    const reservasVisibles = reservas.filter((reserva) => (
+        puedeGestionar || reserva.Personas_idPersona === persona?.idPersona
+    ))
 
     function cargarReservas () {
         setCargando(true)
-        Promise.all([getReservas(), getCircuitos(), getKartings(), getPersonas()])
+        setError('')
+        Promise.all([
+            puedeGestionar ? getReservas() : getMisReservas(persona?.idPersona),
+            getCircuitos(),
+            getKartings(),
+            puedeGestionar ? getPersonas() : Promise.resolve([]),
+        ])
             .then(([datosReservas, datosCircuitos, datosKartings, datosPersonas]) => {
                 setReservas(datosReservas)
                 setCircuitos(datosCircuitos)
                 setKartings(datosKartings)
                 setPersonas(datosPersonas)
             })
+            .catch((motivo: unknown) => {
+                setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar las reservas')
+            })
             .finally(() => setCargando(false))
     }
 
     useEffect(() => {
+        if (!persona) return
         cargarReservas()
-    }, [])
+    }, [persona?.idPersona, puedeGestionar])
 
     function nombrePersona (id: number) {
         const titular = personas.find((item) => item.idPersona === id)
@@ -53,6 +66,16 @@ function ReservasPage () {
     function nombreKarting (id: number) {
         const karting = kartings.find((item) => item.idKartings === id)
         return karting ? `${karting.modelo} (${karting.categoria})` : `#${id}`
+    }
+
+    function mostrarFecha (fecha: Date) {
+        return fecha.toLocaleDateString()
+    }
+
+    function mostrarHora (hora: Date | string) {
+        return typeof hora === 'string'
+            ? hora.slice(0, 5)
+            : hora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
 
     function handleNueva () {
@@ -92,10 +115,13 @@ function ReservasPage () {
             <Typography variant="h4" gutterBottom>
                 Reservas
             </Typography>
+            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-            <Button variant="contained" onClick={handleNueva} sx={{ mb: 2 }}>
-                Nueva Reserva
-            </Button>
+            {puedeCrearReserva && (
+                <Button variant="contained" onClick={handleNueva} sx={{ mb: 2 }}>
+                    Nueva Reserva
+                </Button>
+            )}
 
             <Table>
                 <TableHead>
@@ -106,6 +132,7 @@ function ReservasPage () {
                         <TableCell>Persona</TableCell>
                         <TableCell>Circuito</TableCell>
                         <TableCell>Karting</TableCell>
+                        <TableCell>Monto</TableCell>
                         <TableCell>Acciones</TableCell>
                     </TableRow>
                 </TableHead>
@@ -114,12 +141,13 @@ function ReservasPage () {
                         const puedeModificar = puedeGestionar || persona?.idPersona === reserva.Personas_idPersona
                         return (
                             <TableRow key={reserva.idReservas}>
-                                <TableCell>{reserva.fechaReserva.toLocaleDateString()}</TableCell>
-                                <TableCell>{reserva.horaInicio.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
-                                <TableCell>{reserva.horaFin.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
+                                <TableCell>{mostrarFecha(reserva.fechaReserva)}</TableCell>
+                                <TableCell>{mostrarHora(reserva.horaInicio)}</TableCell>
+                                <TableCell>{mostrarHora(reserva.horaFin)}</TableCell>
                                 <TableCell>{nombrePersona(reserva.Personas_idPersona)}</TableCell>
                                 <TableCell>{nombreCircuito(reserva.Circuitos_idCircuitos)}</TableCell>
                                 <TableCell>{nombreKarting(reserva.Kartings_idKartings)}</TableCell>
+                                <TableCell>{reserva.monto !== undefined ? `$ ${reserva.monto}` : '—'}</TableCell>
                                 <TableCell>
                                     {puedeModificar && (
                                         <>
@@ -139,6 +167,13 @@ function ReservasPage () {
                             </TableRow>
                         )
                     })}
+                    {reservasVisibles.length === 0 && !error && (
+                        <TableRow>
+                            <TableCell colSpan={8} align="center">
+                                No hay reservas para mostrar.
+                            </TableCell>
+                        </TableRow>
+                    )}
                 </TableBody>
             </Table>
 

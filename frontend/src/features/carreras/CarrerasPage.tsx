@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Alert from '@mui/material/Alert'
 import Table from '@mui/material/Table'
 import TableCell from '@mui/material/TableCell'
 import Typography from '@mui/material/Typography'
@@ -13,6 +14,7 @@ import { getTorneos } from '../../services/torneoService'
 import type { Circuito, ICarrera, ITorneos } from '../../types'
 import CarreraFormDialog from './CarreraFormDialog'
 import CarreraInscripcionDialog from './CarreraInscripcionDialog'
+import { usaMocks } from '../../services/httpClient'
 
 function CarrerasPage () {
     const { persona } = useAuth()
@@ -21,10 +23,12 @@ function CarrerasPage () {
     const [circuitos, setCircuitos] = useState<Circuito[]>([])
     const [torneos, setTorneos] = useState<ITorneos[]>([])
     const [cargando, setCargando] = useState(true)
+    const [error, setError] = useState('')
     const [abierto, setAbierto] = useState(false)
     const [carreraEditando, setCarreraEditando] = useState<ICarrera | null>(null)
     const [carreraInscribiendo, setCarreraInscribiendo] = useState<ICarrera | null>(null)
     const puedeGestionar = persona?.rol.nombre === 'ADMIN' || persona?.rol.nombre === 'EMPLEADO'
+    const puedeEliminar = usaMocks ? puedeGestionar : persona?.rol.nombre === 'ADMIN'
 
     function cargarCarreras () {
         setCargando(true)
@@ -32,13 +36,16 @@ function CarrerasPage () {
             getCarreras(),
             getCircuitos(),
             getTorneos(),
-            persona ? getInscripcionesCarreras(persona.idPersona) : Promise.resolve([]),
+            persona && usaMocks ? getInscripcionesCarreras(persona.idPersona) : Promise.resolve([]),
         ])
             .then(([datosCarreras, datosCircuitos, datosTorneos, datosInscripciones]) => {
                 setCarreras(datosCarreras)
                 setCircuitos(datosCircuitos)
                 setTorneos(datosTorneos)
                 setInscripciones(datosInscripciones)
+            })
+            .catch((motivo: unknown) => {
+                setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar las carreras')
             })
             .finally(() => setCargando(false))
     }
@@ -72,12 +79,12 @@ function CarrerasPage () {
         return torneos.find((torneo) => torneo.idTorneos === id)?.nombre ?? `#${id}`
     }
 
-    async function handleEliminar (id: number) {
+    async function handleEliminar (carrera: ICarrera) {
         const confirmar = window.confirm('¿Seguro que querés eliminar esta carrera?')
         if (!confirmar) return
 
         try {
-            await deleteCarrera(id)
+            await deleteCarrera(carrera)
             cargarCarreras()
         } catch (error) {
             alert(error instanceof Error ? error.message : 'No se pudo eliminar la carrera')
@@ -90,14 +97,13 @@ function CarrerasPage () {
     }
 
     function handleInscripto () {
-        if (carreraInscribiendo) {
-            setInscripciones((actuales) => [...actuales, carreraInscribiendo.idCarreras])
-        }
+        const idCarrera = carreraInscribiendo?.idCarreras
+        if (idCarrera !== undefined) setInscripciones((actuales) => [...actuales, idCarrera])
         setCarreraInscribiendo(null)
     }
 
-    async function handleDesanotarse (idCarrera: number) {
-        if (!persona) return
+    async function handleDesanotarse (idCarrera?: number) {
+        if (!persona || idCarrera === undefined) return
         if (!window.confirm('¿Seguro que querés desanotarte de esta carrera?')) return
 
         try {
@@ -118,6 +124,12 @@ function CarrerasPage () {
             <Typography variant="h4" gutterBottom>
                 Carreras
             </Typography>
+            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+            {!usaMocks && (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                    La API permite gestionar carreras. La inscripción a una carrera todavía no está disponible en el backend; la inscripción a torneos se gestiona desde Torneos.
+                </Alert>
+            )}
 
             {puedeGestionar && (
                 <Button variant="contained" onClick={handleNueva} sx={{ mb: 2 }}>
@@ -133,37 +145,41 @@ function CarrerasPage () {
                         <TableCell>Fin</TableCell>
                         <TableCell>Torneo</TableCell>
                         <TableCell>Circuito</TableCell>
+                        <TableCell>Karting</TableCell>
                         <TableCell>Acciones</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
                     {carreras.map((carrera) => (
-                        <TableRow key={carrera.idCarreras}>
+                        <TableRow key={`${carrera.fechaCarrera.toISOString()}-${carrera.Kartings_idKartings ?? carrera.idCarreras}-${carrera.Torneos_idTorneos}-${carrera.Circuitos_idCircuitos}`}>
                             <TableCell>{carrera.fechaCarrera.toLocaleDateString()}</TableCell>
                             <TableCell>{carrera.horaInicio.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
                             <TableCell>{carrera.horaFin.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
                             <TableCell>{nombreTorneo(carrera.Torneos_idTorneos)}</TableCell>
                             <TableCell>{nombreCircuito(carrera.Circuitos_idCircuitos)}</TableCell>
+                            <TableCell>{carrera.Kartings_idKartings === undefined ? '—' : `#${carrera.Kartings_idKartings}`}</TableCell>
                             <TableCell>
                                 {puedeGestionar && (
                                     <>
                                         <Button size="small" onClick={() => handleEditar(carrera)}>
                                             Editar
                                         </Button>
-                                        <Button size="small" color="error" onClick={() => handleEliminar(carrera.idCarreras)}>
-                                            Eliminar
-                                        </Button>
+                                        {puedeEliminar && (
+                                            <Button size="small" color="error" onClick={() => handleEliminar(carrera)}>
+                                                Eliminar
+                                            </Button>
+                                        )}
                                     </>
                                 )}
-                                {inscripciones.includes(carrera.idCarreras) ? (
+                                {usaMocks && carrera.idCarreras !== undefined && inscripciones.includes(carrera.idCarreras) ? (
                                     <Button size="small" onClick={() => handleDesanotarse(carrera.idCarreras)}>
                                         Desanotarme
                                     </Button>
-                                ) : (
+                                ) : usaMocks ? (
                                     <Button size="small" variant="contained" onClick={() => handleAnotarse(carrera)}>
                                         Anotarme
                                     </Button>
-                                )}
+                                ) : null}
                             </TableCell>
                         </TableRow>
                     ))}

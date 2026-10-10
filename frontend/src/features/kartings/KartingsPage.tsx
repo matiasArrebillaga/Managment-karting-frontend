@@ -6,30 +6,44 @@ import TableRow from '@mui/material/TableRow'
 import TableHead from '@mui/material/TableHead'
 import TableBody from '@mui/material/TableBody'
 import Button from '@mui/material/Button'
+import Alert from '@mui/material/Alert'
+import { useAuth } from '../../context/AuthContext'
+import { usaMocks } from '../../services/httpClient'
 import { getKartings, deleteKarting } from '../../services/kartingService'
 import { getTiposKarting } from '../../services/tipoKartingService'
 import type { Karting, TipoKarting } from '../../types'
 import KartingFormDialog from './KartingFormDialog'
 
 function KartingsPage() {
+    const { persona } = useAuth()
     const [kartings, setKartings] = useState<Karting[]>([])
     const [tiposKarting, setTiposKarting] = useState<TipoKarting[]>([])
     const [cargando, setCargando] = useState(true)
+    const [error, setError] = useState('')
     const [abierto, setAbierto] = useState(false)
     const [kartingEditando, setKartingEditando] = useState<Karting | null>(null)
+    const puedeGestionar = usaMocks || persona?.rol.nombre === 'ADMIN' || persona?.rol.nombre === 'EMPLEADO'
+    const puedeEliminar = usaMocks || persona?.rol.nombre === 'ADMIN' || persona?.rol.nombre === 'EMPLEADO'
 
     function cargarKartings() {
         setCargando(true)
-        Promise.all([getKartings(), getTiposKarting()])
+        setError('')
+        Promise.all([
+            getKartings(),
+            puedeGestionar ? getTiposKarting() : Promise.resolve([]),
+        ])
             .then(([datosKartings, datosTipos]) => {
                 setKartings(datosKartings)
                 setTiposKarting(datosTipos)
+            })
+            .catch((motivo: unknown) => {
+                setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los kartings')
             })
             .finally(() => setCargando(false))
     }
 
     function nombreTipoKarting(id: number) {
-        return tiposKarting.find((t) => t.idTiposKarting === id)?.nombre ?? '-'
+        return tiposKarting.find((t) => t.idTiposKarting === id)?.nombre ?? `Tipo #${id}`
     }
 
     useEffect(() => {
@@ -74,10 +88,13 @@ function KartingsPage() {
             <Typography variant="h4" gutterBottom>
                 Kartings
             </Typography>
+            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-            <Button variant="contained" onClick={handleNuevo} sx={{ mb: 2 }}>
-                Nuevo Karting
-            </Button>
+            {puedeGestionar && (
+                <Button variant="contained" onClick={handleNuevo} sx={{ mb: 2 }}>
+                    Nuevo Karting
+                </Button>
+            )}
 
             <Table>
                 <TableHead>
@@ -87,7 +104,7 @@ function KartingsPage() {
                         <TableCell>Tipo de Karting</TableCell>
                         <TableCell>Estado</TableCell>
                         <TableCell>Fecha Adquisicion</TableCell>
-                        <TableCell>Acciones</TableCell>
+                        {(puedeGestionar || puedeEliminar) && <TableCell>Acciones</TableCell>}
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -98,14 +115,20 @@ function KartingsPage() {
                             <TableCell>{nombreTipoKarting(karting.TiposKarting_idTiposKarting)}</TableCell>
                             <TableCell>{karting.estado}</TableCell>
                             <TableCell>{karting.fechaAdquisicion}</TableCell>
-                            <TableCell>
-                                <Button size="small" onClick={() => handleEditar(karting)}>
-                                    Editar
-                                </Button>
-                                <Button size="small" color="error" onClick={() => handleEliminar(karting.idKartings)}>
-                                    Eliminar
-                                </Button>
-                            </TableCell>
+                            {(puedeGestionar || puedeEliminar) && (
+                                <TableCell>
+                                    {puedeGestionar && (
+                                        <Button size="small" onClick={() => handleEditar(karting)}>
+                                            Editar
+                                        </Button>
+                                    )}
+                                    {puedeEliminar && (
+                                        <Button size="small" color="error" onClick={() => handleEliminar(karting.idKartings)}>
+                                            Eliminar
+                                        </Button>
+                                    )}
+                                </TableCell>
+                            )}
                         </TableRow>
                     ))}
                 </TableBody>

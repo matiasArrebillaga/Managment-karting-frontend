@@ -2,6 +2,7 @@ import type { Circuito, CreateReserva, CreateReservaInput, IReserva, UpdateReser
 import { getCircuitos } from './circuitoService'
 import { getKartings } from './kartingService'
 import { reservas as seed } from '../data/mockData'
+import { apiFetch, usaMocks } from './httpClient'
 
 let reservas: IReserva[] = [...seed]
 let siguienteId = Math.max(0, ...reservas.map((reserva) => reserva.idReservas ?? 0)) + 1
@@ -32,6 +33,95 @@ function normalizarReserva(datos: CreateReservaInput): CreateReserva {
         horaInicio: combinarFechaHora(fechaReserva, datos.horaInicio),
         horaFin: combinarFechaHora(fechaReserva, datos.horaFin),
     }
+}
+
+function esObjeto(valor: unknown): valor is Record<string, unknown> {
+    return typeof valor === 'object' && valor !== null
+}
+
+function normalizarReservaApi(valor: unknown): IReserva {
+    if (!esObjeto(valor)) {
+        throw new Error('El servidor devolvió una reserva inválida')
+    }
+
+    const fecha = valor.fechaReserva
+    const horaInicio = valor.horaInicio
+    const horaFin = valor.horaFin
+    if (
+        typeof valor.idReservas !== 'number'
+        || typeof fecha !== 'string'
+        || typeof valor.Personas_idPersona !== 'number'
+        || typeof valor.Circuitos_idCircuitos !== 'number'
+        || typeof valor.Kartings_idKartings !== 'number'
+    ) {
+        throw new Error('La API de reservas no devolvió los campos requeridos por el modelo del backend')
+    }
+
+    const fechaReserva = new Date(`${fecha.slice(0, 10)}T00:00:00`)
+    if (Number.isNaN(fechaReserva.getTime())) {
+        throw new Error('La API devolvió una fecha de reserva inválida')
+    }
+
+    return {
+        idReservas: valor.idReservas,
+        fechaReserva,
+        horaInicio: typeof horaInicio === 'string' ? horaInicio : '',
+        horaFin: typeof horaFin === 'string' ? horaFin : '',
+        Personas_idPersona: valor.Personas_idPersona,
+        Circuitos_idCircuitos: valor.Circuitos_idCircuitos,
+        Kartings_idKartings: valor.Kartings_idKartings,
+        ...(typeof valor.monto === 'string' || typeof valor.monto === 'number'
+            ? { monto: valor.monto }
+            : {}),
+    }
+}
+
+function normalizarListaReservasApi(valor: unknown): IReserva[] {
+    if (!Array.isArray(valor)) {
+        throw new Error('El servidor devolvió una lista de reservas inválida')
+    }
+    return valor.map(normalizarReservaApi)
+}
+
+function datosApi(
+    datos: Partial<CreateReservaInput>,
+): Record<string, string | number> {
+    const cuerpo: Record<string, string | number> = {}
+    if (datos.fechaReserva !== undefined) {
+        const fecha = datos.fechaReserva instanceof Date
+            ? fechaInputApi(datos.fechaReserva)
+            : datos.fechaReserva.slice(0, 10)
+        cuerpo.fechaReserva = `${fecha}T00:00:00.000Z`
+    }
+    if (datos.horaInicio !== undefined && datos.horaInicio !== '') {
+        cuerpo.horaInicio = horaInputApi(datos.horaInicio)
+    }
+    if (datos.horaFin !== undefined && datos.horaFin !== '') {
+        cuerpo.horaFin = horaInputApi(datos.horaFin)
+    }
+    if (datos.Circuitos_idCircuitos !== undefined) {
+        cuerpo.Circuitos_idCircuitos = datos.Circuitos_idCircuitos
+    }
+    if (datos.Kartings_idKartings !== undefined) {
+        cuerpo.Kartings_idKartings = datos.Kartings_idKartings
+    }
+    if (datos.Personas_idPersona !== undefined) {
+        cuerpo.Personas_idPersona = datos.Personas_idPersona
+    }
+    if (datos.monto !== undefined) cuerpo.monto = datos.monto
+    return cuerpo
+}
+
+function fechaInputApi(fecha: Date): string {
+    const año = fecha.getFullYear()
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0')
+    const dia = String(fecha.getDate()).padStart(2, '0')
+    return `${año}-${mes}-${dia}`
+}
+
+function horaInputApi(hora: Date | string): string {
+    if (typeof hora === 'string') return hora.slice(0, 5)
+    return `${String(hora.getHours()).padStart(2, '0')}:${String(hora.getMinutes()).padStart(2, '0')}`
 }
 
 type RangoReserva = Pick<IReserva, 'horaInicio' | 'horaFin'>
@@ -67,11 +157,27 @@ async function validarDisponibilidad(reserva: CreateReserva, idIgnorado?: number
 }
 
 export async function getReservas(): Promise<IReserva[]> {
+    if (!usaMocks) {
+        const response = await apiFetch('/reservas')
+        return normalizarListaReservasApi(await response.json())
+    }
     await demora()
     return reservas
 }
 
+export async function getMisReservas(idPersona?: number): Promise<IReserva[]> {
+    if (!usaMocks) {
+        throw new Error('El backend actual no ofrece una ruta para que CLIENTE consulte sus propias reservas')
+    }
+    await demora()
+    return reservas.filter((reserva) => reserva.Personas_idPersona === idPersona)
+}
+
 export async function getReserva(id: number): Promise<IReserva> {
+    if (!usaMocks) {
+        const response = await apiFetch(`/reservas/${id}`)
+        return normalizarReservaApi(await response.json())
+    }
     await demora()
     const reserva = reservas.find((item) => item.idReservas === id)
     if (!reserva) throw new Error(`No existe una reserva con id ${id}`)
@@ -123,6 +229,13 @@ export async function getCircuitosDisponiblesReserva(
 }
 
 export async function createReserva(datos: CreateReservaInput): Promise<IReserva> {
+    if (!usaMocks) {
+        const response = await apiFetch('/reservas', {
+            method: 'POST',
+            body: JSON.stringify(datosApi(datos)),
+        })
+        return normalizarReservaApi(await response.json())
+    }
     await demora()
     const normalizada = normalizarReserva(datos)
     await validarDisponibilidad(normalizada)
@@ -133,6 +246,13 @@ export async function createReserva(datos: CreateReservaInput): Promise<IReserva
 }
 
 export async function updateReserva(id: number, datos: UpdateReservaInput): Promise<IReserva> {
+    if (!usaMocks) {
+        const response = await apiFetch(`/reservas/${id}`, {
+            method: 'PATCH',
+            body: JSON.stringify(datosApi(datos)),
+        })
+        return normalizarReservaApi(await response.json())
+    }
     await demora()
     const indice = reservas.findIndex((item) => item.idReservas === id)
     if (indice === -1) throw new Error(`No existe una reserva con id ${id}`)
@@ -161,6 +281,10 @@ export async function updateReserva(id: number, datos: UpdateReservaInput): Prom
 }
 
 export async function deleteReserva(id: number): Promise<void> {
+    if (!usaMocks) {
+        await apiFetch(`/reservas/${id}`, { method: 'DELETE' })
+        return
+    }
     await demora()
     const indice = reservas.findIndex((item) => item.idReservas === id)
     if (indice === -1) throw new Error(`No existe una reserva con id ${id}`)

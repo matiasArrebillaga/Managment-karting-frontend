@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Chip, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material'
+import { Alert, Chip, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material'
 import { getTorneos } from '../../services/torneoService'
 import type { ITorneos } from '../../types'
 
@@ -19,10 +19,14 @@ function estadoTorneo (torneo: ITorneos) {
 function TorneosListadoPage () {
     const [torneos, setTorneos] = useState<ITorneos[]>([])
     const [cargando, setCargando] = useState(true)
+    const [error, setError] = useState('')
 
     useEffect(() => {
         getTorneos()
             .then(setTorneos)
+            .catch((motivo: unknown) => {
+                setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los torneos')
+            })
             .finally(() => setCargando(false))
     }, [])
 
@@ -35,6 +39,7 @@ function TorneosListadoPage () {
             <Typography variant="h4" gutterBottom>
                 Estado de Torneos
             </Typography>
+            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
             <Table>
                 <TableHead>

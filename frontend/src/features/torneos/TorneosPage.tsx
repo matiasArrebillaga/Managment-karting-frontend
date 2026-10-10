@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Button, Chip, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material'
+import { Alert, Button, Chip, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material'
 import { useAuth } from '../../context/AuthContext'
 import {
     deleteTorneo,
@@ -10,6 +10,7 @@ import {
 } from '../../services/torneoService'
 import type { ITorneos } from '../../types'
 import TorneoFormDialog from './TorneoFormDialog'
+import { usaMocks } from '../../services/httpClient'
 
 function estadoTorneo (torneo: ITorneos) {
     const hoy = new Date()
@@ -30,20 +31,30 @@ function TorneosPage () {
     const [torneosAnotados, setTorneosAnotados] = useState<number[]>([])
     const [inscriptosPorTorneo, setInscriptosPorTorneo] = useState<Record<number, number>>({})
     const [cargando, setCargando] = useState(true)
+    const [error, setError] = useState('')
+    const [inscripcionPendiente, setInscripcionPendiente] = useState<number | null>(null)
     const [abierto, setAbierto] = useState(false)
     const [torneoEditando, setTorneoEditando] = useState<ITorneos | null>(null)
     const puedeGestionar = persona?.rol.nombre === 'ADMIN' || persona?.rol.nombre === 'EMPLEADO'
+    const puedeVerInscriptos = usaMocks || persona?.rol.nombre !== 'EMPLEADO'
+    const puedeAnotarse = usaMocks || persona?.rol.nombre === 'CLIENTE' || persona?.rol.nombre === 'EMPLEADO'
 
     function cargarTorneos () {
         setCargando(true)
+        setError('')
         Promise.all([
             getTorneos(),
-            persona ? getResumenInscripcionesTorneos(persona.idPersona) : Promise.resolve({ torneosAnotados: [], inscriptosPorTorneo: {} }),
+            persona && puedeVerInscriptos
+                ? getResumenInscripcionesTorneos(persona.idPersona)
+                : Promise.resolve({ torneosAnotados: [], inscriptosPorTorneo: {} }),
         ])
             .then(([datosTorneos, resumen]) => {
                 setTorneos(datosTorneos)
                 setTorneosAnotados(resumen.torneosAnotados)
                 setInscriptosPorTorneo(resumen.inscriptosPorTorneo)
+            })
+            .catch((motivo: unknown) => {
+                setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los torneos')
             })
             .finally(() => setCargando(false))
     }
@@ -83,6 +94,8 @@ function TorneosPage () {
     async function handleAnotarse (idTorneo: number) {
         if (!persona) return
 
+        setInscripcionPendiente(idTorneo)
+        setError('')
         try {
             await inscribirseATorneo(idTorneo, persona.idPersona)
             setTorneosAnotados((actuales) => [...actuales, idTorneo])
@@ -90,14 +103,15 @@ function TorneosPage () {
                 ...actuales,
                 [idTorneo]: (actuales[idTorneo] ?? 0) + 1,
             }))
-        } catch (error) {
-            alert(error instanceof Error ? error.message : 'No se pudo completar la inscripción')
-            console.error(error)
+        } catch (motivo) {
+            setError(motivo instanceof Error ? motivo.message : 'No se pudo completar la inscripción')
+        } finally {
+            setInscripcionPendiente(null)
         }
     }
 
     async function handleDesanotarse (idTorneo: number) {
-        if (!persona || !window.confirm('¿Seguro que querés desanotarte de este torneo?')) return
+        if (!usaMocks || !persona || !window.confirm('¿Seguro que querés desanotarte de este torneo?')) return
 
         try {
             await desanotarseDeTorneo(idTorneo, persona.idPersona)
@@ -121,6 +135,7 @@ function TorneosPage () {
             <Typography variant="h4" gutterBottom>
                 Torneos
             </Typography>
+            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
             {puedeGestionar && (
                 <Button variant="contained" onClick={handleNuevo} sx={{ mb: 2 }}>
@@ -133,7 +148,7 @@ function TorneosPage () {
                     <TableRow>
                         <TableCell>Nombre</TableCell>
                         <TableCell>Descripción</TableCell>
-                        <TableCell>Inscriptos / cupo</TableCell>
+                        {puedeVerInscriptos && <TableCell>Inscriptos / cupo</TableCell>}
                         <TableCell>Fecha de inicio</TableCell>
                         <TableCell>Fecha de fin</TableCell>
                         <TableCell>Estado</TableCell>
@@ -148,7 +163,9 @@ function TorneosPage () {
                             <TableRow key={torneo.idTorneos ?? torneo.nombre}>
                                 <TableCell>{torneo.nombre}</TableCell>
                                 <TableCell>{torneo.descripcion}</TableCell>
-                                <TableCell>{inscriptosPorTorneo[torneo.idTorneos] ?? 0} / {torneo.cupoMaximo}</TableCell>
+                                {puedeVerInscriptos && (
+                                    <TableCell>{inscriptosPorTorneo[torneo.idTorneos] ?? 0} / {torneo.cupoMaximo}</TableCell>
+                                )}
                                 <TableCell>{torneo.fechaInicio.toLocaleDateString()}</TableCell>
                                 <TableCell>{torneo.fechaFin.toLocaleDateString()}</TableCell>
                                 <TableCell>
@@ -159,17 +176,26 @@ function TorneosPage () {
                                     />
                                 </TableCell>
                                 <TableCell>
-                                    {torneosAnotados.includes(torneo.idTorneos) ? (
+                                    {torneosAnotados.includes(torneo.idTorneos) && usaMocks ? (
                                         <Button size="small" onClick={() => handleDesanotarse(torneo.idTorneos)}>
                                             Desanotarme
                                         </Button>
+                                    ) : torneosAnotados.includes(torneo.idTorneos) ? (
+                                        <Button size="small" disabled>Inscripto</Button>
                                     ) : estado === 'Terminado' ? (
                                         <Button size="small" disabled>Terminado</Button>
-                                    ) : (inscriptosPorTorneo[torneo.idTorneos] ?? 0) >= torneo.cupoMaximo ? (
+                                    ) : puedeVerInscriptos && (inscriptosPorTorneo[torneo.idTorneos] ?? 0) >= torneo.cupoMaximo ? (
                                         <Button size="small" disabled>Completo</Button>
+                                    ) : !puedeAnotarse ? (
+                                        <Button size="small" disabled>No disponible</Button>
                                     ) : (
-                                        <Button size="small" variant="contained" onClick={() => handleAnotarse(torneo.idTorneos)}>
-                                            Anotarme
+                                        <Button
+                                            size="small"
+                                            variant="contained"
+                                            onClick={() => handleAnotarse(torneo.idTorneos)}
+                                            disabled={inscripcionPendiente === torneo.idTorneos}
+                                        >
+                                            {inscripcionPendiente === torneo.idTorneos ? 'Anotando...' : 'Anotarme'}
                                         </Button>
                                     )}
                                 </TableCell>

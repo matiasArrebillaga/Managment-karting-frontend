@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 import { login as loginService, register as registerService, type DatosRegistro, type Sesion } from "../services/authService"
+import { EVENTO_SESION_INVALIDA } from "../services/httpClient"
 import type { PersonaAuth } from "../types"
 
 type AuthContextValue = {
@@ -19,6 +20,12 @@ export function AuthProvider ({ children }: { children: ReactNode }) {
     const [cargando, setCargando] = useState(true)
 
     useEffect(() => {
+        function handleSesionInvalida () {
+            localStorage.removeItem(CLAVE_STORAGE)
+            setPersona(null)
+        }
+
+        window.addEventListener(EVENTO_SESION_INVALIDA, handleSesionInvalida)
         try {
             const guardada = localStorage.getItem(CLAVE_STORAGE)
             if (guardada) {
@@ -30,6 +37,7 @@ export function AuthProvider ({ children }: { children: ReactNode }) {
         } finally {
             setCargando(false)
         }
+        return () => window.removeEventListener(EVENTO_SESION_INVALIDA, handleSesionInvalida)
     }, [])
 
     async function login (mail: string, contraseña: string) {

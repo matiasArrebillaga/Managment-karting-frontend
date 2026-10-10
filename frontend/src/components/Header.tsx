@@ -35,7 +35,9 @@ function Header () {
                                 <Link to="/localidades">Localidades</Link>
                                 <Link to="/tipos-licencia">Tipos de Licencia</Link>
                                 <Link to="/tipos-karting">Tipos de Karting</Link>
-                                <Link to="/participaciones">Participaciones</Link>
+                                {persona.rol.nombre === "EMPLEADO" && (
+                                    <Link to="/participaciones">Participaciones</Link>
+                                )}
                                 <Link to="/licencias">Licencias</Link></>) : (<></>)
                         }
                         <span>Hola, {persona.nombre} ({persona.rol.nombre})</span>

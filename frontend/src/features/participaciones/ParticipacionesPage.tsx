@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Alert from '@mui/material/Alert'
 import { Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material'
 import { getParticipaciones } from '../../services/participacionService'
 import { getPersonas } from '../../services/personaService'
@@ -14,6 +15,7 @@ function ParticipacionesPage () {
     const [circuitos, setCircuitos] = useState<Circuito[]>([])
     const [kartings, setKartings] = useState<Karting[]>([])
     const [cargando, setCargando] = useState(true)
+    const [error, setError] = useState('')
 
     useEffect(() => {
         Promise.all([getParticipaciones(), getPersonas(), getTorneos(), getCircuitos(), getKartings()])
@@ -23,6 +25,9 @@ function ParticipacionesPage () {
                 setTorneos(datosTorneos)
                 setCircuitos(datosCircuitos)
                 setKartings(datosKartings)
+            })
+            .catch((motivo: unknown) => {
+                setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar las participaciones')
             })
             .finally(() => setCargando(false))
     }, [])
@@ -57,6 +62,7 @@ function ParticipacionesPage () {
             <Typography variant="h4" gutterBottom>
                 Participaciones
             </Typography>
+            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
             <Table>
                 <TableHead>
@@ -74,9 +80,9 @@ function ParticipacionesPage () {
                 <TableBody>
                     {ordenadas.map((participacion, indice) => (
                         <TableRow
-                            key={`${participacion.Carrera_Torneos_idTorneos}-${participacion.Carrera_Circuitos_idCircuitos}-${participacion.Carrera_Fecha.toISOString()}-${participacion.Personas_idPersona}-${indice}`}
+                            key={`${participacion.Carrera_Torneos_idTorneos}-${participacion.Carrera_Circuitos_idCircuitos}-${participacion.Carrera_fecha.toISOString()}-${participacion.Personas_idPersona}-${indice}`}
                         >
-                            <TableCell>{participacion.Carrera_Fecha.toLocaleDateString()}</TableCell>
+                            <TableCell>{participacion.Carrera_fecha.toLocaleDateString()}</TableCell>
                             <TableCell>{nombreTorneo(participacion.Carrera_Torneos_idTorneos)}</TableCell>
                             <TableCell>{nombreCircuito(participacion.Carrera_Circuitos_idCircuitos)}</TableCell>
                             <TableCell>{nombrePersona(participacion.Personas_idPersona)}</TableCell>

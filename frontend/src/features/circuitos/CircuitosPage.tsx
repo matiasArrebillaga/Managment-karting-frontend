@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Alert from '@mui/material/Alert'
 import Table from '@mui/material/Table'
 import TableCell from '@mui/material/TableCell'
 import Typography from '@mui/material/Typography'
@@ -6,20 +7,31 @@ import TableRow from '@mui/material/TableRow'
 import TableHead from '@mui/material/TableHead'
 import TableBody from '@mui/material/TableBody'
 import Button from '@mui/material/Button'
+import { useAuth } from '../../context/AuthContext'
+import { usaMocks } from '../../services/httpClient'
 import { getCircuitos, deleteCircuito } from '../../services/circuitoService'
 import type { Circuito } from '../../types'
 import CircuitoFormDialog from './CircuitoFormDialog'
 
 function CircuitosPage() {
+    const { persona } = useAuth()
     const [circuitos, setCircuitos] = useState<Circuito[]>([])
     const [cargando, setCargando] = useState(true)
+    const [error, setError] = useState('')
     const [abierto, setAbierto] = useState(false)
     const [circuitoEditando, setCircuitoEditando] = useState<Circuito | null>(null)
+    const puedeCrear = usaMocks || persona?.rol.nombre === 'ADMIN'
+    const puedeEditar = usaMocks || persona?.rol.nombre === 'ADMIN' || persona?.rol.nombre === 'EMPLEADO'
+    const puedeEliminar = usaMocks || persona?.rol.nombre === 'ADMIN'
 
     function cargarCircuitos() {
         setCargando(true)
+        setError('')
         getCircuitos()
             .then((datos) => setCircuitos(datos))
+            .catch((motivo: unknown) => {
+                setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los circuitos')
+            })
             .finally(() => setCargando(false))
     }
 
@@ -65,10 +77,13 @@ function CircuitosPage() {
             <Typography variant="h4" gutterBottom>
                 Circuitos
             </Typography>
+            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-            <Button variant="contained" onClick={handleNuevo} sx={{ mb: 2 }}>
-                Nuevo Circuito
-            </Button>
+            {puedeCrear && (
+                <Button variant="contained" onClick={handleNuevo} sx={{ mb: 2 }}>
+                    Nuevo Circuito
+                </Button>
+            )}
 
             <Table>
                 <TableHead>
@@ -77,7 +92,7 @@ function CircuitosPage() {
                         <TableCell>Distancia (m)</TableCell>
                         <TableCell>Dificultad</TableCell>
                         <TableCell>Capacidad Maxima</TableCell>
-                        <TableCell>Acciones</TableCell>
+                        {(puedeEditar || puedeEliminar) && <TableCell>Acciones</TableCell>}
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -87,14 +102,20 @@ function CircuitosPage() {
                             <TableCell>{circuito.distancia}</TableCell>
                             <TableCell>{circuito.dificultad}</TableCell>
                             <TableCell>{circuito.maximo}</TableCell>
-                            <TableCell>
-                                <Button size="small" onClick={() => handleEditar(circuito)}>
-                                    Editar
-                                </Button>
-                                <Button size="small" color="error" onClick={() => handleEliminar(circuito.idCircuitos)}>
-                                    Eliminar
-                                </Button>
-                            </TableCell>
+                            {(puedeEditar || puedeEliminar) && (
+                                <TableCell>
+                                    {puedeEditar && (
+                                        <Button size="small" onClick={() => handleEditar(circuito)}>
+                                            Editar
+                                        </Button>
+                                    )}
+                                    {puedeEliminar && (
+                                        <Button size="small" color="error" onClick={() => handleEliminar(circuito.idCircuitos)}>
+                                            Eliminar
+                                        </Button>
+                                    )}
+                                </TableCell>
+                            )}
                         </TableRow>
                     ))}
                 </TableBody>

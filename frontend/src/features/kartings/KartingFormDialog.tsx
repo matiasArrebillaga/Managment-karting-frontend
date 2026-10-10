@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { createKarting, updateKarting } from "../../services/kartingService"
 import { getTiposKarting } from "../../services/tipoKartingService"
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Stack, TextField } from "@mui/material"
+import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Stack, TextField } from "@mui/material"
 import type { Karting, TipoKarting } from "../../types"
 
 const ESTADOS = ['Disponible', 'Mantenimiento']
@@ -21,12 +21,22 @@ function KartingFormDialog({ abierto, karting, onCerrar, onGuardado }: Props) {
     const [tipoKartingId, setTipoKartingId] = useState('')
     const [tiposKarting, setTiposKarting] = useState<TipoKarting[]>([])
     const [guardando, setGuardando] = useState(false)
+    const [error, setError] = useState('')
 
     const editando = Boolean(karting)
+    const puedeGuardar = categoria.trim() !== ''
+        && modelo.trim() !== ''
+        && estado !== ''
+        && /^\d{4}-\d{2}-\d{2}$/.test(fechaAdquisicion)
+        && Number(tipoKartingId) > 0
 
     useEffect(() => {
         if (abierto) {
-            getTiposKarting().then((datos) => setTiposKarting(datos))
+            getTiposKarting()
+                .then(setTiposKarting)
+                .catch((motivo: unknown) => {
+                    setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los tipos de karting')
+                })
         }
     }, [abierto])
 
@@ -47,7 +57,12 @@ function KartingFormDialog({ abierto, karting, onCerrar, onGuardado }: Props) {
     }, [karting, abierto])
 
     async function handleGuardar() {
+        if (!puedeGuardar) {
+            setError('Completá todos los datos del karting')
+            return
+        }
         setGuardando(true)
+        setError('')
         try {
             const datos = {
                 categoria,
@@ -62,6 +77,8 @@ function KartingFormDialog({ abierto, karting, onCerrar, onGuardado }: Props) {
                 await createKarting(datos)
             }
             onGuardado()
+        } catch (motivo) {
+            setError(motivo instanceof Error ? motivo.message : 'No se pudo guardar el karting')
         } finally {
             setGuardando(false)
         }
@@ -76,12 +93,14 @@ function KartingFormDialog({ abierto, karting, onCerrar, onGuardado }: Props) {
                         label="Categoria"
                         value={categoria}
                         onChange={(e) => setCategoria(e.target.value)}
+                        required
                         fullWidth
                     />
                     <TextField
                         label="Modelo"
                         value={modelo}
                         onChange={(e) => setModelo(e.target.value)}
+                        required
                         fullWidth
                     />
                     <TextField
@@ -89,6 +108,7 @@ function KartingFormDialog({ abierto, karting, onCerrar, onGuardado }: Props) {
                         label="Tipo de Karting"
                         value={tipoKartingId}
                         onChange={(e) => setTipoKartingId(e.target.value)}
+                        required
                         fullWidth
                     >
                         {tiposKarting.map((t) => (
@@ -100,6 +120,7 @@ function KartingFormDialog({ abierto, karting, onCerrar, onGuardado }: Props) {
                         label="Estado"
                         value={estado}
                         onChange={(e) => setEstado(e.target.value)}
+                        required
                         fullWidth
                     >
                         {ESTADOS.map((s) => (
@@ -112,13 +133,15 @@ function KartingFormDialog({ abierto, karting, onCerrar, onGuardado }: Props) {
                         value={fechaAdquisicion}
                         onChange={(e) => setFechaAdquisicion(e.target.value)}
                         slotProps={{ inputLabel: { shrink: true } }}
+                        required
                         fullWidth
                     />
+                    {error && <Alert severity="error">{error}</Alert>}
                 </Stack>
             </DialogContent>
             <DialogActions>
                 <Button onClick={onCerrar}>Cancelar</Button>
-                <Button variant="contained" onClick={handleGuardar} disabled={guardando}>Guardar</Button>
+                <Button variant="contained" onClick={handleGuardar} disabled={guardando || !puedeGuardar}>Guardar</Button>
             </DialogActions>
         </Dialog>
     )

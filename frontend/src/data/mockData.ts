@@ -69,9 +69,9 @@ export const circuitos: Circuito[] = [
 ]
 
 export const torneos: ITorneos[] = [
-  { idTorneos: 1, nombre: 'Torneo Primavera', descripcion: 'Competencia de primavera', cupoMaximo: 30, fechaInicio: new Date(2026, 9, 1), fechaFin: new Date(2026, 9, 31) },
-  { idTorneos: 2, nombre: 'Copa de Invierno', descripcion: 'Edicion de invierno', cupoMaximo: 24, fechaInicio: new Date(2026, 6, 1), fechaFin: new Date(2026, 6, 20) },
-  { idTorneos: 3, nombre: 'Gran Premio de Noviembre', descripcion: 'Torneo abierto de noviembre', cupoMaximo: 36, fechaInicio: new Date(2026, 10, 5), fechaFin: new Date(2026, 10, 15) },
+  { idTorneos: 1, nombre: 'Torneo Primavera', descripcion: 'Competencia de primavera', cupoMaximo: 30, fechaInicio: new Date(2026, 9, 1), fechaFin: new Date(2026, 9, 31), TiposLicencias_idTipoLicencia: 1 },
+  { idTorneos: 2, nombre: 'Copa de Invierno', descripcion: 'Edicion de invierno', cupoMaximo: 24, fechaInicio: new Date(2026, 6, 1), fechaFin: new Date(2026, 6, 20), TiposLicencias_idTipoLicencia: 1 },
+  { idTorneos: 3, nombre: 'Gran Premio de Noviembre', descripcion: 'Torneo abierto de noviembre', cupoMaximo: 36, fechaInicio: new Date(2026, 10, 5), fechaFin: new Date(2026, 10, 15), TiposLicencias_idTipoLicencia: 1 },
 ]
 
 export const carreras: ICarrera[] = [

@@ -37,6 +37,7 @@ function normalizarTorneo(valor: unknown): ITorneos {
         || typeof valor.cupoMaximo !== 'number'
         || typeof valor.fechaInicio !== 'string'
         || typeof valor.fechaFin !== 'string'
+        || typeof valor.TiposLicencias_idTipoLicencia !== 'number'
     ) {
         throw new Error('La API devolvió un torneo con un formato inválido')
     }
@@ -54,6 +55,7 @@ function normalizarTorneo(valor: unknown): ITorneos {
         cupoMaximo: valor.cupoMaximo,
         fechaInicio,
         fechaFin,
+        TiposLicencias_idTipoLicencia: valor.TiposLicencias_idTipoLicencia,
     }
 }
 
@@ -89,6 +91,7 @@ function datosTorneoApi(datos: CreateTorneos): Record<string, string | number> {
         cupoMaximo: datos.cupoMaximo,
         fechaInicio: fechaApi(datos.fechaInicio),
         fechaFin: fechaApi(datos.fechaFin),
+        TiposLicencias_idTipoLicencia: datos.TiposLicencias_idTipoLicencia,
     }
 }
 

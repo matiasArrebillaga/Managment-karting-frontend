@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from '@mui/material'
+import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Stack, TextField } from '@mui/material'
 import { createTorneo, updateTorneo } from '../../services/torneoService'
-import type { CreateTorneos, ITorneos } from '../../types'
+import { getTiposLicencia } from '../../services/tipoLicenciaService'
+import type { CreateTorneos, ITorneos, TipoLicencia } from '../../types'
 
 type Props = {
     abierto: boolean
@@ -23,12 +24,23 @@ function TorneoFormDialog ({ abierto, torneo, onCerrar, onGuardado }: Props) {
     const [cupoMaximo, setCupoMaximo] = useState('')
     const [fechaInicio, setFechaInicio] = useState('')
     const [fechaFin, setFechaFin] = useState('')
+    const [licenciaId, setLicenciaId] = useState('')
+    const [tiposLicencia, setTiposLicencia] = useState<TipoLicencia[]>([])
     const [guardando, setGuardando] = useState(false)
     const [error, setError] = useState('')
 
     const editando = Boolean(torneo)
     const fechasValidas = fechaInicio !== '' && fechaFin !== '' && fechaInicio <= fechaFin
-    const puedeGuardar = nombre.trim() !== '' && cupoMaximo !== '' && Number(cupoMaximo) > 0 && fechasValidas
+    const puedeGuardar = nombre.trim() !== '' && cupoMaximo !== '' && Number(cupoMaximo) > 0 && fechasValidas && licenciaId !== ''
+
+    useEffect(() => {
+        if (!abierto) return
+        getTiposLicencia()
+            .then(setTiposLicencia)
+            .catch((motivo: unknown) => {
+                setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los tipos de licencia')
+            })
+    }, [abierto])
 
     useEffect(() => {
         if (torneo) {
@@ -37,12 +49,14 @@ function TorneoFormDialog ({ abierto, torneo, onCerrar, onGuardado }: Props) {
             setCupoMaximo(String(torneo.cupoMaximo))
             setFechaInicio(fechaInput(torneo.fechaInicio))
             setFechaFin(fechaInput(torneo.fechaFin))
+            setLicenciaId(String(torneo.TiposLicencias_idTipoLicencia))
         } else {
             setNombre('')
             setDescripcion('')
             setCupoMaximo('')
             setFechaInicio('')
             setFechaFin('')
+            setLicenciaId('')
         }
     }, [torneo, abierto])
 
@@ -58,6 +72,7 @@ function TorneoFormDialog ({ abierto, torneo, onCerrar, onGuardado }: Props) {
                 cupoMaximo: Number(cupoMaximo),
                 fechaInicio: new Date(`${fechaInicio}T00:00:00`),
                 fechaFin: new Date(`${fechaFin}T00:00:00`),
+                TiposLicencias_idTipoLicencia: Number(licenciaId),
             }
             if (editando && torneo?.idTorneos !== undefined) {
                 await updateTorneo(torneo.idTorneos, datos)
@@ -101,6 +116,21 @@ function TorneoFormDialog ({ abierto, torneo, onCerrar, onGuardado }: Props) {
                         required
                         fullWidth
                     />
+                    <TextField
+                        select
+                        label="Tipo de licencia"
+                        value={licenciaId}
+                        onChange={(event) => setLicenciaId(event.target.value)}
+                        helperText="Los kartings de sus carreras tienen que ser de esta licencia"
+                        required
+                        fullWidth
+                    >
+                        {tiposLicencia.map((tipo) => (
+                            <MenuItem key={tipo.idTipoLicencia} value={String(tipo.idTipoLicencia)}>
+                                {tipo.nombre} (nivel {tipo.nivel})
+                            </MenuItem>
+                        ))}
+                    </TextField>
                     <TextField
                         label="Fecha de inicio"
                         type="date"

@@ -44,6 +44,7 @@ export interface ITorneos {
     cupoMaximo: number
     fechaInicio: Date
     fechaFin: Date
+    TiposLicencias_idTipoLicencia: number
 }
 
 export type CreateTorneos = Omit<ITorneos, 'idTorneos'>

@@ -36,7 +36,7 @@ function TorneosPage () {
     const [abierto, setAbierto] = useState(false)
     const [torneoEditando, setTorneoEditando] = useState<ITorneos | null>(null)
     const puedeGestionar = persona?.rol.nombre === 'ADMIN' || persona?.rol.nombre === 'EMPLEADO'
-    const puedeVerInscriptos = usaMocks || persona?.rol.nombre !== 'EMPLEADO'
+    const puedeVerInscriptos = usaMocks || puedeGestionar
     const puedeAnotarse = usaMocks || persona?.rol.nombre === 'CLIENTE' || persona?.rol.nombre === 'EMPLEADO'
 
     function cargarTorneos () {
@@ -44,8 +44,8 @@ function TorneosPage () {
         setError('')
         Promise.all([
             getTorneos(),
-            persona && puedeVerInscriptos
-                ? getResumenInscripcionesTorneos(persona.idPersona)
+            persona
+                ? getResumenInscripcionesTorneos(persona.idPersona, puedeVerInscriptos)
                 : Promise.resolve({ torneosAnotados: [], inscriptosPorTorneo: {} }),
         ])
             .then(([datosTorneos, resumen]) => {
@@ -111,7 +111,7 @@ function TorneosPage () {
     }
 
     async function handleDesanotarse (idTorneo: number) {
-        if (!usaMocks || !persona || !window.confirm('¿Seguro que querés desanotarte de este torneo?')) return
+        if (!persona || !window.confirm('¿Seguro que querés desanotarte de este torneo?')) return
 
         try {
             await desanotarseDeTorneo(idTorneo, persona.idPersona)
@@ -176,14 +176,14 @@ function TorneosPage () {
                                     />
                                 </TableCell>
                                 <TableCell>
-                                    {torneosAnotados.includes(torneo.idTorneos) && usaMocks ? (
+                                    {torneosAnotados.includes(torneo.idTorneos) && estado === 'Próximo' ? (
                                         <Button size="small" onClick={() => handleDesanotarse(torneo.idTorneos)}>
                                             Desanotarme
                                         </Button>
                                     ) : torneosAnotados.includes(torneo.idTorneos) ? (
                                         <Button size="small" disabled>Inscripto</Button>
-                                    ) : estado === 'Terminado' ? (
-                                        <Button size="small" disabled>Terminado</Button>
+                                    ) : estado !== 'Próximo' ? (
+                                        <Button size="small" disabled>{estado}</Button>
                                     ) : puedeVerInscriptos && (inscriptosPorTorneo[torneo.idTorneos] ?? 0) >= torneo.cupoMaximo ? (
                                         <Button size="small" disabled>Completo</Button>
                                     ) : !puedeAnotarse ? (

@@ -66,7 +66,7 @@ function normalizarInscripciones(valor: unknown): IInscripcion[] {
             !esObjeto(item)
             || typeof item.Torneos_idTorneos !== 'number'
             || typeof item.Personas_idPersona !== 'number'
-            || typeof item.fecha_inscipcion !== 'string'
+            || typeof item.fecha_inscripcion !== 'string'
             || typeof item.hora_inscripcion !== 'string'
         ) {
             throw new Error('La API devolvió una inscripción con un formato inválido')
@@ -75,7 +75,7 @@ function normalizarInscripciones(valor: unknown): IInscripcion[] {
         return {
             Torneos_idTorneos: item.Torneos_idTorneos,
             Personas_idPersona: item.Personas_idPersona,
-            fecha_inscripcion: new Date(item.fecha_inscipcion),
+            fecha_inscripcion: new Date(item.fecha_inscripcion),
             hora_inscripcion: new Date(item.hora_inscripcion),
         }
     })
@@ -194,49 +194,38 @@ export async function deleteTorneo(id: number): Promise<void> {
     torneos.splice(indice, 1)
 }
 
-export async function getResumenInscripcionesTorneos(idPersona: number): Promise<{
+// verTodas: solo ADMIN/EMPLEADO pueden pedir GET /inscripciones (sirve para contar inscriptos por torneo)
+export async function getResumenInscripcionesTorneos(idPersona: number, verTodas: boolean): Promise<{
     torneosAnotados: number[]
     inscriptosPorTorneo: Record<number, number>
 }> {
+    let mias: IInscripcion[]
+    let todas: IInscripcion[]
     if (!usaMocks) {
-        const response = await apiFetch('/inscripciones')
-        const inscripciones = normalizarInscripciones(await response.json())
-        const inscriptosPorTorneo = inscripciones.reduce<Record<number, number>>((cantidades, inscripcion) => {
-            cantidades[inscripcion.Torneos_idTorneos] = (cantidades[inscripcion.Torneos_idTorneos] ?? 0) + 1
-            return cantidades
-        }, {})
-        return {
-            torneosAnotados: inscripciones
-                .filter((inscripcion) => inscripcion.Personas_idPersona === idPersona)
-                .map((inscripcion) => inscripcion.Torneos_idTorneos),
-            inscriptosPorTorneo,
-        }
+        mias = normalizarInscripciones(await (await apiFetch('/inscripciones/mias')).json())
+        todas = verTodas ? normalizarInscripciones(await (await apiFetch('/inscripciones')).json()) : []
+    } else {
+        await demora()
+        todas = obtenerInscripciones()
+        mias = todas.filter((inscripcion) => inscripcion.Personas_idPersona === idPersona)
     }
-    await demora()
-    const inscripciones = obtenerInscripciones()
-    const inscriptosPorTorneo = inscripciones.reduce<Record<number, number>>((cantidades, inscripcion) => {
-        cantidades[inscripcion.Torneos_idTorneos] = (cantidades[inscripcion.Torneos_idTorneos] ?? 0) + 1
-        return cantidades
-    }, {})
 
     return {
-        torneosAnotados: inscripciones
-            .filter((inscripcion) => inscripcion.Personas_idPersona === idPersona)
-            .map((inscripcion) => inscripcion.Torneos_idTorneos),
-        inscriptosPorTorneo,
+        torneosAnotados: mias.map((inscripcion) => inscripcion.Torneos_idTorneos),
+        inscriptosPorTorneo: todas.reduce<Record<number, number>>((cantidades, inscripcion) => {
+            cantidades[inscripcion.Torneos_idTorneos] = (cantidades[inscripcion.Torneos_idTorneos] ?? 0) + 1
+            return cantidades
+        }, {}),
     }
 }
 
 export async function inscribirseATorneo(idTorneo: number, idPersona: number): Promise<void> {
     if (!usaMocks) {
-        const ahora = new Date()
         await apiFetch('/inscripciones', {
             method: 'POST',
             body: JSON.stringify({
                 Torneos_idTorneos: idTorneo,
                 Personas_idPersona: idPersona,
-                fecha_inscipcion: fechaApi(ahora),
-                hora_inscripcion: ahora.toISOString(),
             }),
         })
         return

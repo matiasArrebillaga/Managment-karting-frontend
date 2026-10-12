@@ -16,7 +16,7 @@ function aFechaLocal(valor: string): Date {
     return new Date(`${valor.slice(0, 10)}T00:00:00`)
 }
 
-function fechaApi(fecha: Date): string {
+export function fechaApi(fecha: Date): string {
     return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`
 }
 
@@ -118,6 +118,11 @@ export async function getCarreras(): Promise<ICarrera[]> {
     }
     await demora()
     return carreras
+}
+
+export async function getCarrerasTorneo(idTorneo: number): Promise<ICarrera[]> {
+    const response = await apiFetch(`/carreras/torneo/${idTorneo}`)
+    return normalizarLista(await response.json())
 }
 
 export async function getCarrera(carrera: ICarrera | number): Promise<ICarrera> {

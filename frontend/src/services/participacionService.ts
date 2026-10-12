@@ -1,5 +1,6 @@
-import type { IParticipacion } from '../types'
+import type { FilaClasificacion, FilaTablaGeneral, ICarrera, IParticipacion, ResultadoCarrera } from '../types'
 import { participaciones as seed } from '../data/mockData'
+import { fechaApi } from './carreraService'
 import { apiFetch, usaMocks } from './httpClient'
 
 const demora = () => new Promise((resolve) => setTimeout(resolve, 300))
@@ -46,4 +47,46 @@ export async function getParticipaciones(): Promise<IParticipacion[]> {
     }
     await demora()
     return seed
+}
+
+// La clave de la carrera va en la URL: fecha (YYYY-MM-DD) / torneo / circuito
+function clavesUrl(carrera: ICarrera): string {
+    return `${fechaApi(carrera.fechaCarrera)}/${carrera.Torneos_idTorneos}/${carrera.Circuitos_idCircuitos}`
+}
+
+export async function getClasificacionCarrera(carrera: ICarrera): Promise<FilaClasificacion[]> {
+    const response = await apiFetch(`/participaciones/carrera/${clavesUrl(carrera)}`)
+    return response.json() as Promise<FilaClasificacion[]>
+}
+
+export async function cargarResultadosCarrera(carrera: ICarrera, resultados: ResultadoCarrera[]): Promise<void> {
+    await apiFetch('/participaciones/carrera', {
+        method: 'POST',
+        body: JSON.stringify({
+            Carrera_fecha: fechaApi(carrera.fechaCarrera),
+            Carrera_Torneos_idTorneos: carrera.Torneos_idTorneos,
+            Carrera_Circuitos_idCircuitos: carrera.Circuitos_idCircuitos,
+            resultados,
+        }),
+    })
+}
+
+export async function updateParticipacion(
+    carrera: ICarrera,
+    idPersona: number,
+    datos: Pick<ResultadoCarrera, 'posicion_final' | 'tiempo'>,
+): Promise<void> {
+    await apiFetch(`/participaciones/${clavesUrl(carrera)}/${idPersona}`, {
+        method: 'PUT',
+        body: JSON.stringify(datos),
+    })
+}
+
+export async function deleteParticipacion(carrera: ICarrera, idPersona: number): Promise<void> {
+    await apiFetch(`/participaciones/${clavesUrl(carrera)}/${idPersona}`, { method: 'DELETE' })
+}
+
+export async function getTablaGeneral(idTorneo: number): Promise<FilaTablaGeneral[]> {
+    const response = await apiFetch(`/participaciones/torneo/${idTorneo}/tabla-general`)
+    return response.json() as Promise<FilaTablaGeneral[]>
 }

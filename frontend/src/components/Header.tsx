@@ -26,7 +26,6 @@ function Header () {
                     <>
                         <Link to="/carreras">Carreras</Link>
                         <Link to="/torneos">Torneos</Link>
-                        <Link to="/torneos/listado">Estado de Torneos</Link>
                         <Link to="/reservas">Reservas</Link>
                         <Link to="/circuitos">Circuitos</Link>
                         <Link to="/kartings">Kartings</Link>

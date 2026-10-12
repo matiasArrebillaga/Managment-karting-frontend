@@ -1,7 +1,8 @@
-import type { CreatePersonaTorneo, CreateTorneos, IInscripcion, ITorneos, UpdateTorneos } from '../types'
+import type { CreatePersonaTorneo, CreateTorneos, IInscripcion, ITorneos, Persona, UpdateTorneos } from '../types'
 import { torneos as seed } from '../data/mockData'
 import { getCarreras } from './carreraService'
 import { apiFetch, usaMocks } from './httpClient'
+import { getPersonas } from './personaService'
 
 let torneos: ITorneos[] = [...seed]
 let siguienteId = Math.max(0, ...torneos.map((torneo) => torneo.idTorneos ?? 0)) + 1
@@ -269,4 +270,13 @@ export async function desanotarseDeTorneo(idTorneo: number, idPersona: number): 
 
     inscripciones.splice(indice, 1)
     localStorage.setItem(CLAVE_INSCRIPCIONES, JSON.stringify(inscripciones))
+}
+
+// Inscriptos de un torneo con su nombre (solo ADMIN/EMPLEADO: /inscripciones y /personas son del personal)
+export async function getInscriptosTorneo(idTorneo: number): Promise<Persona[]> {
+    const [response, personas] = await Promise.all([apiFetch('/inscripciones'), getPersonas()])
+    const ids = normalizarInscripciones(await response.json())
+        .filter((inscripcion) => inscripcion.Torneos_idTorneos === idTorneo)
+        .map((inscripcion) => inscripcion.Personas_idPersona)
+    return personas.filter((persona) => ids.includes(persona.idPersona))
 }

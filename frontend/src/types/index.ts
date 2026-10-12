@@ -144,6 +144,29 @@ export interface Licencia {
     TiposLicencias_idTipoLicencia: number
 }
 
+// Lo que se manda por piloto al cargar una carrera; los puntos los calcula el backend
+export type ResultadoCarrera = Pick<IParticipacion, 'Personas_idPersona' | 'posicion_final' | 'tiempo'>
+
+// GET /participaciones/carrera/:fecha/:torneo/:circuito
+export interface FilaClasificacion {
+    posicion: number
+    idPersona: number
+    nombre: string
+    apellido: string
+    tiempo: string
+    puntos: number
+}
+
+// GET /participaciones/torneo/:id/tabla-general
+export interface FilaTablaGeneral {
+    posicion: number
+    idPersona: number
+    nombre?: string
+    apellido?: string
+    puntosTotales: number
+    victorias: number
+}
+
 // Version minima, solo para los desplegables de Licencia.
 // El CRUD completo de Persona (con localidad, rol, login) no esta hecho todavia.
 export interface Persona {

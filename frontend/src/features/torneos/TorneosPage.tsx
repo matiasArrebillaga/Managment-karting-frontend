@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Alert, Button, Chip, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material'
 import { useAuth } from '../../context/AuthContext'
 import {
@@ -12,7 +13,7 @@ import type { ITorneos } from '../../types'
 import TorneoFormDialog from './TorneoFormDialog'
 import { usaMocks } from '../../services/httpClient'
 
-function estadoTorneo (torneo: ITorneos) {
+export function estadoTorneo (torneo: ITorneos) {
     const hoy = new Date()
     hoy.setHours(0, 0, 0, 0)
     const fechaInicio = new Date(torneo.fechaInicio)
@@ -161,7 +162,7 @@ function TorneosPage () {
                         const estado = estadoTorneo(torneo)
                         return (
                             <TableRow key={torneo.idTorneos ?? torneo.nombre}>
-                                <TableCell>{torneo.nombre}</TableCell>
+                                <TableCell><Link to={`/torneos/${torneo.idTorneos}`}>{torneo.nombre}</Link></TableCell>
                                 <TableCell>{torneo.descripcion}</TableCell>
                                 {puedeVerInscriptos && (
                                     <TableCell>{inscriptosPorTorneo[torneo.idTorneos] ?? 0} / {torneo.cupoMaximo}</TableCell>

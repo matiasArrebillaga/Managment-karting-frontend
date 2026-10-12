@@ -64,14 +64,15 @@ export interface ICarrera {
     horaInicio: Date
     horaFin: Date
     Kartings_idKartings?: number
+    kartings?: number[]
     Torneos_idTorneos: number
     Circuitos_idCircuitos: number
 }
 
-export type CreateCarrera = Omit<ICarrera, 'idCarreras' | 'horaInicio' | 'horaFin' | 'Kartings_idKartings'> & {
+export type CreateCarrera = Omit<ICarrera, 'idCarreras' | 'horaInicio' | 'horaFin' | 'Kartings_idKartings' | 'kartings'> & {
     horaInicio: Date | string
     horaFin: Date | string
-    Kartings_idKartings: number
+    kartings: number[]
 }
 
 export type UpdateCarrera = Partial<Omit<ICarrera, 'idCarreras'>> & {
@@ -102,7 +103,6 @@ export type CreateReservaInput = Omit<CreateReserva, 'fechaReserva' | 'horaInici
 export type UpdateReservaInput = Partial<CreateReservaInput>
 
 export interface IParticipacion {
-    Carrera_Kartings_idKartings: number
     Carrera_Torneos_idTorneos: number
     Carrera_Circuitos_idCircuitos: number
     Carrera_fecha: Date

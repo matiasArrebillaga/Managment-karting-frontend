@@ -171,6 +171,9 @@ export async function getReservas(): Promise<IReserva[]> {
 
 export async function getMisReservas(idPersona?: number): Promise<IReserva[]> {
     if (!usaMocks) {
+        if (idPersona === undefined) {
+            throw new Error('No se pudo identificar la persona para consultar sus reservas')
+        }
         const response = await apiFetch('/reservas/mias')
         return normalizarListaReservasApi(await response.json())
     }

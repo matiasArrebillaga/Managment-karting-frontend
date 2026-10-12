@@ -44,12 +44,18 @@ function normalizarCarrera(valor: unknown): ICarrera {
         || typeof valor.fechaCarrera !== 'string'
         || typeof valor.horaInicio !== 'string'
         || typeof valor.horaFin !== 'string'
-        || typeof valor.Kartings_idKartings !== 'number'
+        || !Array.isArray(valor.kartings)
         || typeof valor.Torneos_idTorneos !== 'number'
         || typeof valor.Circuitos_idCircuitos !== 'number'
     ) {
         throw new Error('La API devolvió una carrera con un formato inválido')
     }
+    const kartings = valor.kartings.map((karting: unknown) => {
+        if (!esObjeto(karting) || typeof karting.idKartings !== 'number') {
+            throw new Error('La API devolvió una carrera con kartings inválidos')
+        }
+        return karting.idKartings
+    })
 
     const fechaCarrera = aFechaLocal(valor.fechaCarrera)
     const horaInicio = horaLocalApi(valor.horaInicio, fechaCarrera)
@@ -66,7 +72,7 @@ function normalizarCarrera(valor: unknown): ICarrera {
         fechaCarrera,
         horaInicio,
         horaFin,
-        Kartings_idKartings: valor.Kartings_idKartings,
+        kartings,
         Torneos_idTorneos: valor.Torneos_idTorneos,
         Circuitos_idCircuitos: valor.Circuitos_idCircuitos,
     }
@@ -78,21 +84,22 @@ function normalizarLista(valor: unknown): ICarrera[] {
 }
 
 function rutaCarrera(carrera: ICarrera): string {
-    if (carrera.Kartings_idKartings === undefined) {
-        throw new Error('La carrera no tiene un karting asociado y no se puede identificar en el backend')
-    }
-    return `/carreras/${fechaApi(carrera.fechaCarrera)}/${carrera.Kartings_idKartings}/${carrera.Torneos_idTorneos}/${carrera.Circuitos_idCircuitos}`
+    return `/carreras/${fechaApi(carrera.fechaCarrera)}/${carrera.Torneos_idTorneos}/${carrera.Circuitos_idCircuitos}`
 }
 
-function cuerpoApi(datos: CreateCarrera): Record<string, string | number> {
+function cuerpoApi(datos: CreateCarrera): Record<string, string | number | number[]> {
     return {
         fechaCarrera: fechaApi(datos.fechaCarrera),
         horaInicio: fechaHoraApi(datos.fechaCarrera, datos.horaInicio),
         horaFin: fechaHoraApi(datos.fechaCarrera, datos.horaFin),
-        Kartings_idKartings: datos.Kartings_idKartings,
+        kartings: datos.kartings,
         Torneos_idTorneos: datos.Torneos_idTorneos,
         Circuitos_idCircuitos: datos.Circuitos_idCircuitos,
     }
+}
+
+function kartingsDeCarrera(carrera: ICarrera): number[] {
+    return carrera.kartings ?? (carrera.Kartings_idKartings === undefined ? [] : [carrera.Kartings_idKartings])
 }
 
 function obtenerInscripciones(): InscripcionCarrera[] {
@@ -156,6 +163,7 @@ export async function updateCarrera(carrera: ICarrera, datos: CreateCarrera): Pr
             body: JSON.stringify({
                 horaInicio: fechaHoraApi(carrera.fechaCarrera, datos.horaInicio),
                 horaFin: fechaHoraApi(carrera.fechaCarrera, datos.horaFin),
+                kartings: datos.kartings,
             }),
         })
         return normalizarCarrera(await response.json())
@@ -166,6 +174,8 @@ export async function updateCarrera(carrera: ICarrera, datos: CreateCarrera): Pr
     const actualizada: ICarrera = {
         ...datos,
         idCarreras: carrera.idCarreras,
+        Kartings_idKartings: datos.kartings[0],
+        kartings: datos.kartings,
         horaInicio: datos.horaInicio instanceof Date ? datos.horaInicio : new Date(`${fechaApi(datos.fechaCarrera)}T${datos.horaInicio}:00`),
         horaFin: datos.horaFin instanceof Date ? datos.horaFin : new Date(`${fechaApi(datos.fechaCarrera)}T${datos.horaFin}:00`),
     }
@@ -252,6 +262,8 @@ function kartingOcupado(idKarting: number, carrera: ICarrera, inscripciones: Ins
     return inscripciones.some((inscripcion) => {
         if (inscripcion.idKarting !== idKarting) return false
         const otraCarrera = carreras.find((item) => item.idCarreras === inscripcion.idCarrera)
-        return otraCarrera ? seSuperponen(carrera, otraCarrera) : false
+        return otraCarrera
+            ? kartingsDeCarrera(otraCarrera).includes(idKarting) && seSuperponen(carrera, otraCarrera)
+            : false
     })
 }

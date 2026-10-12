@@ -123,6 +123,7 @@ export interface TipoKarting {
     idTiposKarting: number
     nombre: string
     descripcion: string
+    precioHora?: number
     TiposLicencias_idTipoLicenciaMinima: number
 }
 

@@ -27,6 +27,7 @@ function normalizarTipo(valor: unknown): TipoKarting {
         nombre: valor.nombre,
         descripcion: valor.descripcion,
         TiposLicencias_idTipoLicenciaMinima: valor.TiposLicencias_idTipoLicenciaMinima,
+        precioHora: Number(valor.precioHora) || undefined,
     }
 }
 

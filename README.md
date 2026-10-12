@@ -2,10 +2,9 @@
 
 ## Frontend
 
-El frontend está en [frontend](frontend). Es una app React + TypeScript + Vite con datos mock, por lo que se puede desarrollar sin instalar MySQL ni bajar la base de datos.
+Es una app React + TypeScript + Vite con datos mock, por lo que se puede desarrollar sin instalar MySQL ni bajar la base de datos.
 
 ```powershell
-cd frontend
 npm install
 npm run dev
 ```

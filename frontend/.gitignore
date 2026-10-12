@@ -25,3 +25,4 @@ dist-ssr
 
 # Variables de entorno locales
 .env
+graphify-out/

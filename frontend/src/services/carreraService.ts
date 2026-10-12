@@ -30,10 +30,6 @@ function horaLocalApi(valor: string, fecha: Date): Date {
     return new Date(`${fechaApi(fecha)}T${hora}`)
 }
 
-function fechaHoraApi(fecha: Date, hora: Date | string): string {
-    return `${fechaApi(fecha)}T${horaApi(hora)}:00.000Z`
-}
-
 function esObjeto(valor: unknown): valor is CarreraApi {
     return typeof valor === 'object' && valor !== null
 }
@@ -90,8 +86,8 @@ function rutaCarrera(carrera: ICarrera): string {
 function cuerpoApi(datos: CreateCarrera): Record<string, string | number | number[]> {
     return {
         fechaCarrera: fechaApi(datos.fechaCarrera),
-        horaInicio: fechaHoraApi(datos.fechaCarrera, datos.horaInicio),
-        horaFin: fechaHoraApi(datos.fechaCarrera, datos.horaFin),
+        horaInicio: horaApi(datos.horaInicio),
+        horaFin: horaApi(datos.horaFin),
         kartings: datos.kartings,
         Torneos_idTorneos: datos.Torneos_idTorneos,
         Circuitos_idCircuitos: datos.Circuitos_idCircuitos,
@@ -166,8 +162,8 @@ export async function updateCarrera(carrera: ICarrera, datos: CreateCarrera): Pr
         const response = await apiFetch(rutaCarrera(carrera), {
             method: 'PUT',
             body: JSON.stringify({
-                horaInicio: fechaHoraApi(carrera.fechaCarrera, datos.horaInicio),
-                horaFin: fechaHoraApi(carrera.fechaCarrera, datos.horaFin),
+                horaInicio: horaApi(datos.horaInicio),
+                horaFin: horaApi(datos.horaFin),
                 kartings: datos.kartings,
             }),
         })

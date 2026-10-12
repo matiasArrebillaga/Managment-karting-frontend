@@ -1,6 +1,6 @@
 import type { Localidad } from '../types'
 import { localidades as seed } from '../data/mockData'
-import { apiFetch, usaMocks } from './httpClient'
+import { API_URL, apiFetch, usaMocks } from './httpClient'
 
 let localidades: Localidad[] = [...seed]
 let siguienteId = localidades.length + 1
@@ -35,8 +35,21 @@ function validarNombre(nombre: string): void {
     }
 }
 
+// Sin token: el registro carga las localidades antes de que exista una sesión
 export async function getLocalidadesParaRegistro(): Promise<Localidad[]> {
-    return [...seed]
+    if (usaMocks) return [...seed]
+
+    const response = await fetch(`${API_URL}/auth/localidades`).catch(() => {
+        throw new Error('No se pudo conectar con el servidor para cargar las localidades')
+    })
+    if (!response.ok) {
+        throw new Error(`No se pudieron cargar las localidades (${response.status})`)
+    }
+    const lista = normalizarLista(await response.json())
+    if (lista.length === 0) {
+        throw new Error('No hay localidades cargadas. Contactá a un administrador.')
+    }
+    return lista
 }
 
 export async function getLocalidades(): Promise<Localidad[]> {

@@ -1,4 +1,4 @@
-const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api').replace(/\/+$/, '')
+export const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api').replace(/\/+$/, '')
 const CLAVE_STORAGE = 'karting_sesion'
 export const EVENTO_SESION_INVALIDA = 'karting:session-invalid'
 

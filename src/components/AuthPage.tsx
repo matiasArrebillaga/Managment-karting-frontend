@@ -189,12 +189,6 @@ function AuthPage ({ mode }: { mode: 'login' | 'register' }) {
                         {isLogin ? 'Registrate' : 'Iniciá sesión'}
                     </Link>
                 </p>
-                {isLogin && (
-                    <p className="subtitle" style={{ marginTop: 16, fontSize: 13 }}>
-                        Usuarios de prueba (contraseña: 1234):<br />
-                        admin@karting.com · empleado@karting.com · cliente@karting.com
-                    </p>
-                )}
             </div>
         </main>
     )

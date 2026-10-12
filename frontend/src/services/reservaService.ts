@@ -39,6 +39,10 @@ function esObjeto(valor: unknown): valor is Record<string, unknown> {
     return typeof valor === 'object' && valor !== null
 }
 
+function horaDeApi(valor: string): string {
+    return valor.includes('T') ? valor.slice(11, 16) : valor.slice(0, 5)
+}
+
 function normalizarReservaApi(valor: unknown): IReserva {
     if (!esObjeto(valor)) {
         throw new Error('El servidor devolvió una reserva inválida')
@@ -65,8 +69,8 @@ function normalizarReservaApi(valor: unknown): IReserva {
     return {
         idReservas: valor.idReservas,
         fechaReserva,
-        horaInicio: typeof horaInicio === 'string' ? horaInicio : '',
-        horaFin: typeof horaFin === 'string' ? horaFin : '',
+        horaInicio: typeof horaInicio === 'string' ? horaDeApi(horaInicio) : '',
+        horaFin: typeof horaFin === 'string' ? horaDeApi(horaFin) : '',
         Personas_idPersona: valor.Personas_idPersona,
         Circuitos_idCircuitos: valor.Circuitos_idCircuitos,
         Kartings_idKartings: valor.Kartings_idKartings,
@@ -167,7 +171,8 @@ export async function getReservas(): Promise<IReserva[]> {
 
 export async function getMisReservas(idPersona?: number): Promise<IReserva[]> {
     if (!usaMocks) {
-        throw new Error('El backend actual no ofrece una ruta para que CLIENTE consulte sus propias reservas')
+        const response = await apiFetch('/reservas/mias')
+        return normalizarListaReservasApi(await response.json())
     }
     await demora()
     return reservas.filter((reserva) => reserva.Personas_idPersona === idPersona)

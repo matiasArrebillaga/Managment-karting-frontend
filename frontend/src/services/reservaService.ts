@@ -167,7 +167,11 @@ export async function getReservas(): Promise<IReserva[]> {
 
 export async function getMisReservas(idPersona?: number): Promise<IReserva[]> {
     if (!usaMocks) {
-        throw new Error('El backend actual no ofrece una ruta para que CLIENTE consulte sus propias reservas')
+        if (idPersona === undefined) {
+            throw new Error('No se pudo identificar la persona para consultar sus reservas')
+        }
+        const response = await apiFetch('/reservas/mias')
+        return normalizarListaReservasApi(await response.json())
     }
     await demora()
     return reservas.filter((reserva) => reserva.Personas_idPersona === idPersona)

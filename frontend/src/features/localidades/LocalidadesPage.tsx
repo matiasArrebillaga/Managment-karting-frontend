@@ -6,6 +6,7 @@ import TableRow from '@mui/material/TableRow'
 import TableHead from '@mui/material/TableHead'
 import TableBody from '@mui/material/TableBody'
 import Button from '@mui/material/Button'
+import Alert from '@mui/material/Alert'
 import { getLocalidades, deleteLocalidad } from '../../services/localidadService'
 import type { Localidad } from '../../types'
 import LocalidadFormDialog from './LocalidadFormDialog'
@@ -13,14 +14,20 @@ import LocalidadFormDialog from './LocalidadFormDialog'
 function LocalidadesPage() {
     const [localidades, setLocalidades] = useState<Localidad[]>([])
     const [cargando, setCargando] = useState(true)
+    const [error, setError] = useState('')
     const [abierto, setAbierto] = useState(false)
     const [localidadEditando, setLocalidadEditando] = useState<Localidad | null>(null)
 
-    function cargarLocalidades() {
+    async function cargarLocalidades() {
         setCargando(true)
-        getLocalidades()
-            .then((datos) => setLocalidades(datos))
-            .finally(() => setCargando(false))
+        setError('')
+        try {
+            setLocalidades(await getLocalidades())
+        } catch (motivo) {
+            setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar las localidades')
+        } finally {
+            setCargando(false)
+        }
     }
 
     useEffect(() => {
@@ -65,6 +72,7 @@ function LocalidadesPage() {
             <Typography variant="h4" gutterBottom>
                 Localidades
             </Typography>
+            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
             <Button variant="contained" onClick={handleNueva} sx={{ mb: 2 }}>
                 Nueva Localidad
@@ -91,6 +99,13 @@ function LocalidadesPage() {
                             </TableCell>
                         </TableRow>
                     ))}
+                    {localidades.length === 0 && !error && (
+                        <TableRow>
+                            <TableCell colSpan={2} align="center">
+                                No hay localidades para mostrar.
+                            </TableCell>
+                        </TableRow>
+                    )}
                 </TableBody>
             </Table>
 

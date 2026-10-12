@@ -145,19 +145,19 @@ function CarrerasPage () {
                         <TableCell>Fin</TableCell>
                         <TableCell>Torneo</TableCell>
                         <TableCell>Circuito</TableCell>
-                        <TableCell>Karting</TableCell>
+                        <TableCell>Kartings</TableCell>
                         <TableCell>Acciones</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
                     {carreras.map((carrera) => (
-                        <TableRow key={`${carrera.fechaCarrera.toISOString()}-${carrera.Kartings_idKartings ?? carrera.idCarreras}-${carrera.Torneos_idTorneos}-${carrera.Circuitos_idCircuitos}`}>
+                        <TableRow key={`${carrera.fechaCarrera.toISOString()}-${carrera.Torneos_idTorneos}-${carrera.Circuitos_idCircuitos}`}>
                             <TableCell>{carrera.fechaCarrera.toLocaleDateString()}</TableCell>
                             <TableCell>{carrera.horaInicio.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
                             <TableCell>{carrera.horaFin.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
                             <TableCell>{nombreTorneo(carrera.Torneos_idTorneos)}</TableCell>
                             <TableCell>{nombreCircuito(carrera.Circuitos_idCircuitos)}</TableCell>
-                            <TableCell>{carrera.Kartings_idKartings === undefined ? '—' : `#${carrera.Kartings_idKartings}`}</TableCell>
+                            <TableCell>{(carrera.kartings ?? (carrera.Kartings_idKartings === undefined ? [] : [carrera.Kartings_idKartings])).map((id) => `#${id}`).join(', ') || '—'}</TableCell>
                             <TableCell>
                                 {puedeGestionar && (
                                     <>

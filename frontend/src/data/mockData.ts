@@ -121,7 +121,6 @@ export const reservas: IReserva[] = [
 
 export const participaciones: IParticipacion[] = [
   {
-    Carrera_Kartings_idKartings: 1,
     Carrera_Torneos_idTorneos: 1,
     Carrera_Circuitos_idCircuitos: 1,
     Carrera_fecha: new Date(2026, 9, 4),
@@ -131,7 +130,6 @@ export const participaciones: IParticipacion[] = [
     posicion_final: 1,
   },
   {
-    Carrera_Kartings_idKartings: 3,
     Carrera_Torneos_idTorneos: 1,
     Carrera_Circuitos_idCircuitos: 1,
     Carrera_fecha: new Date(2026, 9, 4),
@@ -141,7 +139,6 @@ export const participaciones: IParticipacion[] = [
     posicion_final: 2,
   },
   {
-    Carrera_Kartings_idKartings: 2,
     Carrera_Torneos_idTorneos: 1,
     Carrera_Circuitos_idCircuitos: 1,
     Carrera_fecha: new Date(2026, 9, 4),

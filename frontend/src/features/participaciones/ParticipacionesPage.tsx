@@ -5,26 +5,23 @@ import { getParticipaciones } from '../../services/participacionService'
 import { getPersonas } from '../../services/personaService'
 import { getTorneos } from '../../services/torneoService'
 import { getCircuitos } from '../../services/circuitoService'
-import { getKartings } from '../../services/kartingService'
-import type { Circuito, IParticipacion, ITorneos, Karting, Persona } from '../../types'
+import type { Circuito, IParticipacion, ITorneos, Persona } from '../../types'
 
 function ParticipacionesPage () {
     const [participaciones, setParticipaciones] = useState<IParticipacion[]>([])
     const [personas, setPersonas] = useState<Persona[]>([])
     const [torneos, setTorneos] = useState<ITorneos[]>([])
     const [circuitos, setCircuitos] = useState<Circuito[]>([])
-    const [kartings, setKartings] = useState<Karting[]>([])
     const [cargando, setCargando] = useState(true)
     const [error, setError] = useState('')
 
     useEffect(() => {
-        Promise.all([getParticipaciones(), getPersonas(), getTorneos(), getCircuitos(), getKartings()])
-            .then(([datosParticipaciones, datosPersonas, datosTorneos, datosCircuitos, datosKartings]) => {
+        Promise.all([getParticipaciones(), getPersonas(), getTorneos(), getCircuitos()])
+            .then(([datosParticipaciones, datosPersonas, datosTorneos, datosCircuitos]) => {
                 setParticipaciones(datosParticipaciones)
                 setPersonas(datosPersonas)
                 setTorneos(datosTorneos)
                 setCircuitos(datosCircuitos)
-                setKartings(datosKartings)
             })
             .catch((motivo: unknown) => {
                 setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar las participaciones')
@@ -44,11 +41,6 @@ function ParticipacionesPage () {
     function nombreCircuito (id: number) {
         const circuito = circuitos.find((item) => item.idCircuitos === id)
         return circuito ? `Circuito ${id} (${circuito.distancia} m)` : `#${id}`
-    }
-
-    function nombreKarting (id: number) {
-        const karting = kartings.find((item) => item.idKartings === id)
-        return karting ? `${karting.modelo} (${karting.categoria})` : `#${id}`
     }
 
     if (cargando) {
@@ -71,7 +63,6 @@ function ParticipacionesPage () {
                         <TableCell>Torneo</TableCell>
                         <TableCell>Circuito</TableCell>
                         <TableCell>Piloto</TableCell>
-                        <TableCell>Karting</TableCell>
                         <TableCell>Tiempo</TableCell>
                         <TableCell>Puntos</TableCell>
                         <TableCell>Posición final</TableCell>
@@ -86,7 +77,6 @@ function ParticipacionesPage () {
                             <TableCell>{nombreTorneo(participacion.Carrera_Torneos_idTorneos)}</TableCell>
                             <TableCell>{nombreCircuito(participacion.Carrera_Circuitos_idCircuitos)}</TableCell>
                             <TableCell>{nombrePersona(participacion.Personas_idPersona)}</TableCell>
-                            <TableCell>{nombreKarting(participacion.Carrera_Kartings_idKartings)}</TableCell>
                             <TableCell>{participacion.tiempo}</TableCell>
                             <TableCell>{participacion.puntos}</TableCell>
                             <TableCell>{participacion.posicion_final}°</TableCell>

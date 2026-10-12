@@ -33,7 +33,7 @@ function CarreraFormDialog ({ abierto, carrera, onCerrar, onGuardado }: Props) {
     const [horaFin, setHoraFin] = useState('')
     const [torneoId, setTorneoId] = useState('')
     const [circuitoId, setCircuitoId] = useState('')
-    const [kartingId, setKartingId] = useState('')
+    const [kartingIds, setKartingIds] = useState<string[]>([])
     const [circuitos, setCircuitos] = useState<Circuito[]>([])
     const [torneos, setTorneos] = useState<ITorneos[]>([])
     const [kartings, setKartings] = useState<Karting[]>([])
@@ -63,20 +63,21 @@ function CarreraFormDialog ({ abierto, carrera, onCerrar, onGuardado }: Props) {
             setHoraFin(horaLocal(carrera.horaFin))
             setTorneoId(String(carrera.Torneos_idTorneos))
             setCircuitoId(String(carrera.Circuitos_idCircuitos))
-            setKartingId(carrera.Kartings_idKartings === undefined ? '' : String(carrera.Kartings_idKartings))
+            const ids = carrera.kartings ?? (carrera.Kartings_idKartings === undefined ? [] : [carrera.Kartings_idKartings])
+            setKartingIds(ids.map(String))
         } else {
             setFechaCarrera('')
             setHoraInicio('')
             setHoraFin('')
             setTorneoId('')
             setCircuitoId('')
-            setKartingId('')
+            setKartingIds([])
         }
         setError('')
     }, [carrera, abierto])
 
     async function handleGuardar () {
-        if (!fechaCarrera || !horaInicio || !horaFin || !torneoId || !circuitoId || !kartingId) {
+        if (!fechaCarrera || !horaInicio || !horaFin || !torneoId || !circuitoId || kartingIds.length === 0) {
             setError('Completá todos los campos de la carrera')
             return
         }
@@ -92,7 +93,7 @@ function CarreraFormDialog ({ abierto, carrera, onCerrar, onGuardado }: Props) {
                 fechaCarrera: new Date(`${fechaCarrera}T00:00:00`),
                 horaInicio,
                 horaFin,
-                Kartings_idKartings: Number(kartingId),
+                kartings: kartingIds.map(Number),
                 Torneos_idTorneos: Number(torneoId),
                 Circuitos_idCircuitos: Number(circuitoId),
             }
@@ -159,10 +160,13 @@ function CarreraFormDialog ({ abierto, carrera, onCerrar, onGuardado }: Props) {
                     </TextField>
                     <TextField
                         select
-                        label="Karting"
-                        value={kartingId}
-                        onChange={(event) => setKartingId(event.target.value)}
-                        disabled={editando && !usaMocks}
+                        label="Kartings"
+                        value={kartingIds}
+                        slotProps={{ select: { multiple: true } }}
+                        onChange={(event) => {
+                            const seleccion = event.target.value
+                            setKartingIds(typeof seleccion === 'string' ? seleccion.split(',') : seleccion)
+                        }}
                         required
                         fullWidth
                     >

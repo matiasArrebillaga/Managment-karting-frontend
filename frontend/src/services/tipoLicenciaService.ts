@@ -2,6 +2,7 @@ import type { TipoLicencia } from "../types"
 import { tiposLicencia as seed } from "../data/mockData"
 import { getTiposKarting } from "./tipoKartingService"
 import { getLicencias } from "./licenciaService"
+import { apiFetch, usaMocks } from "./httpClient"
 
 let tiposLicencia: TipoLicencia[] = [...seed]
 let siguienteId = tiposLicencia.length + 1
@@ -9,6 +10,10 @@ let siguienteId = tiposLicencia.length + 1
 const demora = () => new Promise((resolve) => setTimeout(resolve, 300))
 
 export async function getTiposLicencia(): Promise<TipoLicencia[]> {
+    if (!usaMocks) {
+        const response = await apiFetch('/tiposLicencias')
+        return response.json() as Promise<TipoLicencia[]>
+    }
     await demora()
     return tiposLicencia
 }

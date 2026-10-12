@@ -15,7 +15,7 @@ import TiposKartingPage from './features/tiposKarting/TiposKartingPage.tsx'
 import LicenciasPage from './features/licencias/LicenciasPage.tsx'
 import CarrerasPage from './features/carreras/CarrerasPage.tsx'
 import TorneosPage from './features/torneos/TorneosPage.tsx'
-import TorneosListadoPage from './features/torneos/TorneosListadoPage.tsx'
+import TorneoDetallePage from './features/torneos/TorneosDetallePage.tsx'
 import ReservasPage from './features/reservas/ReservasPage.tsx'
 import ParticipacionesPage from './features/participaciones/ParticipacionesPage.tsx'
 import { AuthProvider } from './context/AuthContext.tsx'
@@ -34,7 +34,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/dashboard" element={<RutaProtegida><Dashboard /></RutaProtegida>} />
           <Route path="/carreras" element={<RutaProtegida><CarrerasPage /></RutaProtegida>} />
           <Route path="/torneos" element={<RutaProtegida><TorneosPage /></RutaProtegida>} />
-          <Route path="/torneos/listado" element={<RutaProtegida><TorneosListadoPage /></RutaProtegida>} />
+          <Route path="/torneos/:id" element={<RutaProtegida><TorneoDetallePage /></RutaProtegida>} />
           <Route path="/reservas" element={<RutaProtegida><ReservasPage /></RutaProtegida>} />
           <Route
             path="/participaciones"

@@ -16,7 +16,7 @@ function aFechaLocal(valor: string): Date {
     return new Date(`${valor.slice(0, 10)}T00:00:00`)
 }
 
-function fechaApi(fecha: Date): string {
+export function fechaApi(fecha: Date): string {
     return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`
 }
 
@@ -28,10 +28,6 @@ function horaApi(fecha: Date | string): string {
 function horaLocalApi(valor: string, fecha: Date): Date {
     const hora = valor.includes('T') ? valor.slice(valor.indexOf('T') + 1, valor.indexOf('T') + 9) : valor.slice(0, 8)
     return new Date(`${fechaApi(fecha)}T${hora}`)
-}
-
-function fechaHoraApi(fecha: Date, hora: Date | string): string {
-    return `${fechaApi(fecha)}T${horaApi(hora)}:00.000Z`
 }
 
 function esObjeto(valor: unknown): valor is CarreraApi {
@@ -90,8 +86,8 @@ function rutaCarrera(carrera: ICarrera): string {
 function cuerpoApi(datos: CreateCarrera): Record<string, string | number | number[]> {
     return {
         fechaCarrera: fechaApi(datos.fechaCarrera),
-        horaInicio: fechaHoraApi(datos.fechaCarrera, datos.horaInicio),
-        horaFin: fechaHoraApi(datos.fechaCarrera, datos.horaFin),
+        horaInicio: horaApi(datos.horaInicio),
+        horaFin: horaApi(datos.horaFin),
         kartings: datos.kartings,
         Torneos_idTorneos: datos.Torneos_idTorneos,
         Circuitos_idCircuitos: datos.Circuitos_idCircuitos,
@@ -118,6 +114,11 @@ export async function getCarreras(): Promise<ICarrera[]> {
     }
     await demora()
     return carreras
+}
+
+export async function getCarrerasTorneo(idTorneo: number): Promise<ICarrera[]> {
+    const response = await apiFetch(`/carreras/torneo/${idTorneo}`)
+    return normalizarLista(await response.json())
 }
 
 export async function getCarrera(carrera: ICarrera | number): Promise<ICarrera> {
@@ -161,8 +162,8 @@ export async function updateCarrera(carrera: ICarrera, datos: CreateCarrera): Pr
         const response = await apiFetch(rutaCarrera(carrera), {
             method: 'PUT',
             body: JSON.stringify({
-                horaInicio: fechaHoraApi(carrera.fechaCarrera, datos.horaInicio),
-                horaFin: fechaHoraApi(carrera.fechaCarrera, datos.horaFin),
+                horaInicio: horaApi(datos.horaInicio),
+                horaFin: horaApi(datos.horaFin),
                 kartings: datos.kartings,
             }),
         })

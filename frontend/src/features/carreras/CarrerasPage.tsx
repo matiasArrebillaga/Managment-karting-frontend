@@ -8,13 +8,15 @@ import TableHead from '@mui/material/TableHead'
 import TableBody from '@mui/material/TableBody'
 import Button from '@mui/material/Button'
 import { useAuth } from '../../context/AuthContext'
-import { getCarreras, deleteCarrera, getInscripcionesCarreras, desanotarseDeCarrera } from '../../services/carreraService'
+import { getCarreras, deleteCarrera, getInscripcionesCarreras, desanotarseDeCarrera, fechaApi } from '../../services/carreraService'
 import { getCircuitos } from '../../services/circuitoService'
 import { getTorneos } from '../../services/torneoService'
 import type { Circuito, ICarrera, ITorneos } from '../../types'
 import CarreraFormDialog from './CarreraFormDialog'
 import CarreraInscripcionDialog from './CarreraInscripcionDialog'
 import { usaMocks } from '../../services/httpClient'
+import { getParticipaciones } from '../../services/participacionService'
+import ResultadosCarreraDialog from './ResultadosCarreraDialog'
 
 function CarrerasPage () {
     const { persona } = useAuth()
@@ -27,6 +29,8 @@ function CarrerasPage () {
     const [abierto, setAbierto] = useState(false)
     const [carreraEditando, setCarreraEditando] = useState<ICarrera | null>(null)
     const [carreraInscribiendo, setCarreraInscribiendo] = useState<ICarrera | null>(null)
+    const [conResultados, setConResultados] = useState<string[]>([])
+    const [carreraResultados, setCarreraResultados] = useState<ICarrera | null>(null)
     const puedeGestionar = persona?.rol.nombre === 'ADMIN' || persona?.rol.nombre === 'EMPLEADO'
     const puedeEliminar = usaMocks ? puedeGestionar : persona?.rol.nombre === 'ADMIN'
 
@@ -37,12 +41,14 @@ function CarrerasPage () {
             getCircuitos(),
             getTorneos(),
             persona && usaMocks ? getInscripcionesCarreras(persona.idPersona) : Promise.resolve([]),
+            puedeGestionar ? getParticipaciones() : Promise.resolve([]),
         ])
-            .then(([datosCarreras, datosCircuitos, datosTorneos, datosInscripciones]) => {
+            .then(([datosCarreras, datosCircuitos, datosTorneos, datosInscripciones, datosParticipaciones]) => {
                 setCarreras(datosCarreras)
                 setCircuitos(datosCircuitos)
                 setTorneos(datosTorneos)
                 setInscripciones(datosInscripciones)
+                setConResultados(datosParticipaciones.map((p) => claveCarrera(p.Carrera_fecha, p.Carrera_Torneos_idTorneos, p.Carrera_Circuitos_idCircuitos)))
             })
             .catch((motivo: unknown) => {
                 setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar las carreras')
@@ -77,6 +83,11 @@ function CarrerasPage () {
 
     function nombreTorneo (id: number) {
         return torneos.find((torneo) => torneo.idTorneos === id)?.nombre ?? `#${id}`
+    }
+
+    // Una carrera se identifica por fecha + torneo + circuito (su clave compuesta)
+    function claveCarrera (fecha: Date, idTorneo: number, idCircuito: number) {
+        return `${fechaApi(fecha)}-${idTorneo}-${idCircuito}`
     }
 
     async function handleEliminar (carrera: ICarrera) {
@@ -164,6 +175,11 @@ function CarrerasPage () {
                                         <Button size="small" onClick={() => handleEditar(carrera)}>
                                             Editar
                                         </Button>
+                                        <Button size="small" onClick={() => setCarreraResultados(carrera)}>
+                                            {conResultados.includes(claveCarrera(carrera.fechaCarrera, carrera.Torneos_idTorneos, carrera.Circuitos_idCircuitos))
+                                                ? 'Ver clasificación'
+                                                : 'Cargar resultados'}
+                                        </Button>
                                         {puedeEliminar && (
                                             <Button size="small" color="error" onClick={() => handleEliminar(carrera)}>
                                                 Eliminar
@@ -201,6 +217,14 @@ function CarrerasPage () {
                     onInscripto={handleInscripto}
                 />
             )}
+            <ResultadosCarreraDialog
+                carrera={carreraResultados}
+                puedeBorrar={persona?.rol.nombre === 'ADMIN'}
+                onCerrar={() => {
+                    setCarreraResultados(null)
+                    cargarCarreras()
+                }}
+            />
         </div>
     )
 }

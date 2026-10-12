@@ -4,8 +4,9 @@ import { createCarrera, updateCarrera } from '../../services/carreraService'
 import { getCircuitos } from '../../services/circuitoService'
 import { getTorneos } from '../../services/torneoService'
 import { getKartings } from '../../services/kartingService'
+import { getTiposKarting } from '../../services/tipoKartingService'
 import { usaMocks } from '../../services/httpClient'
-import type { Circuito, CreateCarrera, ICarrera, ITorneos, Karting } from '../../types'
+import type { Circuito, CreateCarrera, ICarrera, ITorneos, Karting, TipoKarting } from '../../types'
 
 type Props = {
     abierto: boolean
@@ -37,18 +38,26 @@ function CarreraFormDialog ({ abierto, carrera, onCerrar, onGuardado }: Props) {
     const [circuitos, setCircuitos] = useState<Circuito[]>([])
     const [torneos, setTorneos] = useState<ITorneos[]>([])
     const [kartings, setKartings] = useState<Karting[]>([])
+    const [tiposKarting, setTiposKarting] = useState<TipoKarting[]>([])
     const [guardando, setGuardando] = useState(false)
     const [error, setError] = useState('')
 
     const editando = Boolean(carrera)
+    const torneoElegido = torneos.find((torneo) => String(torneo.idTorneos) === torneoId)
+    // Solo se ofrecen los karts de la licencia del torneo; el backend lo vuelve a validar
+    const kartingsDelTorneo = torneoElegido
+        ? kartings.filter((karting) => tiposKarting.find((tipo) => tipo.idTiposKarting === karting.TiposKarting_idTiposKarting)
+            ?.TiposLicencias_idTipoLicenciaMinima === torneoElegido.TiposLicencias_idTipoLicencia)
+        : []
 
     useEffect(() => {
         if (abierto) {
-            Promise.all([getCircuitos(), getTorneos(), getKartings()])
-                .then(([datosCircuitos, datosTorneos, datosKartings]) => {
+            Promise.all([getCircuitos(), getTorneos(), getKartings(), getTiposKarting()])
+                .then(([datosCircuitos, datosTorneos, datosKartings, datosTiposKarting]) => {
                     setCircuitos(datosCircuitos)
                     setTorneos(datosTorneos)
                     setKartings(datosKartings)
+                    setTiposKarting(datosTiposKarting)
                 })
                 .catch((motivo: unknown) => {
                     setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los datos de la carrera')
@@ -147,7 +156,11 @@ function CarreraFormDialog ({ abierto, carrera, onCerrar, onGuardado }: Props) {
                         select
                         label="Torneo"
                         value={torneoId}
-                        onChange={(event) => setTorneoId(event.target.value)}
+                        onChange={(event) => {
+                            // los karts elegidos podrian no ser de la licencia del nuevo torneo
+                            setTorneoId(event.target.value)
+                            setKartingIds([])
+                        }}
                         disabled={editando && !usaMocks}
                         required
                         fullWidth
@@ -167,10 +180,14 @@ function CarreraFormDialog ({ abierto, carrera, onCerrar, onGuardado }: Props) {
                             const seleccion = event.target.value
                             setKartingIds(typeof seleccion === 'string' ? seleccion.split(',') : seleccion)
                         }}
+                        disabled={!torneoElegido}
+                        helperText={torneoElegido
+                            ? `Elegí al menos ${torneoElegido.cupoMaximo} (cupo del torneo). Seleccionados: ${kartingIds.length}`
+                            : 'Elegí primero el torneo'}
                         required
                         fullWidth
                     >
-                        {kartings.map((karting) => (
+                        {kartingsDelTorneo.map((karting) => (
                             <MenuItem key={karting.idKartings} value={String(karting.idKartings)}>
                                 {karting.modelo} ({karting.categoria})
                             </MenuItem>

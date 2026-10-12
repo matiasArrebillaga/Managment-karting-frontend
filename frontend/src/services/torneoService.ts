@@ -1,7 +1,8 @@
-import type { CreatePersonaTorneo, CreateTorneos, IInscripcion, ITorneos, UpdateTorneos } from '../types'
+import type { CreatePersonaTorneo, CreateTorneos, IInscripcion, ITorneos, Persona, UpdateTorneos } from '../types'
 import { torneos as seed } from '../data/mockData'
 import { getCarreras } from './carreraService'
 import { apiFetch, usaMocks } from './httpClient'
+import { getPersonas } from './personaService'
 
 let torneos: ITorneos[] = [...seed]
 let siguienteId = Math.max(0, ...torneos.map((torneo) => torneo.idTorneos ?? 0)) + 1
@@ -36,6 +37,7 @@ function normalizarTorneo(valor: unknown): ITorneos {
         || typeof valor.cupoMaximo !== 'number'
         || typeof valor.fechaInicio !== 'string'
         || typeof valor.fechaFin !== 'string'
+        || typeof valor.TiposLicencias_idTipoLicencia !== 'number'
     ) {
         throw new Error('La API devolvió un torneo con un formato inválido')
     }
@@ -53,6 +55,7 @@ function normalizarTorneo(valor: unknown): ITorneos {
         cupoMaximo: valor.cupoMaximo,
         fechaInicio,
         fechaFin,
+        TiposLicencias_idTipoLicencia: valor.TiposLicencias_idTipoLicencia,
     }
 }
 
@@ -88,6 +91,7 @@ function datosTorneoApi(datos: CreateTorneos): Record<string, string | number> {
         cupoMaximo: datos.cupoMaximo,
         fechaInicio: fechaApi(datos.fechaInicio),
         fechaFin: fechaApi(datos.fechaFin),
+        TiposLicencias_idTipoLicencia: datos.TiposLicencias_idTipoLicencia,
     }
 }
 
@@ -269,4 +273,13 @@ export async function desanotarseDeTorneo(idTorneo: number, idPersona: number): 
 
     inscripciones.splice(indice, 1)
     localStorage.setItem(CLAVE_INSCRIPCIONES, JSON.stringify(inscripciones))
+}
+
+// Inscriptos de un torneo con su nombre (solo ADMIN/EMPLEADO: /inscripciones y /personas son del personal)
+export async function getInscriptosTorneo(idTorneo: number): Promise<Persona[]> {
+    const [response, personas] = await Promise.all([apiFetch('/inscripciones'), getPersonas()])
+    const ids = normalizarInscripciones(await response.json())
+        .filter((inscripcion) => inscripcion.Torneos_idTorneos === idTorneo)
+        .map((inscripcion) => inscripcion.Personas_idPersona)
+    return personas.filter((persona) => ids.includes(persona.idPersona))
 }

@@ -96,9 +96,9 @@ export const carreras: ICarrera[] = [
 ]
 
 export const tiposKarting: TipoKarting[] = [
-  { idTiposKarting: 1, nombre: 'Junior', descripcion: 'Para pilotos de menor edad y peso', TiposLicencias_idTipoLicenciaMinima: 1 },
-  { idTiposKarting: 2, nombre: 'Senior', descripcion: 'Motor estandar de competicion', TiposLicencias_idTipoLicenciaMinima: 2 },
-  { idTiposKarting: 3, nombre: 'Profesional', descripcion: 'Motor de alta cilindrada para competicion', TiposLicencias_idTipoLicenciaMinima: 3 },
+  { idTiposKarting: 1, nombre: 'Junior', descripcion: 'Para pilotos de menor edad y peso', precioHora: 15000, TiposLicencias_idTipoLicenciaMinima: 1 },
+  { idTiposKarting: 2, nombre: 'Senior', descripcion: 'Motor estandar de competicion', precioHora: 20000, TiposLicencias_idTipoLicenciaMinima: 2 },
+  { idTiposKarting: 3, nombre: 'Profesional', descripcion: 'Motor de alta cilindrada para competicion', precioHora: 30000, TiposLicencias_idTipoLicenciaMinima: 3 },
 ]
 
 export const kartings: Karting[] = [

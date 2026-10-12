@@ -3,9 +3,9 @@ import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuI
 import { createReserva, updateReserva } from '../../services/reservaService'
 import { getCircuitos } from '../../services/circuitoService'
 import { getKartings } from '../../services/kartingService'
+import { getTiposKarting } from '../../services/tipoKartingService'
 import { getPersonas } from '../../services/personaService'
-import { usaMocks } from '../../services/httpClient'
-import type { Circuito, CreateReservaInput, IReserva, Karting, Persona } from '../../types'
+import type { Circuito, CreateReservaInput, IReserva, Karting, Persona, TipoKarting } from '../../types'
 
 type Props = {
     abierto: boolean
@@ -37,17 +37,21 @@ function fechaMinimaInput () {
     return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`
 }
 
+function minutosDeHora (hora: string) {
+    return Number(hora.slice(0, 2)) * 60 + Number(hora.slice(3, 5))
+}
+
 function ReservaFormDialog ({ abierto, reserva, idPersonaActual, nombrePersonaActual, puedeGestionar, onCerrar, onGuardado }: Props) {
     const [fechaReserva, setFechaReserva] = useState('')
     const [horaInicio, setHoraInicio] = useState('')
     const [horaFin, setHoraFin] = useState('')
-    const [monto, setMonto] = useState('')
     const [personaId, setPersonaId] = useState(String(idPersonaActual))
     const [circuitoId, setCircuitoId] = useState('')
     const [kartingId, setKartingId] = useState('')
     const [personas, setPersonas] = useState<Persona[]>([])
     const [circuitos, setCircuitos] = useState<Circuito[]>([])
     const [kartings, setKartings] = useState<Karting[]>([])
+    const [tiposKarting, setTiposKarting] = useState<TipoKarting[]>([])
     const [cargandoCatalogos, setCargandoCatalogos] = useState(false)
     const [guardando, setGuardando] = useState(false)
     const [error, setError] = useState('')
@@ -63,8 +67,9 @@ function ReservaFormDialog ({ abierto, reserva, idPersonaActual, nombrePersonaAc
             getCircuitos(),
             getKartings(),
             puedeGestionar ? getPersonas() : Promise.resolve([]),
+            getTiposKarting(),
         ])
-            .then(([datosCircuitos, datosKartings, datosPersonas]) => {
+            .then(([datosCircuitos, datosKartings, datosPersonas, datosTipos]) => {
                 if (cancelado) return
                 setCircuitos(datosCircuitos)
                 setKartings(datosKartings.filter((karting) => (
@@ -72,6 +77,7 @@ function ReservaFormDialog ({ abierto, reserva, idPersonaActual, nombrePersonaAc
                     || karting.idKartings === reserva?.Kartings_idKartings
                 )))
                 setPersonas(datosPersonas)
+                setTiposKarting(datosTipos)
             })
             .catch((motivo: unknown) => {
                 if (!cancelado) {
@@ -92,7 +98,6 @@ function ReservaFormDialog ({ abierto, reserva, idPersonaActual, nombrePersonaAc
             setFechaReserva(fechaInput(reserva.fechaReserva))
             setHoraInicio(horaInput(reserva.horaInicio))
             setHoraFin(horaInput(reserva.horaFin))
-            setMonto(reserva.monto === undefined ? '' : String(reserva.monto))
             setPersonaId(String(reserva.Personas_idPersona))
             setCircuitoId(String(reserva.Circuitos_idCircuitos))
             setKartingId(String(reserva.Kartings_idKartings))
@@ -100,7 +105,6 @@ function ReservaFormDialog ({ abierto, reserva, idPersonaActual, nombrePersonaAc
             setFechaReserva('')
             setHoraInicio('')
             setHoraFin('')
-            setMonto('')
             setPersonaId(String(idPersonaActual))
             setCircuitoId('')
             setKartingId('')
@@ -117,33 +121,28 @@ function ReservaFormDialog ({ abierto, reserva, idPersonaActual, nombrePersonaAc
             setError('La fecha de reserva no puede ser anterior a hoy')
             return
         }
-        if (usaMocks) {
-            if (!horaInicio || !horaFin || !/^\d{2}:\d{2}$/.test(horaInicio) || !/^\d{2}:\d{2}$/.test(horaFin)) {
-                setError('Las horas deben tener formato HH:MM')
-                return
-            }
-            const minutosInicio = Number(horaInicio.slice(0, 2)) * 60 + Number(horaInicio.slice(3))
-            const minutosFin = Number(horaFin.slice(0, 2)) * 60 + Number(horaFin.slice(3))
-            if (
-                minutosInicio >= 24 * 60
-                || minutosFin >= 24 * 60
-                || Number(horaInicio.slice(3)) >= 60
-                || Number(horaFin.slice(3)) >= 60
-            ) {
-                setError('Ingresá horarios válidos en formato HH:MM')
-                return
-            }
-            const duracion = minutosFin - minutosInicio
-            if (duracion <= 0) {
-                setError('La hora de fin debe ser posterior a la hora de inicio')
-                return
-            }
-            if (duracion % 60 !== 0) {
-                setError('La duración debe ser de horas enteras (1 h, 2 h, 3 h...)')
-                return
-            }
-        } else if (!monto || !Number.isFinite(Number(monto)) || Number(monto) <= 0) {
-            setError('Ingresá un monto mayor que cero')
+        if (!horaInicio || !horaFin || !/^\d{2}:\d{2}$/.test(horaInicio) || !/^\d{2}:\d{2}$/.test(horaFin)) {
+            setError('Las horas deben tener formato HH:MM')
+            return
+        }
+        const minutosInicio = Number(horaInicio.slice(0, 2)) * 60 + Number(horaInicio.slice(3))
+        const minutosFin = Number(horaFin.slice(0, 2)) * 60 + Number(horaFin.slice(3))
+        if (
+            minutosInicio >= 24 * 60
+            || minutosFin >= 24 * 60
+            || Number(horaInicio.slice(3)) >= 60
+            || Number(horaFin.slice(3)) >= 60
+        ) {
+            setError('Ingresá horarios válidos en formato HH:MM')
+            return
+        }
+        const duracion = minutosFin - minutosInicio
+        if (duracion <= 0) {
+            setError('La hora de fin debe ser posterior a la hora de inicio')
+            return
+        }
+        if (duracion % 60 !== 0) {
+            setError('La duración debe ser de horas enteras (1 h, 2 h, 3 h...)')
             return
         }
 
@@ -152,9 +151,8 @@ function ReservaFormDialog ({ abierto, reserva, idPersonaActual, nombrePersonaAc
         try {
             const datos: CreateReservaInput = {
                 fechaReserva,
-                horaInicio: usaMocks ? horaInicio : '',
-                horaFin: usaMocks ? horaFin : '',
-                ...(!usaMocks ? { monto: Number(monto) } : {}),
+                horaInicio,
+                horaFin,
                 Personas_idPersona: Number(personaId),
                 Circuitos_idCircuitos: Number(circuitoId),
                 Kartings_idKartings: Number(kartingId),
@@ -171,7 +169,10 @@ function ReservaFormDialog ({ abierto, reserva, idPersonaActual, nombrePersonaAc
             setGuardando(false)
         }
     }
-
+    const kartingElegido = kartings.find((karting) => String(karting.idKartings) === kartingId)
+    const precioHora = tiposKarting.find((tipo) => tipo.idTiposKarting === kartingElegido?.TiposKarting_idTiposKarting)?.precioHora
+    const horas = horaInicio && horaFin ? (minutosDeHora(horaFin) - minutosDeHora(horaInicio)) / 60 : 0
+    const montoEstimado = precioHora && horas > 0 && Number.isInteger(horas) ? precioHora * horas : null
     return (
         <Dialog open={abierto} onClose={onCerrar}>
             <DialogTitle>{editando ? 'Editar Reserva' : 'Nueva Reserva'}</DialogTitle>
@@ -207,34 +208,32 @@ function ReservaFormDialog ({ abierto, reserva, idPersonaActual, nombrePersonaAc
                         required
                         fullWidth
                     />
-                    {usaMocks && <>
-                        <TextField
-                            label="Hora de inicio"
-                            type="time"
-                            slotProps={{ htmlInput: { step: 3600 }, inputLabel: { shrink: true } }}
-                            value={horaInicio}
-                            onChange={(event) => {
-                                setHoraInicio(event.target.value)
-                                setCircuitoId('')
-                                setKartingId('')
-                            }}
-                            required
-                            fullWidth
-                        />
-                        <TextField
-                            label="Hora de fin"
-                            type="time"
-                            slotProps={{ htmlInput: { step: 3600 }, inputLabel: { shrink: true } }}
-                            value={horaFin}
-                            onChange={(event) => {
-                                setHoraFin(event.target.value)
-                                setCircuitoId('')
-                                setKartingId('')
-                            }}
-                            required
-                            fullWidth
-                        />
-                    </>}
+                    <TextField
+                        label="Hora de inicio"
+                        type="time"
+                        slotProps={{ htmlInput: { step: 3600 }, inputLabel: { shrink: true } }}
+                        value={horaInicio}
+                        onChange={(event) => {
+                            setHoraInicio(event.target.value)
+                            setCircuitoId('')
+                            setKartingId('')
+                        }}
+                        required
+                        fullWidth
+                    />
+                    <TextField
+                        label="Hora de fin"
+                        type="time"
+                        slotProps={{ htmlInput: { step: 3600 }, inputLabel: { shrink: true } }}
+                        value={horaFin}
+                        onChange={(event) => {
+                            setHoraFin(event.target.value)
+                            setCircuitoId('')
+                            setKartingId('')
+                        }}
+                        required
+                        fullWidth
+                    />
                     {cargandoCatalogos ? (
                         <Typography>Cargando circuitos disponibles...</Typography>
                     ) : (
@@ -279,17 +278,8 @@ function ReservaFormDialog ({ abierto, reserva, idPersonaActual, nombrePersonaAc
                     {!cargandoCatalogos && kartings.length === 0 && (
                         <Typography color="text.secondary">No hay kartings disponibles.</Typography>
                     )}
-                    {!usaMocks && (
-                        <TextField
-                            label="Monto de la reserva"
-                            type="number"
-                            value={monto}
-                            onChange={(event) => setMonto(event.target.value)}
-                            slotProps={{ htmlInput: { min: 0.01, step: 0.01 } }}
-                            helperText="El backend requiere que se indique el monto."
-                            required
-                            fullWidth
-                        />
+                    {montoEstimado !== null && (
+                        <Typography>Monto estimado: ${montoEstimado.toLocaleString('es-AR')}</Typography>
                     )}
                     {error && <Alert severity="error">{error}</Alert>}
                 </Stack>
@@ -299,7 +289,7 @@ function ReservaFormDialog ({ abierto, reserva, idPersonaActual, nombrePersonaAc
                 <Button
                     variant="contained"
                     onClick={handleGuardar}
-                    disabled={guardando || cargandoCatalogos || !fechaReserva || (usaMocks && (!horaInicio || !horaFin)) || (!usaMocks && !monto) || !personaId || !circuitoId || !kartingId}
+                    disabled={guardando || cargandoCatalogos || !fechaReserva || !horaInicio || !horaFin || !personaId || !circuitoId || !kartingId}
                 >
                     Guardar
                 </Button>

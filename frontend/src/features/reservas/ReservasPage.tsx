@@ -5,7 +5,6 @@ import { deleteReserva, getMisReservas, getReservas } from '../../services/reser
 import { getCircuitos } from '../../services/circuitoService'
 import { getKartings } from '../../services/kartingService'
 import { getPersonas } from '../../services/personaService'
-import { usaMocks } from '../../services/httpClient'
 import type { Circuito, IReserva, Karting, Persona } from '../../types'
 import ReservaFormDialog from './ReservaFormDialog'
 
@@ -20,7 +19,6 @@ function ReservasPage () {
     const [abierto, setAbierto] = useState(false)
     const [reservaEditando, setReservaEditando] = useState<IReserva | null>(null)
     const puedeGestionar = persona?.rol.nombre === 'ADMIN' || persona?.rol.nombre === 'EMPLEADO'
-    const puedeCrearReserva = usaMocks || persona?.rol.nombre === 'EMPLEADO'
     const reservasVisibles = reservas.filter((reserva) => (
         puedeGestionar || reserva.Personas_idPersona === persona?.idPersona
     ))
@@ -117,11 +115,9 @@ function ReservasPage () {
             </Typography>
             {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-            {puedeCrearReserva && (
-                <Button variant="contained" onClick={handleNueva} sx={{ mb: 2 }}>
-                    Nueva Reserva
-                </Button>
-            )}
+            <Button variant="contained" onClick={handleNueva} sx={{ mb: 2 }}>
+                Nueva Reserva
+            </Button>
 
             <Table>
                 <TableHead>

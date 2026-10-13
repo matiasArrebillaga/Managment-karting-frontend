@@ -11,7 +11,8 @@ import { useAuth } from '../../context/AuthContext'
 import { getCarreras, deleteCarrera, getInscripcionesCarreras, desanotarseDeCarrera, fechaApi } from '../../services/carreraService'
 import { getCircuitos } from '../../services/circuitoService'
 import { getTorneos } from '../../services/torneoService'
-import type { Circuito, ICarrera, ITorneos } from '../../types'
+import { getKartings } from '../../services/kartingService'
+import type { Circuito, ICarrera, ITorneos, Karting } from '../../types'
 import CarreraFormDialog from './CarreraFormDialog'
 import CarreraInscripcionDialog from './CarreraInscripcionDialog'
 import { usaMocks } from '../../services/httpClient'
@@ -24,6 +25,7 @@ function CarrerasPage () {
     const [inscripciones, setInscripciones] = useState<number[]>([])
     const [circuitos, setCircuitos] = useState<Circuito[]>([])
     const [torneos, setTorneos] = useState<ITorneos[]>([])
+    const [kartings, setKartings] = useState<Karting[]>([])
     const [cargando, setCargando] = useState(true)
     const [error, setError] = useState('')
     const [abierto, setAbierto] = useState(false)
@@ -42,11 +44,13 @@ function CarrerasPage () {
             getTorneos(),
             persona && usaMocks ? getInscripcionesCarreras(persona.idPersona) : Promise.resolve([]),
             puedeGestionar ? getParticipaciones() : Promise.resolve([]),
+            getKartings(),
         ])
-            .then(([datosCarreras, datosCircuitos, datosTorneos, datosInscripciones, datosParticipaciones]) => {
+            .then(([datosCarreras, datosCircuitos, datosTorneos, datosInscripciones, datosParticipaciones, datosKartings]) => {
                 setCarreras(datosCarreras)
                 setCircuitos(datosCircuitos)
                 setTorneos(datosTorneos)
+                setKartings(datosKartings)
                 setInscripciones(datosInscripciones)
                 setConResultados(datosParticipaciones.map((p) => claveCarrera(p.Carrera_fecha, p.Carrera_Torneos_idTorneos, p.Carrera_Circuitos_idCircuitos)))
             })
@@ -83,6 +87,11 @@ function CarrerasPage () {
 
     function nombreTorneo (id: number) {
         return torneos.find((torneo) => torneo.idTorneos === id)?.nombre ?? `#${id}`
+    }
+
+    function nombreKarting (id: number) {
+        const karting = kartings.find((item) => item.idKartings === id)
+        return karting ? karting.modelo : `#${id}`
     }
 
     // Una carrera se identifica por fecha + torneo + circuito (su clave compuesta)
@@ -168,7 +177,7 @@ function CarrerasPage () {
                             <TableCell>{carrera.horaFin.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
                             <TableCell>{nombreTorneo(carrera.Torneos_idTorneos)}</TableCell>
                             <TableCell>{nombreCircuito(carrera.Circuitos_idCircuitos)}</TableCell>
-                            <TableCell>{(carrera.kartings ?? (carrera.Kartings_idKartings === undefined ? [] : [carrera.Kartings_idKartings])).map((id) => `#${id}`).join(', ') || '—'}</TableCell>
+                            <TableCell>{(carrera.kartings ?? (carrera.Kartings_idKartings === undefined ? [] : [carrera.Kartings_idKartings])).map(nombreKarting).join(', ') || '—'}</TableCell>
                             <TableCell>
                                 {puedeGestionar && (
                                     <>

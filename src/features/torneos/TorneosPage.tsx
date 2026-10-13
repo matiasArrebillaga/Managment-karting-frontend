@@ -11,7 +11,7 @@ import {
 } from '../../services/torneoService'
 import type { ITorneos } from '../../types'
 import TorneoFormDialog from './TorneoFormDialog'
-import { usaMocks } from '../../services/httpClient'
+import { puede } from '../../permisos'
 
 export function estadoTorneo (torneo: ITorneos) {
     const hoy = new Date()
@@ -36,9 +36,10 @@ function TorneosPage () {
     const [inscripcionPendiente, setInscripcionPendiente] = useState<number | null>(null)
     const [abierto, setAbierto] = useState(false)
     const [torneoEditando, setTorneoEditando] = useState<ITorneos | null>(null)
-    const puedeGestionar = persona?.rol.nombre === 'ADMIN' || persona?.rol.nombre === 'EMPLEADO'
-    const puedeVerInscriptos = usaMocks || puedeGestionar
-    const puedeAnotarse = usaMocks || persona?.rol.nombre === 'CLIENTE' || persona?.rol.nombre === 'EMPLEADO'
+    const puedeGestionar = puede(persona?.rol.nombre, 'torneos.gestionar')
+    const puedeVerInscriptos = puede(persona?.rol.nombre, 'inscripciones.verTodas')
+    const puedeAnotarse = puede(persona?.rol.nombre, 'inscripciones.anotarse')
+    const puedeEliminar = puede(persona?.rol.nombre, 'torneos.eliminar')
 
     function cargarTorneos () {
         setCargando(true)
@@ -205,9 +206,11 @@ function TorneosPage () {
                                         <Button size="small" onClick={() => handleEditar(torneo)}>
                                             Editar
                                         </Button>
-                                        <Button size="small" color="error" onClick={() => torneo.idTorneos !== undefined && handleEliminar(torneo.idTorneos)}>
-                                            Eliminar
-                                        </Button>
+                                        {puedeEliminar && (
+                                            <Button size="small" color="error" onClick={() => torneo.idTorneos !== undefined && handleEliminar(torneo.idTorneos)}>
+                                                Eliminar
+                                            </Button>
+                                        )}
                                     </TableCell>
                                 )}
                             </TableRow>

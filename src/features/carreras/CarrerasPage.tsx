@@ -18,6 +18,7 @@ import CarreraInscripcionDialog from './CarreraInscripcionDialog'
 import { usaMocks } from '../../services/httpClient'
 import { getParticipaciones } from '../../services/participacionService'
 import ResultadosCarreraDialog from './ResultadosCarreraDialog'
+import { puede } from '../../permisos'
 
 function CarrerasPage () {
     const { persona } = useAuth()
@@ -33,8 +34,8 @@ function CarrerasPage () {
     const [carreraInscribiendo, setCarreraInscribiendo] = useState<ICarrera | null>(null)
     const [conResultados, setConResultados] = useState<string[]>([])
     const [carreraResultados, setCarreraResultados] = useState<ICarrera | null>(null)
-    const puedeGestionar = persona?.rol.nombre === 'ADMIN' || persona?.rol.nombre === 'EMPLEADO'
-    const puedeEliminar = usaMocks ? puedeGestionar : persona?.rol.nombre === 'ADMIN'
+    const puedeGestionar = puede(persona?.rol.nombre, 'carreras.gestionar')
+    const puedeEliminar = puede(persona?.rol.nombre, 'carreras.eliminar')
 
     function cargarCarreras () {
         setCargando(true)
@@ -228,7 +229,7 @@ function CarrerasPage () {
             )}
             <ResultadosCarreraDialog
                 carrera={carreraResultados}
-                puedeBorrar={persona?.rol.nombre === 'ADMIN'}
+                puedeBorrar={puede(persona?.rol.nombre, 'resultados.eliminar')}
                 onCerrar={() => {
                     setCarreraResultados(null)
                     cargarCarreras()

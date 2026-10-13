@@ -10,8 +10,11 @@ import { getTiposKarting, deleteTipoKarting } from '../../services/tipoKartingSe
 import { getTiposLicencia } from '../../services/tipoLicenciaService'
 import type { TipoKarting, TipoLicencia } from '../../types'
 import TipoKartingFormDialog from './TipoKartingFormDialog'
+import { useAuth } from '../../context/AuthContext'
+import { puede } from '../../permisos'
 
 function TiposKartingPage() {
+    const { persona } = useAuth()
     const [tiposKarting, setTiposKarting] = useState<TipoKarting[]>([])
     const [tiposLicencia, setTiposLicencia] = useState<TipoLicencia[]>([])
     const [cargando, setCargando] = useState(true)
@@ -98,9 +101,11 @@ function TiposKartingPage() {
                                 <Button size="small" onClick={() => handleEditar(tipo)}>
                                     Editar
                                 </Button>
-                                <Button size="small" color="error" onClick={() => handleEliminar(tipo.idTiposKarting)}>
-                                    Eliminar
-                                </Button>
+                                {puede(persona?.rol.nombre, 'catalogos.eliminar') && (
+                                    <Button size="small" color="error" onClick={() => handleEliminar(tipo.idTiposKarting)}>
+                                        Eliminar
+                                    </Button>
+                                )}
                             </TableCell>
                         </TableRow>
                     ))}

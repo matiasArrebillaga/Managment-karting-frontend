@@ -1,15 +1,15 @@
 import type { ReactNode } from "react"
 import { Navigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
-import type { Rol } from "../services/authService"
+import { puede, type Permiso } from "../permisos"
 
 type Props = {
     children: ReactNode
     // Si no se pasa, alcanza con estar logueado (cualquier rol).
-    rolesPermitidos?: Rol[]
+    permiso?: Permiso
 }
 
-function RutaProtegida({ children, rolesPermitidos }: Props) {
+function RutaProtegida({ children, permiso }: Props) {
     const { persona, cargando } = useAuth()
 
     if (cargando) {
@@ -20,7 +20,7 @@ function RutaProtegida({ children, rolesPermitidos }: Props) {
         return <Navigate to="/login" replace />
     }
 
-    if (rolesPermitidos && !rolesPermitidos.includes(persona.rol.nombre)) {
+    if (permiso && !puede(persona.rol.nombre, permiso)) {
         return (
             <div style={{ padding: 24 }}>
                 <h2>Acceso denegado</h2>

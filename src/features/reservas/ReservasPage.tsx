@@ -7,6 +7,7 @@ import { getKartings } from '../../services/kartingService'
 import { getPersonas } from '../../services/personaService'
 import type { Circuito, IReserva, Karting, Persona } from '../../types'
 import ReservaFormDialog from './ReservaFormDialog'
+import { puede } from '../../permisos'
 
 function ReservasPage () {
     const { persona } = useAuth()
@@ -18,7 +19,7 @@ function ReservasPage () {
     const [error, setError] = useState('')
     const [abierto, setAbierto] = useState(false)
     const [reservaEditando, setReservaEditando] = useState<IReserva | null>(null)
-    const puedeGestionar = persona?.rol.nombre === 'ADMIN' || persona?.rol.nombre === 'EMPLEADO'
+    const puedeGestionar = puede(persona?.rol.nombre, 'reservas.verTodas')
     const reservasVisibles = reservas.filter((reserva) => (
         puedeGestionar || reserva.Personas_idPersona === persona?.idPersona
     ))

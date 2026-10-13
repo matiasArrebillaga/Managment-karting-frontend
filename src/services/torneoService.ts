@@ -283,3 +283,11 @@ export async function getInscriptosTorneo(idTorneo: number): Promise<Persona[]> 
         .map((inscripcion) => inscripcion.Personas_idPersona)
     return personas.filter((persona) => ids.includes(persona.idPersona))
 }
+
+// GET /inscripciones/mias trae cada inscripción con su torneo incluido
+export async function getMisTorneos(): Promise<ITorneos[]> {
+    const response = await apiFetch('/inscripciones/mias')
+    const inscripciones: unknown = await response.json()
+    if (!Array.isArray(inscripciones)) throw new Error('La API devolvió una lista de inscripciones inválida')
+    return inscripciones.map((inscripcion: unknown) => normalizarTorneo(esObjeto(inscripcion) ? inscripcion.torneos : null))
+}

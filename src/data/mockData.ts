@@ -42,12 +42,6 @@ export const karts: Kart[] = [
   { id: 6, model: 'K06', category: 'Senior', status: 'Disponible' },
 ]
 
-export const activity = [
-  { title: 'Nueva reserva confirmada', detail: 'Maria Gomez · Circuito 02', time: 'Hace 12 min', tone: 'lime' },
-  { title: 'Karting enviado a mantenimiento', detail: 'K03 · Revisión preventiva', time: 'Hace 38 min', tone: 'orange' },
-  { title: 'Piloto registrado', detail: 'Agustina Castro · Rosario', time: 'Hace 1 h', tone: 'blue' },
-]
-
 // A partir de aca, los datos siguen exactamente la estructura de prisma/schema.prisma del backend real.
 
 export const localidades: Localidad[] = [

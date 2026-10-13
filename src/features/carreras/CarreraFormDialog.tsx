@@ -44,10 +44,12 @@ function CarreraFormDialog ({ abierto, carrera, onCerrar, onGuardado }: Props) {
 
     const editando = Boolean(carrera)
     const torneoElegido = torneos.find((torneo) => String(torneo.idTorneos) === torneoId)
-    // Solo se ofrecen los karts de la licencia del torneo; el backend lo vuelve a validar
+    // Solo se ofrecen los karts de la licencia del torneo y disponibles; el backend lo vuelve a validar.
+    // Al editar se mantienen los ya asignados aunque esten en mantenimiento (el backend solo exige estado a los nuevos)
     const kartingsDelTorneo = torneoElegido
         ? kartings.filter((karting) => tiposKarting.find((tipo) => tipo.idTiposKarting === karting.TiposKarting_idTiposKarting)
-            ?.TiposLicencias_idTipoLicenciaMinima === torneoElegido.TiposLicencias_idTipoLicencia)
+            ?.TiposLicencias_idTipoLicenciaMinima === torneoElegido.TiposLicencias_idTipoLicencia
+            && (karting.estado.toLowerCase() === 'disponible' || kartingIds.includes(String(karting.idKartings))))
         : []
 
     useEffect(() => {

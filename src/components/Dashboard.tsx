@@ -214,9 +214,11 @@ function Dashboard () {
                                 {torneos.length === 0 && <p className="subtitle">No estás anotado en ningún torneo.</p>}
                                 {torneos.map((torneo) => (
                                     <div className="race-row" key={torneo.idTorneos}>
+                                        <time>{fechaCorta(torneo.fechaInicio).slice(0, -5)}</time>
+                                        <div className="race-line"></div>
                                         <div className="race-info">
                                             <strong>{torneo.nombre}</strong>
-                                            <span>{fechaCorta(torneo.fechaInicio)} <b>·</b> {fechaCorta(torneo.fechaFin)}</span>
+                                            <span>Del {fechaCorta(torneo.fechaInicio)} al {fechaCorta(torneo.fechaFin)}</span>
                                         </div>
                                     </div>
                                 ))}
@@ -234,9 +236,11 @@ function Dashboard () {
                             </div>
                         </div>
                         {licencia && vencimiento ? (
-                            <div className="kart-copy">
-                                <strong>{licencia.tipo}</strong>
-                                <span>Vence el {fechaCorta(vencimiento)}</span>
+                            <div>
+                                <div className="kart-copy">
+                                    <strong>{licencia.tipo}</strong>
+                                    <span>Vence el {fechaCorta(vencimiento)}</span>
+                                </div>
                                 <span className={`fleet-status ${vencimiento >= hoy ? "available" : "repair"}`}>
                                     <i></i>
                                     {vencimiento >= hoy ? "Vigente" : "Vencida"}

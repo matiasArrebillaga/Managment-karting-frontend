@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowUpRight, Plus, Wrench } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { puede } from "../permisos";
-import { getCarreras } from "../services/carreraService";
+import { getCarreras, getCarrerasTorneo } from "../services/carreraService";
 import { getKartings } from "../services/kartingService";
 import { getMisLicencias, type MiLicencia } from "../services/licenciaService";
 import { getMisReservas, getReservasDelDia } from "../services/reservaService";
@@ -53,12 +53,19 @@ function Dashboard () {
                 setReservas([...datosReservas].sort((a, b) => hora(a.horaInicio).localeCompare(hora(b.horaInicio))));
                 setKartings(datosKartings);
             })
-            : Promise.all([getMisReservas(persona?.idPersona), getMisTorneos(), getMisLicencias()]).then(([datosReservas, datosTorneos, datosLicencias]) => {
+            : Promise.all([getMisReservas(persona?.idPersona), getMisTorneos(), getMisLicencias()]).then(async ([datosReservas, datosTorneos, datosLicencias]) => {
                 setReservas(datosReservas
                     .filter((reserva) => reserva.fechaReserva >= dia)
                     .sort((a, b) => a.fechaReserva.getTime() - b.fechaReserva.getTime() || hora(a.horaInicio).localeCompare(hora(b.horaInicio))));
-                setTorneos(datosTorneos.filter((torneo) => torneo.fechaFin >= dia));
+                const misTorneos = datosTorneos.filter((torneo) => torneo.fechaFin >= dia);
+                setTorneos(misTorneos);
                 setLicencia(datosLicencias[0] ?? null);
+                // una llamada por torneo: el backend no tiene "mis carreras"
+                const carrerasPorTorneo = await Promise.all(misTorneos.map((torneo) => getCarrerasTorneo(torneo.idTorneos)));
+                setCarreras(carrerasPorTorneo
+                    .flat()
+                    .filter((carrera) => carrera.fechaCarrera >= dia)
+                    .sort((a, b) => a.horaInicio.getTime() - b.horaInicio.getTime()));
             });
         carga.catch((err: Error) => setError(err.message));
     }, [esStaff, persona?.idPersona]);
@@ -227,6 +234,29 @@ function Dashboard () {
                                 Ver torneos <ArrowUpRight size={15} />
                             </button>
                         </article>
+                    </section>
+                    <section className="panel fleet-panel">
+                        <div className="panel-header">
+                            <div>
+                                <p className="eyebrow">MIS TORNEOS</p>
+                                <h2>Próximas carreras</h2>
+                            </div>
+                        </div>
+                        <div className="race-list">
+                            {carreras.length === 0 && <p className="subtitle">No hay carreras próximas en tus torneos.</p>}
+                            {carreras.map((carrera) => (
+                                <div className="race-row" key={`${fechaCorta(carrera.fechaCarrera)}-${carrera.Torneos_idTorneos}-${carrera.Circuitos_idCircuitos}`}>
+                                    <time>{fechaCorta(carrera.fechaCarrera).slice(0, -5)}</time>
+                                    <div className="race-line"></div>
+                                    <div className="race-info">
+                                        <strong>{torneos.find((torneo) => torneo.idTorneos === carrera.Torneos_idTorneos)?.nombre}</strong>
+                                        <span>
+                                            {hora(carrera.horaInicio)} a {hora(carrera.horaFin)} <b>·</b> Circuito #{carrera.Circuitos_idCircuitos}
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </section>
                     <section className="panel fleet-panel">
                         <div className="panel-header">

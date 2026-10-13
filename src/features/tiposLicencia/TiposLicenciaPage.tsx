@@ -9,8 +9,11 @@ import Button from '@mui/material/Button'
 import { getTiposLicencia, deleteTipoLicencia } from '../../services/tipoLicenciaService'
 import type { TipoLicencia } from '../../types'
 import TipoLicenciaFormDialog from './TipoLicenciaFormDialog'
+import { useAuth } from '../../context/AuthContext'
+import { puede } from '../../permisos'
 
 function TiposLicenciaPage() {
+    const { persona } = useAuth()
     const [tiposLicencia, setTiposLicencia] = useState<TipoLicencia[]>([])
     const [cargando, setCargando] = useState(true)
     const [abierto, setAbierto] = useState(false)
@@ -89,9 +92,11 @@ function TiposLicenciaPage() {
                                 <Button size="small" onClick={() => handleEditar(tipo)}>
                                     Editar
                                 </Button>
-                                <Button size="small" color="error" onClick={() => handleEliminar(tipo.idTipoLicencia)}>
-                                    Eliminar
-                                </Button>
+                                {puede(persona?.rol.nombre, 'catalogos.eliminar') && (
+                                    <Button size="small" color="error" onClick={() => handleEliminar(tipo.idTipoLicencia)}>
+                                        Eliminar
+                                    </Button>
+                                )}
                             </TableCell>
                         </TableRow>
                     ))}

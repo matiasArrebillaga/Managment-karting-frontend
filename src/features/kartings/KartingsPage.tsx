@@ -8,7 +8,7 @@ import TableBody from '@mui/material/TableBody'
 import Button from '@mui/material/Button'
 import Alert from '@mui/material/Alert'
 import { useAuth } from '../../context/AuthContext'
-import { usaMocks } from '../../services/httpClient'
+import { puede } from '../../permisos'
 import { getKartings, deleteKarting } from '../../services/kartingService'
 import { getTiposKarting } from '../../services/tipoKartingService'
 import type { Karting, TipoKarting } from '../../types'
@@ -22,15 +22,15 @@ function KartingsPage() {
     const [error, setError] = useState('')
     const [abierto, setAbierto] = useState(false)
     const [kartingEditando, setKartingEditando] = useState<Karting | null>(null)
-    const puedeGestionar = usaMocks || persona?.rol.nombre === 'ADMIN' || persona?.rol.nombre === 'EMPLEADO'
-    const puedeEliminar = usaMocks || persona?.rol.nombre === 'ADMIN' || persona?.rol.nombre === 'EMPLEADO'
+    const puedeGestionar = puede(persona?.rol.nombre, 'kartings.gestionar')
+    const puedeEliminar = puede(persona?.rol.nombre, 'kartings.eliminar')
 
     function cargarKartings() {
         setCargando(true)
         setError('')
         Promise.all([
             getKartings(),
-            puedeGestionar ? getTiposKarting() : Promise.resolve([]),
+            getTiposKarting(),
         ])
             .then(([datosKartings, datosTipos]) => {
                 setKartings(datosKartings)

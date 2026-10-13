@@ -298,3 +298,9 @@ export async function deleteReserva(id: number): Promise<void> {
     if (indice === -1) throw new Error(`No existe una reserva con id ${id}`)
     reservas.splice(indice, 1)
 }
+
+export async function getReservasDelDia(fecha: Date): Promise<IReserva[]> {
+    const dia = fechaInputApi(fecha)
+    const response = await apiFetch(`/reservas/fechas?fechaInicio=${dia}&fechaFin=${dia}`)
+    return normalizarListaReservasApi(await response.json())
+}

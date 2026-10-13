@@ -1,5 +1,6 @@
 import type { Licencia } from "../types"
 import { licencias as seed } from "../data/mockData"
+import { apiFetch } from "./httpClient"
 
 let licencias: Licencia[] = [...seed]
 let siguienteId = licencias.length + 1
@@ -46,4 +47,18 @@ export async function deleteLicencia(id: number): Promise<void> {
         throw new Error(`No existe una licencia con id ${id}`)
     }
     licencias.splice(indice, 1)
+}
+
+export type MiLicencia = Licencia & { tipo: string }
+
+// GET /licencias/mias: las licencias del usuario del token, la más nueva primero
+export async function getMisLicencias(): Promise<MiLicencia[]> {
+    const response = await apiFetch('/licencias/mias')
+    const datos: unknown = await response.json()
+    if (!Array.isArray(datos)) throw new Error('La API devolvió una lista de licencias inválida')
+    return datos.map((licencia) => ({
+        ...licencia,
+        fechaVencimiento: String(licencia.fechaVencimiento).slice(0, 10),
+        tipo: licencia.tiposlicencias?.nombre ?? `Tipo #${licencia.TiposLicencias_idTipoLicencia}`,
+    }))
 }

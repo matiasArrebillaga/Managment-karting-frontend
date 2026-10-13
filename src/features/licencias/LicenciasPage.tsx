@@ -11,8 +11,11 @@ import { getTiposLicencia } from '../../services/tipoLicenciaService'
 import { getPersonas } from '../../services/personaService'
 import type { Licencia, TipoLicencia, Persona } from '../../types'
 import LicenciaFormDialog from './LicenciaFormDialog'
+import { useAuth } from '../../context/AuthContext'
+import { puede } from '../../permisos'
 
 function LicenciasPage() {
+    const { persona } = useAuth()
     const [licencias, setLicencias] = useState<Licencia[]>([])
     const [tiposLicencia, setTiposLicencia] = useState<TipoLicencia[]>([])
     const [personas, setPersonas] = useState<Persona[]>([])
@@ -108,9 +111,11 @@ function LicenciasPage() {
                                 <Button size="small" onClick={() => handleEditar(licencia)}>
                                     Editar
                                 </Button>
-                                <Button size="small" color="error" onClick={() => handleEliminar(licencia.idLicencias)}>
-                                    Eliminar
-                                </Button>
+                                {puede(persona?.rol.nombre, 'catalogos.eliminar') && (
+                                    <Button size="small" color="error" onClick={() => handleEliminar(licencia.idLicencias)}>
+                                        Eliminar
+                                    </Button>
+                                )}
                             </TableCell>
                         </TableRow>
                     ))}

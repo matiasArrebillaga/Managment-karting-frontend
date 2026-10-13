@@ -8,7 +8,7 @@ import TableHead from '@mui/material/TableHead'
 import TableBody from '@mui/material/TableBody'
 import Button from '@mui/material/Button'
 import { useAuth } from '../../context/AuthContext'
-import { usaMocks } from '../../services/httpClient'
+import { puede } from '../../permisos'
 import { getCircuitos, deleteCircuito } from '../../services/circuitoService'
 import type { Circuito } from '../../types'
 import CircuitoFormDialog from './CircuitoFormDialog'
@@ -20,9 +20,9 @@ function CircuitosPage() {
     const [error, setError] = useState('')
     const [abierto, setAbierto] = useState(false)
     const [circuitoEditando, setCircuitoEditando] = useState<Circuito | null>(null)
-    const puedeCrear = usaMocks || persona?.rol.nombre === 'ADMIN'
-    const puedeEditar = usaMocks || persona?.rol.nombre === 'ADMIN' || persona?.rol.nombre === 'EMPLEADO'
-    const puedeEliminar = usaMocks || persona?.rol.nombre === 'ADMIN'
+    const puedeCrear = puede(persona?.rol.nombre, 'circuitos.crear')
+    const puedeEditar = puede(persona?.rol.nombre, 'circuitos.editar')
+    const puedeEliminar = puede(persona?.rol.nombre, 'circuitos.eliminar')
 
     function cargarCircuitos() {
         setCargando(true)

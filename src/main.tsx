@@ -38,22 +38,22 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/reservas" element={<RutaProtegida><ReservasPage /></RutaProtegida>} />
           <Route
             path="/participaciones"
-            element={<RutaProtegida rolesPermitidos={['EMPLEADO']}><ParticipacionesPage /></RutaProtegida>}
+            element={<RutaProtegida permiso="participaciones.ver"><ParticipacionesPage /></RutaProtegida>}
           />
           <Route path="/localidades" element={<RutaProtegida><LocalidadesPage /></RutaProtegida>} />
           <Route path="/circuitos" element={<RutaProtegida><CircuitosPage /></RutaProtegida>} />
           <Route path="/kartings" element={<RutaProtegida><KartingsPage /></RutaProtegida>} />
           <Route
             path="/tipos-licencia"
-            element={<RutaProtegida rolesPermitidos={['ADMIN', 'EMPLEADO']}><TiposLicenciaPage /></RutaProtegida>}
+            element={<RutaProtegida permiso="catalogos.ver"><TiposLicenciaPage /></RutaProtegida>}
           />
           <Route
             path="/tipos-karting"
-            element={<RutaProtegida rolesPermitidos={['ADMIN', 'EMPLEADO']}><TiposKartingPage /></RutaProtegida>}
+            element={<RutaProtegida permiso="catalogos.ver"><TiposKartingPage /></RutaProtegida>}
           />
           <Route
             path="/licencias"
-            element={<RutaProtegida rolesPermitidos={['ADMIN', 'EMPLEADO']}><LicenciasPage /></RutaProtegida>}
+            element={<RutaProtegida permiso="catalogos.ver"><LicenciasPage /></RutaProtegida>}
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

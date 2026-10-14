@@ -56,7 +56,6 @@ function AuthPage ({ mode }: { mode: 'login' | 'register' }) {
                     telefono,
                     contraseña,
                     Localidades_idLocalidades: Number(localidadId),
-                    idRol: 3,
                 }
                 await register(datos)
             }

@@ -3570,7 +3570,7 @@ export interface components {
         };
         Message: {
             /** @example Registro eliminado correctamente */
-            message?: string;
+            message: string;
         };
         LoginRequest: {
             /**
@@ -3600,8 +3600,33 @@ export interface components {
         };
         AuthResponse: {
             /** @description Token JWT */
-            token?: string;
-            persona?: components["schemas"]["Persona"];
+            token: string;
+            persona: components["schemas"]["PersonaAuth"];
+        };
+        PersonaAuth: {
+            /** Format: int32 */
+            idPersona: number;
+            nombre: string;
+            apellido: string;
+            dni: string;
+            /**
+             * Format: date-time
+             * @example 2026-10-14T00:00:00.000Z
+             */
+            fechaNacimiento: string;
+            /** Format: email */
+            mail: string;
+            telefono: string;
+            /** Format: int32 */
+            Localidades_idLocalidades: number;
+            /** Format: int32 */
+            idRol: number;
+            rol: {
+                /** Format: int32 */
+                idRol: number;
+                /** @enum {string} */
+                nombre: "CLIENTE" | "EMPLEADO" | "ADMIN";
+            };
         };
         KartingRequest: {
             categoria: string;
@@ -3614,14 +3639,17 @@ export interface components {
         };
         Karting: {
             /** Format: int32 */
-            idKartings?: number;
-            categoria?: string;
-            modelo?: string;
-            estado?: string;
-            /** Format: date */
-            fechaAdquisicion?: string;
+            idKartings: number;
+            categoria: string;
+            modelo: string;
+            estado: string;
+            /**
+             * Format: date-time
+             * @example 2026-10-14T00:00:00.000Z
+             */
+            fechaAdquisicion: string;
             /** Format: int32 */
-            TiposKarting_idTiposKarting?: number;
+            TiposKarting_idTiposKarting: number;
         };
         PersonaRequest: {
             nombre: string;
@@ -3643,27 +3671,30 @@ export interface components {
         };
         Persona: {
             /** Format: int32 */
-            idPersona?: number;
-            nombre?: string;
-            apellido?: string;
-            dni?: string;
-            /** Format: date */
-            fechaNacimiento?: string;
+            idPersona: number;
+            nombre: string;
+            apellido: string;
+            dni: string;
+            /**
+             * Format: date-time
+             * @example 2026-10-14T00:00:00.000Z
+             */
+            fechaNacimiento: string;
             /** Format: email */
-            mail?: string;
-            telefono?: string;
+            mail: string;
+            telefono: string;
             /** Format: int32 */
-            Localidades_idLocalidades?: number;
+            Localidades_idLocalidades: number;
             /** Format: int32 */
-            idRol?: number;
+            idRol: number;
         };
         LocalidadRequest: {
             nombre: string;
         };
         Localidad: {
             /** Format: int32 */
-            idLocalidades?: number;
-            nombre?: string;
+            idLocalidades: number;
+            nombre: string;
         };
         CircuitoRequest: {
             /** Format: int32 */
@@ -3674,20 +3705,20 @@ export interface components {
         };
         Circuito: {
             /** Format: int32 */
-            idCircuitos?: number;
+            idCircuitos: number;
             /** Format: int32 */
-            distancia?: number;
-            dificultad?: string;
+            distancia: number;
+            dificultad: string;
             /** Format: int32 */
-            maximo?: number;
+            maximo: number;
         };
         RolRequest: {
             nombre: string;
         };
         Rol: {
             /** Format: int32 */
-            idRol?: number;
-            nombre?: string;
+            idRol: number;
+            nombre: string;
         };
         TipoLicenciaRequest: {
             nombre: string;
@@ -3697,11 +3728,11 @@ export interface components {
         };
         TipoLicencia: {
             /** Format: int32 */
-            idTipoLicencia?: number;
-            nombre?: string;
-            descripcion?: string;
+            idTipoLicencia: number;
+            nombre: string;
+            descripcion: string;
             /** Format: int32 */
-            nivel?: number;
+            nivel: number;
         };
         TipoKartingRequest: {
             nombre: string;
@@ -3713,13 +3744,13 @@ export interface components {
         };
         TipoKarting: {
             /** Format: int32 */
-            idTiposKarting?: number;
-            nombre?: string;
-            descripcion?: string;
+            idTiposKarting: number;
+            nombre: string;
+            descripcion: string;
             /** @example 20000 */
-            precioHora?: number;
+            precioHora: string;
             /** Format: int32 */
-            TiposLicencias_idTipoLicenciaMinima?: number;
+            TiposLicencias_idTipoLicenciaMinima: number;
         };
         TorneoRequest: {
             nombre: string;
@@ -3734,16 +3765,22 @@ export interface components {
         };
         Torneo: {
             /** Format: int32 */
-            idTorneos?: number;
-            nombre?: string;
-            descripcion?: string;
-            cupoMaximo?: number;
-            /** Format: date */
-            fechaInicio?: string;
-            /** Format: date */
-            fechaFin?: string;
+            idTorneos: number;
+            nombre: string;
+            descripcion: string;
+            cupoMaximo: number;
+            /**
+             * Format: date-time
+             * @example 2026-10-14T00:00:00.000Z
+             */
+            fechaInicio: string;
+            /**
+             * Format: date-time
+             * @example 2026-10-14T00:00:00.000Z
+             */
+            fechaFin: string;
             /** Format: int32 */
-            TiposLicencias_idTipoLicencia?: number;
+            TiposLicencias_idTipoLicencia: number;
             tiposlicencias?: components["schemas"]["TipoLicencia"];
             /**
              * @description Calculado contra el día de hoy
@@ -3763,15 +3800,21 @@ export interface components {
         };
         Licencia: {
             /** Format: int32 */
-            idLicencias?: number;
-            /** Format: date */
-            fechaEmision?: string;
-            /** Format: date */
-            fechaVencimiento?: string;
+            idLicencias: number;
+            /**
+             * Format: date-time
+             * @example 2026-10-14T00:00:00.000Z
+             */
+            fechaEmision: string;
+            /**
+             * Format: date-time
+             * @example 2026-10-14T00:00:00.000Z
+             */
+            fechaVencimiento: string;
             /** Format: int32 */
-            Personas_idPersona?: number;
+            Personas_idPersona: number;
             /** Format: int32 */
-            TiposLicencias_idTipoLicencia?: number;
+            TiposLicencias_idTipoLicencia: number;
         };
         ReservaRequest: {
             /** Format: date */
@@ -3789,21 +3832,33 @@ export interface components {
         };
         Reserva: {
             /** Format: int32 */
-            idReservas?: number;
-            /** Format: date */
-            fechaReserva?: string;
-            /** @example 14:00 */
-            horaInicio?: string;
-            /** @example 14:00 */
-            horaFin?: string;
-            /** @description Calculado por el servidor: precioHora del tipo de karting por la cantidad de horas */
-            monto?: number;
+            idReservas: number;
+            /**
+             * Format: date-time
+             * @example 2026-10-14T00:00:00.000Z
+             */
+            fechaReserva: string;
+            /**
+             * Format: date-time
+             * @example 1970-01-01T14:00:00.000Z
+             */
+            horaInicio: string;
+            /**
+             * Format: date-time
+             * @example 1970-01-01T14:00:00.000Z
+             */
+            horaFin: string;
+            /**
+             * @description Calculado por el servidor: precioHora del tipo de karting por la cantidad de horas
+             * @example 20000
+             */
+            monto: string;
             /** Format: int32 */
-            Personas_idPersona?: number;
+            Personas_idPersona: number;
             /** Format: int32 */
-            Circuitos_idCircuitos?: number;
+            Circuitos_idCircuitos: number;
             /** Format: int32 */
-            Kartings_idKartings?: number;
+            Kartings_idKartings: number;
         };
         CarreraRequest: {
             /** Format: date */
@@ -3820,17 +3875,27 @@ export interface components {
             Circuitos_idCircuitos: number;
         };
         Carrera: {
-            /** Format: date */
-            fechaCarrera?: string;
-            /** @example 14:00 */
-            horaInicio?: string;
-            /** @example 14:00 */
-            horaFin?: string;
-            kartings?: components["schemas"]["Karting"][];
+            /**
+             * Format: date-time
+             * @example 2026-10-14T00:00:00.000Z
+             */
+            fechaCarrera: string;
+            /**
+             * Format: date-time
+             * @example 1970-01-01T14:00:00.000Z
+             */
+            horaInicio: string;
+            /**
+             * Format: date-time
+             * @example 1970-01-01T14:00:00.000Z
+             */
+            horaFin: string;
+            kartings: components["schemas"]["Karting"][];
             /** Format: int32 */
-            Torneos_idTorneos?: number;
+            Torneos_idTorneos: number;
             /** Format: int32 */
-            Circuitos_idCircuitos?: number;
+            Circuitos_idCircuitos: number;
+            circuitos?: components["schemas"]["Circuito"];
         };
         ParticipacionRequest: {
             /** Format: int32 */
@@ -3862,42 +3927,45 @@ export interface components {
         };
         Participacion: {
             /** Format: int32 */
-            Carrera_Torneos_idTorneos?: number;
+            Carrera_Torneos_idTorneos: number;
             /** Format: int32 */
-            Carrera_Circuitos_idCircuitos?: number;
-            /** Format: date */
-            Carrera_fecha?: string;
+            Carrera_Circuitos_idCircuitos: number;
+            /**
+             * Format: date-time
+             * @example 2026-10-14T00:00:00.000Z
+             */
+            Carrera_fecha: string;
             /** Format: int32 */
-            Personas_idPersona?: number;
+            Personas_idPersona: number;
             /** @description Calculado por el servidor según la posición */
-            puntos?: number;
+            puntos: number;
             /** @example 00:12:35 */
-            tiempo?: string;
-            posicion_final?: number;
+            tiempo: string;
+            posicion_final: number;
         };
         TablaGeneralItem: {
             /** Format: int32 */
-            posicion?: number;
+            posicion: number;
             /** Format: int32 */
-            idPersona?: number;
+            idPersona: number;
             /** @example Juan */
             nombre?: string;
             /** @example Pérez */
             apellido?: string;
             /** Format: int32 */
-            puntosTotales?: number;
+            puntosTotales: number;
             /** @description Cantidad de 1° puestos (primer criterio de desempate) */
-            victorias?: number;
+            victorias: number;
         };
         ClasificacionCarreraItem: {
-            posicion?: number;
+            posicion: number;
             /** Format: int32 */
-            idPersona?: number;
-            nombre?: string;
-            apellido?: string;
+            idPersona: number;
+            nombre: string;
+            apellido: string;
             /** @example 00:12:35 */
-            tiempo?: string;
-            puntos?: number;
+            tiempo: string;
+            puntos: number;
         };
         InscripcionRequest: {
             /** Format: int32 */
@@ -3907,13 +3975,20 @@ export interface components {
         };
         Inscripcion: {
             /** Format: int32 */
-            Torneos_idTorneos?: number;
+            Torneos_idTorneos: number;
             /** Format: int32 */
-            Personas_idPersona?: number;
-            /** Format: date */
-            fecha_inscripcion?: string;
-            /** Format: date-time */
-            hora_inscripcion?: string;
+            Personas_idPersona: number;
+            /**
+             * Format: date-time
+             * @example 2026-10-14T00:00:00.000Z
+             */
+            fecha_inscripcion: string;
+            /**
+             * Format: date-time
+             * @example 1970-01-01T14:00:00.000Z
+             */
+            hora_inscripcion: string;
+            torneos?: components["schemas"]["Torneo"];
         };
     };
     responses: never;

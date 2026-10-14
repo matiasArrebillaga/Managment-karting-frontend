@@ -1,41 +1,26 @@
 import type { components } from './api'
 
-// Generados desde el OpenAPI del backend (npm run gen:api). Required porque los schemas de
-// respuesta del backend no marcan campos required y saldrian todos opcionales.
+// Generados desde el OpenAPI del backend (npm run gen:api)
 type Schemas = components['schemas']
 
-export type Localidad = Required<Schemas['Localidad']>
-export type Circuito = Required<Schemas['Circuito']>
-export type TipoLicencia = Required<Schemas['TipoLicencia']>
-export type Karting = Required<Schemas['Karting']>
-export type Licencia = Required<Schemas['Licencia']>
+export type Localidad = Schemas['Localidad']
+export type Circuito = Schemas['Circuito']
+export type TipoLicencia = Schemas['TipoLicencia']
+export type Karting = Schemas['Karting']
+export type Licencia = Schemas['Licencia']
 export type Rol = Schemas['AsignarRolRequest']['nombreRol']
+export type DatosRegistro = Schemas['RegisterRequest']
 
-export interface PersonaAuth {
-    idPersona: number
-    nombre: string
-    apellido: string
-    mail: string
-    rol: { idRol: number; nombre: Rol }
-}
+// Lo que guarda la sesion de la persona logueada (authService se queda solo con estos campos)
+export type PersonaAuth = Pick<Schemas['PersonaAuth'], 'idPersona' | 'nombre' | 'apellido' | 'mail' | 'rol'>
 
 export interface Sesion {
     token: string
     persona: PersonaAuth
 }
 
-export interface DatosRegistro {
-    nombre: string
-    apellido: string
-    dni: string
-    fechaNacimiento: string
-    mail: string
-    telefono: string
-    contraseña: string
-    Localidades_idLocalidades: number
-    idRol: number
-}
-
+// Desde aca, modelos del frontend: los services convierten las fechas y horas que manda la API
+// (strings ISO) a Date, asi que no son los tipos generados sino lo que queda despues de convertir.
 export interface ITorneos {
     idTorneos: number
     nombre: string
@@ -112,7 +97,7 @@ export interface IParticipacion {
     posicion_final: number
 }
 
-// A mano: el backend manda precioHora como Decimal (string) y tipoKartingService lo pasa a number
+// La API manda precioHora como string (Decimal) y tipoKartingService lo pasa a number
 export interface TipoKarting {
     idTiposKarting: number
     nombre: string
@@ -125,27 +110,13 @@ export interface TipoKarting {
 export type ResultadoCarrera = Pick<IParticipacion, 'Personas_idPersona' | 'posicion_final' | 'tiempo'>
 
 // GET /participaciones/carrera/:fecha/:torneo/:circuito
-export interface FilaClasificacion {
-    posicion: number
-    idPersona: number
-    nombre: string
-    apellido: string
-    tiempo: string
-    puntos: number
-}
+export type FilaClasificacion = Schemas['ClasificacionCarreraItem']
 
 // GET /participaciones/torneo/:id/tabla-general
-export interface FilaTablaGeneral {
-    posicion: number
-    idPersona: number
-    nombre?: string
-    apellido?: string
-    puntosTotales: number
-    victorias: number
-}
+export type FilaTablaGeneral = Schemas['TablaGeneralItem']
 
 // Version minima, solo para los desplegables de Licencia.
 // El CRUD completo de Persona (con localidad, rol, login) no esta hecho todavia.
 // dni, mail y telefono: la API los manda; los datos de prueba no
-export type Persona = Pick<Required<Schemas['Persona']>, 'idPersona' | 'nombre' | 'apellido'>
-    & Pick<Schemas['Persona'], 'dni' | 'mail' | 'telefono'>
+export type Persona = Pick<Schemas['Persona'], 'idPersona' | 'nombre' | 'apellido'>
+    & Partial<Pick<Schemas['Persona'], 'dni' | 'mail' | 'telefono'>>

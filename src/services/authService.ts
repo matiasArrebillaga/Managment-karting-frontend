@@ -105,7 +105,6 @@ export async function register(datos: DatosRegistro): Promise<Sesion> {
             dni: datos.dni.trim(),
             mail: datos.mail.trim(),
             telefono: datos.telefono.trim(),
-            idRol: 3,
         }),
     })
 

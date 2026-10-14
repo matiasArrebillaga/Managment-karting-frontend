@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "gen:api": "npx -y openapi-typescript@7.13.0 http://localhost:3000/api-docs.json -o src/types/api.ts"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

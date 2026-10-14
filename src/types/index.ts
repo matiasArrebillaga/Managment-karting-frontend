@@ -1,9 +1,15 @@
-export interface Localidad {
-    idLocalidades: number
-    nombre: string
-}
+import type { components } from './api'
 
-export type Rol = 'ADMIN' | 'EMPLEADO' | 'CLIENTE'
+// Generados desde el OpenAPI del backend (npm run gen:api). Required porque los schemas de
+// respuesta del backend no marcan campos required y saldrian todos opcionales.
+type Schemas = components['schemas']
+
+export type Localidad = Required<Schemas['Localidad']>
+export type Circuito = Required<Schemas['Circuito']>
+export type TipoLicencia = Required<Schemas['TipoLicencia']>
+export type Karting = Required<Schemas['Karting']>
+export type Licencia = Required<Schemas['Licencia']>
+export type Rol = Schemas['AsignarRolRequest']['nombreRol']
 
 export interface PersonaAuth {
     idPersona: number
@@ -30,13 +36,6 @@ export interface DatosRegistro {
     idRol: number
 }
 
-export interface Circuito {
-    idCircuitos: number
-    distancia: number
-    dificultad: string
-    maximo: number
-}
- 
 export interface ITorneos {
     idTorneos: number
     nombre: string
@@ -113,36 +112,13 @@ export interface IParticipacion {
     posicion_final: number
 }
 
-export interface TipoLicencia {
-    idTipoLicencia: number
-    nombre: string
-    descripcion: string
-    nivel: number
-}
-
+// A mano: el backend manda precioHora como Decimal (string) y tipoKartingService lo pasa a number
 export interface TipoKarting {
     idTiposKarting: number
     nombre: string
     descripcion: string
     precioHora?: number
     TiposLicencias_idTipoLicenciaMinima: number
-}
-
-export interface Karting {
-    idKartings: number
-    categoria: string
-    modelo: string
-    estado: string
-    fechaAdquisicion: string
-    TiposKarting_idTiposKarting: number
-}
-
-export interface Licencia {
-    idLicencias: number
-    fechaEmision: string
-    fechaVencimiento: string
-    Personas_idPersona: number
-    TiposLicencias_idTipoLicencia: number
 }
 
 // Lo que se manda por piloto al cargar una carrera; los puntos los calcula el backend
@@ -170,8 +146,4 @@ export interface FilaTablaGeneral {
 
 // Version minima, solo para los desplegables de Licencia.
 // El CRUD completo de Persona (con localidad, rol, login) no esta hecho todavia.
-export interface Persona {
-    idPersona: number
-    nombre: string
-    apellido: string
-}
+export type Persona = Pick<Required<Schemas['Persona']>, 'idPersona' | 'nombre' | 'apellido'>

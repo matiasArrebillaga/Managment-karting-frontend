@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { Alert, Chip, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material'
+import { Alert, Chip, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material'
 import { getCarrerasTorneo } from '../../services/carreraService'
 import { getTablaGeneral } from '../../services/participacionService'
 import { getTorneos } from '../../services/torneoService'
@@ -63,52 +63,56 @@ function TorneoDetallePage () {
             {carreras.length === 0 ? (
                 <Typography sx={{ mb: 3 }}>Este torneo todavía no tiene carreras.</Typography>
             ) : (
-                <Table size="small" sx={{ mb: 3 }}>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Fecha</TableCell>
-                            <TableCell>Inicio</TableCell>
-                            <TableCell>Fin</TableCell>
-                            <TableCell>Circuito</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {carreras.map((carrera) => (
-                            <TableRow key={`${carrera.fechaCarrera.toISOString()}-${carrera.Circuitos_idCircuitos}`}>
-                                <TableCell>{carrera.fechaCarrera.toLocaleDateString()}</TableCell>
-                                <TableCell>{carrera.horaInicio.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
-                                <TableCell>{carrera.horaFin.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
-                                <TableCell>Circuito {carrera.Circuitos_idCircuitos}</TableCell>
+                <TableContainer>
+                    <Table size="small" sx={{ mb: 3 }}>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>Fecha</TableCell>
+                                <TableCell>Inicio</TableCell>
+                                <TableCell>Fin</TableCell>
+                                <TableCell>Circuito</TableCell>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                        </TableHead>
+                        <TableBody>
+                            {carreras.map((carrera) => (
+                                <TableRow key={`${carrera.fechaCarrera.toISOString()}-${carrera.Circuitos_idCircuitos}`}>
+                                    <TableCell>{carrera.fechaCarrera.toLocaleDateString()}</TableCell>
+                                    <TableCell>{carrera.horaInicio.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
+                                    <TableCell>{carrera.horaFin.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
+                                    <TableCell>Circuito {carrera.Circuitos_idCircuitos}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
             )}
 
             <Typography variant="h5" gutterBottom>Tabla general</Typography>
             {tabla.length === 0 ? (
                 <Typography>Todavía no hay resultados cargados.</Typography>
             ) : (
-                <Table size="small">
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Pos.</TableCell>
-                            <TableCell>Piloto</TableCell>
-                            <TableCell>Puntos</TableCell>
-                            <TableCell>Victorias</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {tabla.map((fila) => (
-                            <TableRow key={fila.idPersona}>
-                                <TableCell>{fila.posicion}</TableCell>
-                                <TableCell>{fila.nombre} {fila.apellido}</TableCell>
-                                <TableCell>{fila.puntosTotales}</TableCell>
-                                <TableCell>{fila.victorias}</TableCell>
+                <TableContainer>
+                    <Table size="small">
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>Pos.</TableCell>
+                                <TableCell>Piloto</TableCell>
+                                <TableCell>Puntos</TableCell>
+                                <TableCell>Victorias</TableCell>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                        </TableHead>
+                        <TableBody>
+                            {tabla.map((fila) => (
+                                <TableRow key={fila.idPersona}>
+                                    <TableCell>{fila.posicion}</TableCell>
+                                    <TableCell>{fila.nombre} {fila.apellido}</TableCell>
+                                    <TableCell>{fila.puntosTotales}</TableCell>
+                                    <TableCell>{fila.victorias}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
             )}
         </div>
     )

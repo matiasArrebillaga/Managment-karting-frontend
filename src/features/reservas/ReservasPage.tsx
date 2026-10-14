@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Alert, Button, Stack, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography } from '@mui/material'
+import { Alert, Button, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from '@mui/material'
 import { useAuth } from '../../context/AuthContext'
 import { deleteReserva, getMisReservas, getReservas, getReservasPorFechas } from '../../services/reservaService'
 import { getCircuitos } from '../../services/circuitoService'
@@ -184,59 +184,61 @@ function ReservasPage () {
             </Stack>
             {errorFiltro && <Alert severity="warning" sx={{ mb: 2 }}>{errorFiltro}</Alert>}
 
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Fecha</TableCell>
-                        <TableCell>Inicio</TableCell>
-                        <TableCell>Fin</TableCell>
-                        <TableCell>Persona</TableCell>
-                        <TableCell>Circuito</TableCell>
-                        <TableCell>Karting</TableCell>
-                        <TableCell>Monto</TableCell>
-                        <TableCell>Acciones</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {reservasVisibles.map((reserva) => {
-                        const puedeModificar = puedeGestionar || persona?.idPersona === reserva.Personas_idPersona
-                        return (
-                            <TableRow key={reserva.idReservas} hover sx={{ cursor: 'pointer' }} onClick={() => setReservaDetalle(reserva)}>
-                                <TableCell>{mostrarFecha(reserva.fechaReserva)}</TableCell>
-                                <TableCell>{mostrarHora(reserva.horaInicio)}</TableCell>
-                                <TableCell>{mostrarHora(reserva.horaFin)}</TableCell>
-                                <TableCell>{nombrePersona(reserva.Personas_idPersona)}</TableCell>
-                                <TableCell>{nombreCircuito(reserva.Circuitos_idCircuitos)}</TableCell>
-                                <TableCell>{nombreKarting(reserva.Kartings_idKartings)}</TableCell>
-                                <TableCell>{reserva.monto !== undefined ? `$ ${reserva.monto}` : '—'}</TableCell>
-                                <TableCell onClick={(e) => e.stopPropagation()}>
-                                    {puedeModificar && (
-                                        <>
-                                            <Button size="small" onClick={() => handleEditar(reserva)}>
-                                                Editar
-                                            </Button>
-                                            <Button
-                                                size="small"
-                                                color="error"
-                                                onClick={() => reserva.idReservas !== undefined && handleEliminar(reserva.idReservas)}
-                                            >
-                                                Cancelar
-                                            </Button>
-                                        </>
-                                    )}
+            <TableContainer>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Fecha</TableCell>
+                            <TableCell>Inicio</TableCell>
+                            <TableCell>Fin</TableCell>
+                            <TableCell>Persona</TableCell>
+                            <TableCell>Circuito</TableCell>
+                            <TableCell>Karting</TableCell>
+                            <TableCell>Monto</TableCell>
+                            <TableCell>Acciones</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {reservasVisibles.map((reserva) => {
+                            const puedeModificar = puedeGestionar || persona?.idPersona === reserva.Personas_idPersona
+                            return (
+                                <TableRow key={reserva.idReservas} hover sx={{ cursor: 'pointer' }} onClick={() => setReservaDetalle(reserva)}>
+                                    <TableCell>{mostrarFecha(reserva.fechaReserva)}</TableCell>
+                                    <TableCell>{mostrarHora(reserva.horaInicio)}</TableCell>
+                                    <TableCell>{mostrarHora(reserva.horaFin)}</TableCell>
+                                    <TableCell>{nombrePersona(reserva.Personas_idPersona)}</TableCell>
+                                    <TableCell>{nombreCircuito(reserva.Circuitos_idCircuitos)}</TableCell>
+                                    <TableCell>{nombreKarting(reserva.Kartings_idKartings)}</TableCell>
+                                    <TableCell>{reserva.monto !== undefined ? `$ ${reserva.monto}` : '—'}</TableCell>
+                                    <TableCell onClick={(e) => e.stopPropagation()}>
+                                        {puedeModificar && (
+                                            <>
+                                                <Button size="small" onClick={() => handleEditar(reserva)}>
+                                                    Editar
+                                                </Button>
+                                                <Button
+                                                    size="small"
+                                                    color="error"
+                                                    onClick={() => reserva.idReservas !== undefined && handleEliminar(reserva.idReservas)}
+                                                >
+                                                    Cancelar
+                                                </Button>
+                                            </>
+                                        )}
+                                    </TableCell>
+                                </TableRow>
+                            )
+                        })}
+                        {reservasVisibles.length === 0 && !error && (
+                            <TableRow>
+                                <TableCell colSpan={8} align="center">
+                                    {filtro ? 'No hay reservas en ese rango de fechas.' : 'No hay reservas para mostrar.'}
                                 </TableCell>
                             </TableRow>
-                        )
-                    })}
-                    {reservasVisibles.length === 0 && !error && (
-                        <TableRow>
-                            <TableCell colSpan={8} align="center">
-                                {filtro ? 'No hay reservas en ese rango de fechas.' : 'No hay reservas para mostrar.'}
-                            </TableCell>
-                        </TableRow>
-                    )}
-                </TableBody>
-            </Table>
+                        )}
+                    </TableBody>
+                </Table>
+            </TableContainer>
 
             <ReservaDetalleDialog
                 reserva={reservaDetalle}

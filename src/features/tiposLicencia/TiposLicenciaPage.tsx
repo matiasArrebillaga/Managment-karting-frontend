@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Table from '@mui/material/Table'
+import TableContainer from '@mui/material/TableContainer'
 import TableCell from '@mui/material/TableCell'
 import Typography from '@mui/material/Typography'
 import TableRow from '@mui/material/TableRow'
@@ -73,35 +74,37 @@ function TiposLicenciaPage() {
                 Nuevo Tipo de Licencia
             </Button>
 
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Nombre</TableCell>
-                        <TableCell>Nivel</TableCell>
-                        <TableCell>Descripcion</TableCell>
-                        <TableCell>Acciones</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {tiposLicencia.map((tipo) => (
-                        <TableRow key={tipo.idTipoLicencia}>
-                            <TableCell>{tipo.nombre}</TableCell>
-                            <TableCell>{tipo.nivel}</TableCell>
-                            <TableCell>{tipo.descripcion}</TableCell>
-                            <TableCell>
-                                <Button size="small" onClick={() => handleEditar(tipo)}>
-                                    Editar
-                                </Button>
-                                {puede(persona?.rol.nombre, 'catalogos.eliminar') && (
-                                    <Button size="small" color="error" onClick={() => handleEliminar(tipo.idTipoLicencia)}>
-                                        Eliminar
-                                    </Button>
-                                )}
-                            </TableCell>
+            <TableContainer>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Nombre</TableCell>
+                            <TableCell>Nivel</TableCell>
+                            <TableCell>Descripcion</TableCell>
+                            <TableCell>Acciones</TableCell>
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+                    </TableHead>
+                    <TableBody>
+                        {tiposLicencia.map((tipo) => (
+                            <TableRow key={tipo.idTipoLicencia}>
+                                <TableCell>{tipo.nombre}</TableCell>
+                                <TableCell>{tipo.nivel}</TableCell>
+                                <TableCell>{tipo.descripcion}</TableCell>
+                                <TableCell>
+                                    <Button size="small" onClick={() => handleEditar(tipo)}>
+                                        Editar
+                                    </Button>
+                                    {puede(persona?.rol.nombre, 'catalogos.eliminar') && (
+                                        <Button size="small" color="error" onClick={() => handleEliminar(tipo.idTipoLicencia)}>
+                                            Eliminar
+                                        </Button>
+                                    )}
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
 
             <TipoLicenciaFormDialog
                 abierto={abierto}

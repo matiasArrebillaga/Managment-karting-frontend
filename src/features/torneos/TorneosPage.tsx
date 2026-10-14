@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Alert, Box, Button, Chip, MenuItem, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography } from '@mui/material'
+import { Alert, Box, Button, Chip, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from '@mui/material'
 import { useAuth } from '../../context/AuthContext'
 import {
     deleteTorneo,
@@ -197,81 +197,83 @@ function TorneosPage () {
             ) : torneos.length === 0 ? (
                 <Typography color="text.secondary">No hay torneos con esos filtros</Typography>
             ) : (
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Nombre</TableCell>
-                        <TableCell>Descripción</TableCell>
-                        <TableCell>Licencia requerida</TableCell>
-                        {puedeVerInscriptos && <TableCell>Inscriptos / cupo</TableCell>}
-                        <TableCell>Fecha de inicio</TableCell>
-                        <TableCell>Fecha de fin</TableCell>
-                        <TableCell>Estado</TableCell>
-                        <TableCell>Inscripción</TableCell>
-                        {puedeGestionar && <TableCell>Acciones</TableCell>}
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {torneos.map((torneo) => {
-                        const estado = estadoTorneo(torneo)
-                        return (
-                            <TableRow key={torneo.idTorneos ?? torneo.nombre}>
-                                <TableCell><Link to={`/torneos/${torneo.idTorneos}`}>{torneo.nombre}</Link></TableCell>
-                                <TableCell>{torneo.descripcion}</TableCell>
-                                <TableCell>{nombreLicencia(torneo.TiposLicencias_idTipoLicencia)}</TableCell>
-                                {puedeVerInscriptos && (
-                                    <TableCell>{inscriptosPorTorneo[torneo.idTorneos] ?? 0} / {torneo.cupoMaximo}</TableCell>
-                                )}
-                                <TableCell>{torneo.fechaInicio.toLocaleDateString()}</TableCell>
-                                <TableCell>{torneo.fechaFin.toLocaleDateString()}</TableCell>
-                                <TableCell>
-                                    <Chip
-                                        size="small"
-                                        label={estado}
-                                        color={estado === 'Terminado' ? 'default' : estado === 'En curso' ? 'success' : 'primary'}
-                                    />
-                                </TableCell>
-                                <TableCell>
-                                    {torneosAnotados.includes(torneo.idTorneos) && estado === 'Próximo' ? (
-                                        <Button size="small" onClick={() => handleDesanotarse(torneo.idTorneos)}>
-                                            Desanotarme
-                                        </Button>
-                                    ) : torneosAnotados.includes(torneo.idTorneos) ? (
-                                        <Button size="small" disabled>Inscripto</Button>
-                                    ) : estado !== 'Próximo' ? (
-                                        <Button size="small" disabled>{estado}</Button>
-                                    ) : puedeVerInscriptos && (inscriptosPorTorneo[torneo.idTorneos] ?? 0) >= torneo.cupoMaximo ? (
-                                        <Button size="small" disabled>Completo</Button>
-                                    ) : !puedeAnotarse ? (
-                                        <Button size="small" disabled>No disponible</Button>
-                                    ) : (
-                                        <Button
-                                            size="small"
-                                            variant="contained"
-                                            onClick={() => handleAnotarse(torneo.idTorneos)}
-                                            disabled={inscripcionPendiente === torneo.idTorneos}
-                                        >
-                                            {inscripcionPendiente === torneo.idTorneos ? 'Anotando...' : 'Anotarme'}
-                                        </Button>
+            <TableContainer>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Nombre</TableCell>
+                            <TableCell>Descripción</TableCell>
+                            <TableCell>Licencia requerida</TableCell>
+                            {puedeVerInscriptos && <TableCell>Inscriptos / cupo</TableCell>}
+                            <TableCell>Fecha de inicio</TableCell>
+                            <TableCell>Fecha de fin</TableCell>
+                            <TableCell>Estado</TableCell>
+                            <TableCell>Inscripción</TableCell>
+                            {puedeGestionar && <TableCell>Acciones</TableCell>}
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {torneos.map((torneo) => {
+                            const estado = estadoTorneo(torneo)
+                            return (
+                                <TableRow key={torneo.idTorneos ?? torneo.nombre}>
+                                    <TableCell><Link to={`/torneos/${torneo.idTorneos}`}>{torneo.nombre}</Link></TableCell>
+                                    <TableCell>{torneo.descripcion}</TableCell>
+                                    <TableCell>{nombreLicencia(torneo.TiposLicencias_idTipoLicencia)}</TableCell>
+                                    {puedeVerInscriptos && (
+                                        <TableCell>{inscriptosPorTorneo[torneo.idTorneos] ?? 0} / {torneo.cupoMaximo}</TableCell>
                                     )}
-                                </TableCell>
-                                {puedeGestionar && torneo.idTorneos !== undefined && (
+                                    <TableCell>{torneo.fechaInicio.toLocaleDateString()}</TableCell>
+                                    <TableCell>{torneo.fechaFin.toLocaleDateString()}</TableCell>
                                     <TableCell>
-                                        <Button size="small" onClick={() => handleEditar(torneo)}>
-                                            Editar
-                                        </Button>
-                                        {puedeEliminar && (
-                                            <Button size="small" color="error" onClick={() => torneo.idTorneos !== undefined && handleEliminar(torneo.idTorneos)}>
-                                                Eliminar
+                                        <Chip
+                                            size="small"
+                                            label={estado}
+                                            color={estado === 'Terminado' ? 'default' : estado === 'En curso' ? 'success' : 'primary'}
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        {torneosAnotados.includes(torneo.idTorneos) && estado === 'Próximo' ? (
+                                            <Button size="small" onClick={() => handleDesanotarse(torneo.idTorneos)}>
+                                                Desanotarme
+                                            </Button>
+                                        ) : torneosAnotados.includes(torneo.idTorneos) ? (
+                                            <Button size="small" disabled>Inscripto</Button>
+                                        ) : estado !== 'Próximo' ? (
+                                            <Button size="small" disabled>{estado}</Button>
+                                        ) : puedeVerInscriptos && (inscriptosPorTorneo[torneo.idTorneos] ?? 0) >= torneo.cupoMaximo ? (
+                                            <Button size="small" disabled>Completo</Button>
+                                        ) : !puedeAnotarse ? (
+                                            <Button size="small" disabled>No disponible</Button>
+                                        ) : (
+                                            <Button
+                                                size="small"
+                                                variant="contained"
+                                                onClick={() => handleAnotarse(torneo.idTorneos)}
+                                                disabled={inscripcionPendiente === torneo.idTorneos}
+                                            >
+                                                {inscripcionPendiente === torneo.idTorneos ? 'Anotando...' : 'Anotarme'}
                                             </Button>
                                         )}
                                     </TableCell>
-                                )}
-                            </TableRow>
-                        )
-                    })}
-                </TableBody>
-            </Table>
+                                    {puedeGestionar && torneo.idTorneos !== undefined && (
+                                        <TableCell>
+                                            <Button size="small" onClick={() => handleEditar(torneo)}>
+                                                Editar
+                                            </Button>
+                                            {puedeEliminar && (
+                                                <Button size="small" color="error" onClick={() => torneo.idTorneos !== undefined && handleEliminar(torneo.idTorneos)}>
+                                                    Eliminar
+                                                </Button>
+                                            )}
+                                        </TableCell>
+                                    )}
+                                </TableRow>
+                            )
+                        })}
+                    </TableBody>
+                </Table>
+            </TableContainer>
             )}
 
             {puedeGestionar && (

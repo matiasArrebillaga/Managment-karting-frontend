@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import Alert from '@mui/material/Alert'
 import Table from '@mui/material/Table'
+import TableContainer from '@mui/material/TableContainer'
 import TableCell from '@mui/material/TableCell'
 import Typography from '@mui/material/Typography'
 import TableRow from '@mui/material/TableRow'
@@ -158,59 +159,61 @@ function CarrerasPage () {
                 </Button>
             )}
 
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Fecha</TableCell>
-                        <TableCell>Inicio</TableCell>
-                        <TableCell>Fin</TableCell>
-                        <TableCell>Torneo</TableCell>
-                        <TableCell>Circuito</TableCell>
-                        <TableCell>Kartings</TableCell>
-                        <TableCell>Acciones</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {carreras.map((carrera) => (
-                        <TableRow key={`${carrera.fechaCarrera.toISOString()}-${carrera.Torneos_idTorneos}-${carrera.Circuitos_idCircuitos}`}>
-                            <TableCell>{carrera.fechaCarrera.toLocaleDateString()}</TableCell>
-                            <TableCell>{carrera.horaInicio.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
-                            <TableCell>{carrera.horaFin.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
-                            <TableCell>{nombreTorneo(carrera.Torneos_idTorneos)}</TableCell>
-                            <TableCell>{nombreCircuito(carrera.Circuitos_idCircuitos)}</TableCell>
-                            <TableCell>{(carrera.kartings ?? (carrera.Kartings_idKartings === undefined ? [] : [carrera.Kartings_idKartings])).map(nombreKarting).join(', ') || '—'}</TableCell>
-                            <TableCell>
-                                {puedeGestionar && (
-                                    <>
-                                        <Button size="small" onClick={() => handleEditar(carrera)}>
-                                            Editar
-                                        </Button>
-                                        <Button size="small" onClick={() => setCarreraResultados(carrera)}>
-                                            {conResultados.includes(claveCarrera(carrera.fechaCarrera, carrera.Torneos_idTorneos, carrera.Circuitos_idCircuitos))
-                                                ? 'Ver clasificación'
-                                                : 'Cargar resultados'}
-                                        </Button>
-                                        {puedeEliminar && (
-                                            <Button size="small" color="error" onClick={() => handleEliminar(carrera)}>
-                                                Eliminar
-                                            </Button>
-                                        )}
-                                    </>
-                                )}
-                                {usaMocks && carrera.idCarreras !== undefined && inscripciones.includes(carrera.idCarreras) ? (
-                                    <Button size="small" onClick={() => handleDesanotarse(carrera.idCarreras)}>
-                                        Desanotarme
-                                    </Button>
-                                ) : usaMocks ? (
-                                    <Button size="small" variant="contained" onClick={() => handleAnotarse(carrera)}>
-                                        Anotarme
-                                    </Button>
-                                ) : null}
-                            </TableCell>
+            <TableContainer>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Fecha</TableCell>
+                            <TableCell>Inicio</TableCell>
+                            <TableCell>Fin</TableCell>
+                            <TableCell>Torneo</TableCell>
+                            <TableCell>Circuito</TableCell>
+                            <TableCell>Kartings</TableCell>
+                            <TableCell>Acciones</TableCell>
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+                    </TableHead>
+                    <TableBody>
+                        {carreras.map((carrera) => (
+                            <TableRow key={`${carrera.fechaCarrera.toISOString()}-${carrera.Torneos_idTorneos}-${carrera.Circuitos_idCircuitos}`}>
+                                <TableCell>{carrera.fechaCarrera.toLocaleDateString()}</TableCell>
+                                <TableCell>{carrera.horaInicio.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
+                                <TableCell>{carrera.horaFin.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
+                                <TableCell>{nombreTorneo(carrera.Torneos_idTorneos)}</TableCell>
+                                <TableCell>{nombreCircuito(carrera.Circuitos_idCircuitos)}</TableCell>
+                                <TableCell>{(carrera.kartings ?? (carrera.Kartings_idKartings === undefined ? [] : [carrera.Kartings_idKartings])).map(nombreKarting).join(', ') || '—'}</TableCell>
+                                <TableCell>
+                                    {puedeGestionar && (
+                                        <>
+                                            <Button size="small" onClick={() => handleEditar(carrera)}>
+                                                Editar
+                                            </Button>
+                                            <Button size="small" onClick={() => setCarreraResultados(carrera)}>
+                                                {conResultados.includes(claveCarrera(carrera.fechaCarrera, carrera.Torneos_idTorneos, carrera.Circuitos_idCircuitos))
+                                                    ? 'Ver clasificación'
+                                                    : 'Cargar resultados'}
+                                            </Button>
+                                            {puedeEliminar && (
+                                                <Button size="small" color="error" onClick={() => handleEliminar(carrera)}>
+                                                    Eliminar
+                                                </Button>
+                                            )}
+                                        </>
+                                    )}
+                                    {usaMocks && carrera.idCarreras !== undefined && inscripciones.includes(carrera.idCarreras) ? (
+                                        <Button size="small" onClick={() => handleDesanotarse(carrera.idCarreras)}>
+                                            Desanotarme
+                                        </Button>
+                                    ) : usaMocks ? (
+                                        <Button size="small" variant="contained" onClick={() => handleAnotarse(carrera)}>
+                                            Anotarme
+                                        </Button>
+                                    ) : null}
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
 
             <CarreraFormDialog
                 abierto={abierto}

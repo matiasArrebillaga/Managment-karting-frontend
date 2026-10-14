@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import Alert from '@mui/material/Alert'
 import Table from '@mui/material/Table'
+import TableContainer from '@mui/material/TableContainer'
 import TableCell from '@mui/material/TableCell'
 import Typography from '@mui/material/Typography'
 import TableRow from '@mui/material/TableRow'
@@ -85,41 +86,43 @@ function CircuitosPage() {
                 </Button>
             )}
 
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>ID</TableCell>
-                        <TableCell>Distancia (m)</TableCell>
-                        <TableCell>Dificultad</TableCell>
-                        <TableCell>Capacidad Maxima</TableCell>
-                        {(puedeEditar || puedeEliminar) && <TableCell>Acciones</TableCell>}
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {circuitos.map((circuito) => (
-                        <TableRow key={circuito.idCircuitos}>
-                            <TableCell>{circuito.idCircuitos}</TableCell>
-                            <TableCell>{circuito.distancia}</TableCell>
-                            <TableCell>{circuito.dificultad}</TableCell>
-                            <TableCell>{circuito.maximo}</TableCell>
-                            {(puedeEditar || puedeEliminar) && (
-                                <TableCell>
-                                    {puedeEditar && (
-                                        <Button size="small" onClick={() => handleEditar(circuito)}>
-                                            Editar
-                                        </Button>
-                                    )}
-                                    {puedeEliminar && (
-                                        <Button size="small" color="error" onClick={() => handleEliminar(circuito.idCircuitos)}>
-                                            Eliminar
-                                        </Button>
-                                    )}
-                                </TableCell>
-                            )}
+            <TableContainer>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>ID</TableCell>
+                            <TableCell>Distancia (m)</TableCell>
+                            <TableCell>Dificultad</TableCell>
+                            <TableCell>Capacidad Maxima</TableCell>
+                            {(puedeEditar || puedeEliminar) && <TableCell>Acciones</TableCell>}
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+                    </TableHead>
+                    <TableBody>
+                        {circuitos.map((circuito) => (
+                            <TableRow key={circuito.idCircuitos}>
+                                <TableCell>{circuito.idCircuitos}</TableCell>
+                                <TableCell>{circuito.distancia}</TableCell>
+                                <TableCell>{circuito.dificultad}</TableCell>
+                                <TableCell>{circuito.maximo}</TableCell>
+                                {(puedeEditar || puedeEliminar) && (
+                                    <TableCell>
+                                        {puedeEditar && (
+                                            <Button size="small" onClick={() => handleEditar(circuito)}>
+                                                Editar
+                                            </Button>
+                                        )}
+                                        {puedeEliminar && (
+                                            <Button size="small" color="error" onClick={() => handleEliminar(circuito.idCircuitos)}>
+                                                Eliminar
+                                            </Button>
+                                        )}
+                                    </TableCell>
+                                )}
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
 
             <CircuitoFormDialog
                 abierto={abierto}

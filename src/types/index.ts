@@ -117,7 +117,7 @@ export interface TipoKarting {
     idTiposKarting: number
     nombre: string
     descripcion: string
-    precioHora?: number
+    precioHora: number
     TiposLicencias_idTipoLicenciaMinima: number
 }
 
@@ -146,4 +146,6 @@ export interface FilaTablaGeneral {
 
 // Version minima, solo para los desplegables de Licencia.
 // El CRUD completo de Persona (con localidad, rol, login) no esta hecho todavia.
+// dni, mail y telefono: la API los manda; los datos de prueba no
 export type Persona = Pick<Required<Schemas['Persona']>, 'idPersona' | 'nombre' | 'apellido'>
+    & Pick<Schemas['Persona'], 'dni' | 'mail' | 'telefono'>

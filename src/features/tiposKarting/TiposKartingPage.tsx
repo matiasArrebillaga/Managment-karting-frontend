@@ -87,6 +87,7 @@ function TiposKartingPage() {
                     <TableRow>
                         <TableCell>Nombre</TableCell>
                         <TableCell>Licencia Minima</TableCell>
+                        <TableCell>Precio por hora</TableCell>
                         <TableCell>Descripcion</TableCell>
                         <TableCell>Acciones</TableCell>
                     </TableRow>
@@ -96,6 +97,7 @@ function TiposKartingPage() {
                         <TableRow key={tipo.idTiposKarting}>
                             <TableCell>{tipo.nombre}</TableCell>
                             <TableCell>{nombreTipoLicencia(tipo.TiposLicencias_idTipoLicenciaMinima)}</TableCell>
+                            <TableCell>${tipo.precioHora.toLocaleString('es-AR')}</TableCell>
                             <TableCell>{tipo.descripcion}</TableCell>
                             <TableCell>
                                 <Button size="small" onClick={() => handleEditar(tipo)}>

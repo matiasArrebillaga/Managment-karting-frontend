@@ -299,8 +299,21 @@ export async function deleteReserva(id: number): Promise<void> {
     reservas.splice(indice, 1)
 }
 
+// desde y hasta en formato YYYY-MM-DD, ambos inclusive
+export async function getReservasPorFechas(desde: string, hasta: string): Promise<IReserva[]> {
+    if (desde > hasta) throw new Error('La fecha "desde" no puede ser posterior a la fecha "hasta"')
+    if (!usaMocks) {
+        const response = await apiFetch(`/reservas/fechas?fechaInicio=${desde}&fechaFin=${hasta}`)
+        return normalizarListaReservasApi(await response.json())
+    }
+    await demora()
+    return reservas.filter((reserva) => {
+        const dia = fechaInputApi(reserva.fechaReserva)
+        return dia >= desde && dia <= hasta
+    })
+}
+
 export async function getReservasDelDia(fecha: Date): Promise<IReserva[]> {
     const dia = fechaInputApi(fecha)
-    const response = await apiFetch(`/reservas/fechas?fechaInicio=${dia}&fechaFin=${dia}`)
-    return normalizarListaReservasApi(await response.json())
+    return getReservasPorFechas(dia, dia)
 }

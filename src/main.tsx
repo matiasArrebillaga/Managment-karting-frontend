@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import './index.css'
 import CssBaseline from '@mui/material/CssBaseline'
+import { ThemeProvider, createTheme } from '@mui/material/styles'
 import App from './App.tsx'
 import Dashboard from './components/Dashboard.tsx'
 import AuthPage from './components/AuthPage.tsx'
@@ -21,42 +22,65 @@ import ParticipacionesPage from './features/participaciones/ParticipacionesPage.
 import { AuthProvider } from './context/AuthContext.tsx'
 import RutaProtegida from './components/RutaProtegida.tsx'
 
+// Tema por defecto de MUI + un solo cambio: en xs (< 600px) todos los Dialog
+// se ven a pantalla completa, igual que con la prop fullScreen.
+const theme = createTheme({
+  components: {
+    MuiDialog: {
+      styleOverrides: {
+        paper: ({ theme }) => ({
+          [theme.breakpoints.down('sm')]: {
+            margin: 0,
+            width: '100%',
+            maxWidth: '100%',
+            height: '100%',
+            maxHeight: '100%',
+            borderRadius: 0,
+          },
+        }),
+      },
+    },
+  },
+})
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <CssBaseline />
-        <Header />
-        <Routes>
-          <Route path="/" element={<App />} />
-          <Route path="/login" element={<AuthPage mode="login" />} />
-          <Route path="/register" element={<AuthPage mode="register" />} />
-          <Route path="/dashboard" element={<RutaProtegida><Dashboard /></RutaProtegida>} />
-          <Route path="/carreras" element={<RutaProtegida><CarrerasPage /></RutaProtegida>} />
-          <Route path="/torneos" element={<RutaProtegida><TorneosPage /></RutaProtegida>} />
-          <Route path="/torneos/:id" element={<RutaProtegida><TorneoDetallePage /></RutaProtegida>} />
-          <Route path="/reservas" element={<RutaProtegida><ReservasPage /></RutaProtegida>} />
-          <Route
-            path="/participaciones"
-            element={<RutaProtegida permiso="participaciones.ver"><ParticipacionesPage /></RutaProtegida>}
-          />
-          <Route path="/localidades" element={<RutaProtegida><LocalidadesPage /></RutaProtegida>} />
-          <Route path="/circuitos" element={<RutaProtegida><CircuitosPage /></RutaProtegida>} />
-          <Route path="/kartings" element={<RutaProtegida><KartingsPage /></RutaProtegida>} />
-          <Route
-            path="/tipos-licencia"
-            element={<RutaProtegida permiso="catalogos.ver"><TiposLicenciaPage /></RutaProtegida>}
-          />
-          <Route
-            path="/tipos-karting"
-            element={<RutaProtegida permiso="catalogos.ver"><TiposKartingPage /></RutaProtegida>}
-          />
-          <Route
-            path="/licencias"
-            element={<RutaProtegida permiso="catalogos.ver"><LicenciasPage /></RutaProtegida>}
-          />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Header />
+          <Routes>
+            <Route path="/" element={<App />} />
+            <Route path="/login" element={<AuthPage mode="login" />} />
+            <Route path="/register" element={<AuthPage mode="register" />} />
+            <Route path="/dashboard" element={<RutaProtegida><Dashboard /></RutaProtegida>} />
+            <Route path="/carreras" element={<RutaProtegida><CarrerasPage /></RutaProtegida>} />
+            <Route path="/torneos" element={<RutaProtegida><TorneosPage /></RutaProtegida>} />
+            <Route path="/torneos/:id" element={<RutaProtegida><TorneoDetallePage /></RutaProtegida>} />
+            <Route path="/reservas" element={<RutaProtegida><ReservasPage /></RutaProtegida>} />
+            <Route
+              path="/participaciones"
+              element={<RutaProtegida permiso="participaciones.ver"><ParticipacionesPage /></RutaProtegida>}
+            />
+            <Route path="/localidades" element={<RutaProtegida><LocalidadesPage /></RutaProtegida>} />
+            <Route path="/circuitos" element={<RutaProtegida><CircuitosPage /></RutaProtegida>} />
+            <Route path="/kartings" element={<RutaProtegida><KartingsPage /></RutaProtegida>} />
+            <Route
+              path="/tipos-licencia"
+              element={<RutaProtegida permiso="catalogos.ver"><TiposLicenciaPage /></RutaProtegida>}
+            />
+            <Route
+              path="/tipos-karting"
+              element={<RutaProtegida permiso="catalogos.ver"><TiposKartingPage /></RutaProtegida>}
+            />
+            <Route
+              path="/licencias"
+              element={<RutaProtegida permiso="catalogos.ver"><LicenciasPage /></RutaProtegida>}
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>,

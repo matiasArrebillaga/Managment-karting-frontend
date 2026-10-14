@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { createLicencia, updateLicencia } from "../../services/licenciaService"
 import { getTiposLicencia } from "../../services/tipoLicenciaService"
 import { getPersonas } from "../../services/personaService"
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Stack, TextField } from "@mui/material"
+import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Stack, TextField } from "@mui/material"
 import type { Licencia, TipoLicencia, Persona } from "../../types"
 
 type Props = {
@@ -20,6 +20,7 @@ function LicenciaFormDialog({ abierto, licencia, onCerrar, onGuardado }: Props) 
     const [personas, setPersonas] = useState<Persona[]>([])
     const [tiposLicencia, setTiposLicencia] = useState<TipoLicencia[]>([])
     const [guardando, setGuardando] = useState(false)
+    const [error, setError] = useState('')
 
     const editando = Boolean(licencia)
 
@@ -28,7 +29,7 @@ function LicenciaFormDialog({ abierto, licencia, onCerrar, onGuardado }: Props) 
             Promise.all([getPersonas(), getTiposLicencia()]).then(([datosPersonas, datosTipos]) => {
                 setPersonas(datosPersonas)
                 setTiposLicencia(datosTipos)
-            })
+            }).catch((motivo) => setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los titulares y tipos de licencia'))
         }
     }, [abierto])
 
@@ -44,10 +45,12 @@ function LicenciaFormDialog({ abierto, licencia, onCerrar, onGuardado }: Props) 
             setPersonaId('')
             setTipoLicenciaId('')
         }
+        setError('')
     }, [licencia, abierto])
 
     async function handleGuardar() {
         setGuardando(true)
+        setError('')
         try {
             const datos = {
                 fechaEmision,
@@ -61,6 +64,8 @@ function LicenciaFormDialog({ abierto, licencia, onCerrar, onGuardado }: Props) 
                 await createLicencia(datos)
             }
             onGuardado()
+        } catch (motivo) {
+            setError(motivo instanceof Error ? motivo.message : 'No se pudo guardar la licencia')
         } finally {
             setGuardando(false)
         }
@@ -71,6 +76,7 @@ function LicenciaFormDialog({ abierto, licencia, onCerrar, onGuardado }: Props) 
             <DialogTitle>{editando ? 'Editar Licencia' : 'Nueva Licencia'}</DialogTitle>
             <DialogContent>
                 <Stack spacing={2} sx={{ mt: 1 }}>
+                    {error && <Alert severity="error">{error}</Alert>}
                     <TextField
                         select
                         label="Titular"

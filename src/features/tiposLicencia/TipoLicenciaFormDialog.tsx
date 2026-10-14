@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { createTipoLicencia, updateTipoLicencia } from "../../services/tipoLicenciaService"
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from "@mui/material"
+import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from "@mui/material"
 import type { TipoLicencia } from "../../types"
 
 type Props = {
@@ -15,6 +15,7 @@ function TipoLicenciaFormDialog({ abierto, tipoLicencia, onCerrar, onGuardado }:
     const [descripcion, setDescripcion] = useState('')
     const [nivel, setNivel] = useState('')
     const [guardando, setGuardando] = useState(false)
+    const [error, setError] = useState('')
 
     const editando = Boolean(tipoLicencia)
 
@@ -28,10 +29,12 @@ function TipoLicenciaFormDialog({ abierto, tipoLicencia, onCerrar, onGuardado }:
             setDescripcion('')
             setNivel('')
         }
+        setError('')
     }, [tipoLicencia, abierto])
 
     async function handleGuardar() {
         setGuardando(true)
+        setError('')
         try {
             const datos = {
                 nombre,
@@ -44,6 +47,8 @@ function TipoLicenciaFormDialog({ abierto, tipoLicencia, onCerrar, onGuardado }:
                 await createTipoLicencia(datos)
             }
             onGuardado()
+        } catch (motivo) {
+            setError(motivo instanceof Error ? motivo.message : 'No se pudo guardar el tipo de licencia')
         } finally {
             setGuardando(false)
         }
@@ -54,6 +59,7 @@ function TipoLicenciaFormDialog({ abierto, tipoLicencia, onCerrar, onGuardado }:
             <DialogTitle>{editando ? 'Editar Tipo de Licencia' : 'Nuevo Tipo de Licencia'}</DialogTitle>
             <DialogContent>
                 <Stack spacing={2} sx={{ mt: 1 }}>
+                    {error && <Alert severity="error">{error}</Alert>}
                     <TextField
                         label="Nombre"
                         value={nombre}

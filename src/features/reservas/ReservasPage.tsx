@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
-import { Alert, Button, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material'
+import { Alert, Button, Stack, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography } from '@mui/material'
 import { useAuth } from '../../context/AuthContext'
-import { deleteReserva, getMisReservas, getReservas } from '../../services/reservaService'
+import { deleteReserva, getMisReservas, getReservas, getReservasPorFechas } from '../../services/reservaService'
 import { getCircuitos } from '../../services/circuitoService'
 import { getKartings } from '../../services/kartingService'
 import { getPersonas } from '../../services/personaService'
 import type { Circuito, IReserva, Karting, Persona } from '../../types'
 import ReservaFormDialog from './ReservaFormDialog'
+import ReservaDetalleDialog from './ReservaDetalleDialog'
 import { puede } from '../../permisos'
 
 function ReservasPage () {
@@ -19,16 +20,31 @@ function ReservasPage () {
     const [error, setError] = useState('')
     const [abierto, setAbierto] = useState(false)
     const [reservaEditando, setReservaEditando] = useState<IReserva | null>(null)
+    const [reservaDetalle, setReservaDetalle] = useState<IReserva | null>(null)
+    const [desde, setDesde] = useState('')
+    const [hasta, setHasta] = useState('')
+    const [filtro, setFiltro] = useState<{ desde: string; hasta: string } | null>(null)
+    const [errorFiltro, setErrorFiltro] = useState('')
     const puedeGestionar = puede(persona?.rol.nombre, 'reservas.verTodas')
     const reservasVisibles = reservas.filter((reserva) => (
         puedeGestionar || reserva.Personas_idPersona === persona?.idPersona
     ))
 
-    function cargarReservas () {
+    // /reservas/fechas es solo para ADMIN y EMPLEADO: al cliente se le filtran sus propias reservas
+    async function buscarReservas (rango: typeof filtro) {
+        if (puedeGestionar) return rango ? getReservasPorFechas(rango.desde, rango.hasta) : getReservas()
+        const propias = await getMisReservas(persona?.idPersona)
+        if (!rango) return propias
+        const inicio = new Date(`${rango.desde}T00:00:00`)
+        const fin = new Date(`${rango.hasta}T00:00:00`)
+        return propias.filter((reserva) => reserva.fechaReserva >= inicio && reserva.fechaReserva <= fin)
+    }
+
+    function cargarReservas (rango = filtro) {
         setCargando(true)
         setError('')
         Promise.all([
-            puedeGestionar ? getReservas() : getMisReservas(persona?.idPersona),
+            buscarReservas(rango),
             getCircuitos(),
             getKartings(),
             puedeGestionar ? getPersonas() : Promise.resolve([]),
@@ -77,6 +93,32 @@ function ReservasPage () {
             : hora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
 
+    function handleFiltrar () {
+        if (!desde || !hasta) {
+            setErrorFiltro('Completá las dos fechas para filtrar')
+            return
+        }
+        if (desde > hasta) {
+            setErrorFiltro('La fecha "desde" no puede ser posterior a la fecha "hasta"')
+            return
+        }
+        setErrorFiltro('')
+        setFiltro({ desde, hasta })
+        cargarReservas({ desde, hasta })
+    }
+
+    function handleLimpiarFiltro () {
+        setDesde('')
+        setHasta('')
+        setErrorFiltro('')
+        setFiltro(null)
+        cargarReservas(null)
+    }
+
+    function personaDe (id: number) {
+        return personas.find((item) => item.idPersona === id) ?? (persona?.idPersona === id ? persona : undefined)
+    }
+
     function handleNueva () {
         setReservaEditando(null)
         setAbierto(true)
@@ -120,6 +162,28 @@ function ReservasPage () {
                 Nueva Reserva
             </Button>
 
+            <Stack direction="row" spacing={2} sx={{ mb: 2, flexWrap: 'wrap', alignItems: 'center' }} useFlexGap>
+                <TextField
+                    label="Desde"
+                    type="date"
+                    size="small"
+                    value={desde}
+                    onChange={(e) => setDesde(e.target.value)}
+                    slotProps={{ inputLabel: { shrink: true } }}
+                />
+                <TextField
+                    label="Hasta"
+                    type="date"
+                    size="small"
+                    value={hasta}
+                    onChange={(e) => setHasta(e.target.value)}
+                    slotProps={{ inputLabel: { shrink: true } }}
+                />
+                <Button variant="outlined" onClick={handleFiltrar}>Filtrar</Button>
+                {filtro && <Button onClick={handleLimpiarFiltro}>Ver todas</Button>}
+            </Stack>
+            {errorFiltro && <Alert severity="warning" sx={{ mb: 2 }}>{errorFiltro}</Alert>}
+
             <Table>
                 <TableHead>
                     <TableRow>
@@ -137,7 +201,7 @@ function ReservasPage () {
                     {reservasVisibles.map((reserva) => {
                         const puedeModificar = puedeGestionar || persona?.idPersona === reserva.Personas_idPersona
                         return (
-                            <TableRow key={reserva.idReservas}>
+                            <TableRow key={reserva.idReservas} hover sx={{ cursor: 'pointer' }} onClick={() => setReservaDetalle(reserva)}>
                                 <TableCell>{mostrarFecha(reserva.fechaReserva)}</TableCell>
                                 <TableCell>{mostrarHora(reserva.horaInicio)}</TableCell>
                                 <TableCell>{mostrarHora(reserva.horaFin)}</TableCell>
@@ -145,7 +209,7 @@ function ReservasPage () {
                                 <TableCell>{nombreCircuito(reserva.Circuitos_idCircuitos)}</TableCell>
                                 <TableCell>{nombreKarting(reserva.Kartings_idKartings)}</TableCell>
                                 <TableCell>{reserva.monto !== undefined ? `$ ${reserva.monto}` : '—'}</TableCell>
-                                <TableCell>
+                                <TableCell onClick={(e) => e.stopPropagation()}>
                                     {puedeModificar && (
                                         <>
                                             <Button size="small" onClick={() => handleEditar(reserva)}>
@@ -167,12 +231,20 @@ function ReservasPage () {
                     {reservasVisibles.length === 0 && !error && (
                         <TableRow>
                             <TableCell colSpan={8} align="center">
-                                No hay reservas para mostrar.
+                                {filtro ? 'No hay reservas en ese rango de fechas.' : 'No hay reservas para mostrar.'}
                             </TableCell>
                         </TableRow>
                     )}
                 </TableBody>
             </Table>
+
+            <ReservaDetalleDialog
+                reserva={reservaDetalle}
+                persona={reservaDetalle ? personaDe(reservaDetalle.Personas_idPersona) : undefined}
+                karting={kartings.find((item) => item.idKartings === reservaDetalle?.Kartings_idKartings)}
+                circuito={circuitos.find((item) => item.idCircuitos === reservaDetalle?.Circuitos_idCircuitos)}
+                onCerrar={() => setReservaDetalle(null)}
+            />
 
             {persona && (
                 <ReservaFormDialog

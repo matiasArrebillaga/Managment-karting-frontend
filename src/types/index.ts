@@ -174,4 +174,8 @@ export interface Persona {
     idPersona: number
     nombre: string
     apellido: string
+    // la API los manda; los datos de prueba no
+    dni?: string
+    mail?: string
+    telefono?: string
 }

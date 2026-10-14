@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Alert, Box, Button, Chip, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from '@mui/material'
+import { Alert, MenuItem, TextField } from '@mui/material'
 import { useAuth } from '../../context/AuthContext'
 import {
     deleteTorneo,
@@ -47,6 +47,7 @@ function TorneosPage () {
     const [tiposLicencia, setTiposLicencia] = useState<TipoLicencia[]>([])
     const [filtroEstado, setFiltroEstado] = useState('')
     const [filtroLicencia, setFiltroLicencia] = useState('')
+    const [busqueda, setBusqueda] = useState('')
     const puedeGestionar = puede(persona?.rol.nombre, 'torneos.gestionar')
     const puedeVerInscriptos = puede(persona?.rol.nombre, 'inscripciones.verTodas')
     const puedeAnotarse = puede(persona?.rol.nombre, 'inscripciones.anotarse')
@@ -150,20 +151,55 @@ function TorneosPage () {
         }
     }
 
+    const texto = busqueda.trim().toLowerCase()
+    const torneosVisibles = torneos.filter((torneo) => torneo.nombre.toLowerCase().includes(texto))
+
+    function accionInscripcion (torneo: ITorneos, estado: string) {
+        const anotado = torneosAnotados.includes(torneo.idTorneos)
+        if (anotado && estado === 'Próximo') {
+            return <button className="btn-ghost" type="button" onClick={() => handleDesanotarse(torneo.idTorneos)}>Desanotarme</button>
+        }
+        if (anotado) return <span className="tag ok">Inscripto</span>
+        // ADMIN no tiene inscripciones.anotarse en el backend: no se le ofrece
+        if (estado !== 'Próximo' || !puedeAnotarse) return null
+        if (puedeVerInscriptos && (inscriptosPorTorneo[torneo.idTorneos] ?? 0) >= torneo.cupoMaximo) {
+            return <span className="tag bad">Cupo completo</span>
+        }
+        return (
+            <button
+                className="btn"
+                type="button"
+                onClick={() => handleAnotarse(torneo.idTorneos)}
+                disabled={inscripcionPendiente === torneo.idTorneos}
+            >
+                {inscripcionPendiente === torneo.idTorneos ? 'Anotando...' : 'Anotarme'}
+            </button>
+        )
+    }
+
     return (
-        <div style={{ padding: 24 }}>
-            <Typography variant="h4" gutterBottom>
-                Torneos
-            </Typography>
-            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        <div className="page">
+            <div className="page-head">
+                <div>
+                    <p className="eyebrow">Competencia</p>
+                    <h1>Torneos</h1>
+                    <p className="sub">Anotate a un torneo para correr sus carreras. Cada torneo tiene cupo y licencia mínima.</p>
+                </div>
+                {puedeGestionar && (
+                    <button className="btn" type="button" onClick={handleNuevo}>Nuevo torneo</button>
+                )}
+            </div>
+            {error && <Alert severity="error">{error}</Alert>}
 
-            {puedeGestionar && (
-                <Button variant="contained" onClick={handleNuevo} sx={{ mb: 2 }}>
-                    Nuevo Torneo
-                </Button>
-            )}
-
-            <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+            <div className="toolbar" role="search">
+                <TextField
+                    size="small"
+                    type="search"
+                    label="Buscar por nombre"
+                    value={busqueda}
+                    onChange={(evento) => setBusqueda(evento.target.value)}
+                    sx={{ minWidth: 220 }}
+                />
                 <TextField
                     select
                     size="small"
@@ -190,90 +226,57 @@ function TorneosPage () {
                         <MenuItem key={tipo.idTipoLicencia} value={String(tipo.idTipoLicencia)}>{tipo.nombre}</MenuItem>
                     ))}
                 </TextField>
-            </Box>
+            </div>
 
             {cargando ? (
-                <Typography>Cargando...</Typography>
-            ) : torneos.length === 0 ? (
-                <Typography color="text.secondary">No hay torneos con esos filtros</Typography>
+                <p className="empty">Cargando...</p>
+            ) : torneosVisibles.length === 0 ? (
+                <p className="empty">No hay torneos que coincidan con la búsqueda.</p>
             ) : (
-            <TableContainer>
-                <Table>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Nombre</TableCell>
-                            <TableCell>Descripción</TableCell>
-                            <TableCell>Licencia requerida</TableCell>
-                            {puedeVerInscriptos && <TableCell>Inscriptos / cupo</TableCell>}
-                            <TableCell>Fecha de inicio</TableCell>
-                            <TableCell>Fecha de fin</TableCell>
-                            <TableCell>Estado</TableCell>
-                            <TableCell>Inscripción</TableCell>
-                            {puedeGestionar && <TableCell>Acciones</TableCell>}
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {torneos.map((torneo) => {
-                            const estado = estadoTorneo(torneo)
-                            return (
-                                <TableRow key={torneo.idTorneos ?? torneo.nombre}>
-                                    <TableCell><Link to={`/torneos/${torneo.idTorneos}`}>{torneo.nombre}</Link></TableCell>
-                                    <TableCell>{torneo.descripcion}</TableCell>
-                                    <TableCell>{nombreLicencia(torneo.TiposLicencias_idTipoLicencia)}</TableCell>
-                                    {puedeVerInscriptos && (
-                                        <TableCell>{inscriptosPorTorneo[torneo.idTorneos] ?? 0} / {torneo.cupoMaximo}</TableCell>
-                                    )}
-                                    <TableCell>{torneo.fechaInicio.toLocaleDateString()}</TableCell>
-                                    <TableCell>{torneo.fechaFin.toLocaleDateString()}</TableCell>
-                                    <TableCell>
-                                        <Chip
-                                            size="small"
-                                            label={estado}
-                                            color={estado === 'Terminado' ? 'default' : estado === 'En curso' ? 'success' : 'primary'}
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        {torneosAnotados.includes(torneo.idTorneos) && estado === 'Próximo' ? (
-                                            <Button size="small" onClick={() => handleDesanotarse(torneo.idTorneos)}>
-                                                Desanotarme
-                                            </Button>
-                                        ) : torneosAnotados.includes(torneo.idTorneos) ? (
-                                            <Button size="small" disabled>Inscripto</Button>
-                                        ) : estado !== 'Próximo' ? (
-                                            <Button size="small" disabled>{estado}</Button>
-                                        ) : puedeVerInscriptos && (inscriptosPorTorneo[torneo.idTorneos] ?? 0) >= torneo.cupoMaximo ? (
-                                            <Button size="small" disabled>Completo</Button>
-                                        ) : !puedeAnotarse ? (
-                                            <Button size="small" disabled>No disponible</Button>
-                                        ) : (
-                                            <Button
-                                                size="small"
-                                                variant="contained"
-                                                onClick={() => handleAnotarse(torneo.idTorneos)}
-                                                disabled={inscripcionPendiente === torneo.idTorneos}
-                                            >
-                                                {inscripcionPendiente === torneo.idTorneos ? 'Anotando...' : 'Anotarme'}
-                                            </Button>
-                                        )}
-                                    </TableCell>
-                                    {puedeGestionar && torneo.idTorneos !== undefined && (
-                                        <TableCell>
-                                            <Button size="small" onClick={() => handleEditar(torneo)}>
-                                                Editar
-                                            </Button>
-                                            {puedeEliminar && (
-                                                <Button size="small" color="error" onClick={() => torneo.idTorneos !== undefined && handleEliminar(torneo.idTorneos)}>
-                                                    Eliminar
-                                                </Button>
+                <div className="cards">
+                    {torneosVisibles.map((torneo) => {
+                        const estado = estadoTorneo(torneo)
+                        const inscriptos = inscriptosPorTorneo[torneo.idTorneos] ?? 0
+                        const accion = accionInscripcion(torneo, estado)
+                        return (
+                            <article className="panel" key={torneo.idTorneos ?? torneo.nombre}>
+                                <div className="card-fila">
+                                    <h2><Link to={`/torneos/${torneo.idTorneos}`}>{torneo.nombre}</Link></h2>
+                                    <span className={`tag ${estado === 'En curso' ? 'info' : estado === 'Próximo' ? 'ok' : ''}`}>{estado}</span>
+                                </div>
+                                <p className="small">
+                                    Del {torneo.fechaInicio.toLocaleDateString('es-AR')} al {torneo.fechaFin.toLocaleDateString('es-AR')}
+                                    {/* el cliente no puede leer el catálogo de licencias: si no hay nombre, no se muestra */}
+                                    {nombreLicencia(torneo.TiposLicencias_idTipoLicencia) !== '-' && ` · Licencia ${nombreLicencia(torneo.TiposLicencias_idTipoLicencia)}`}
+                                </p>
+                                {puedeVerInscriptos ? (
+                                    <div className="cupo">
+                                        <div className="card-fila">
+                                            <span className="small">Inscriptos</span>
+                                            <span className="mono">{inscriptos} / {torneo.cupoMaximo}</span>
+                                        </div>
+                                        <div className="bar"><i style={{ width: `${Math.min(100, Math.round(100 * inscriptos / torneo.cupoMaximo))}%` }} /></div>
+                                    </div>
+                                ) : (
+                                    <p className="small">Cupo máximo: {torneo.cupoMaximo}</p>
+                                )}
+                                {(accion || puedeGestionar) && (
+                                    <div className="card-fila">
+                                        <div className="card-acciones">
+                                            {puedeGestionar && (
+                                                <button className="link" type="button" onClick={() => handleEditar(torneo)}>Editar</button>
                                             )}
-                                        </TableCell>
-                                    )}
-                                </TableRow>
-                            )
-                        })}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+                                            {puedeGestionar && puedeEliminar && (
+                                                <button className="link danger" type="button" onClick={() => handleEliminar(torneo.idTorneos)}>Eliminar</button>
+                                            )}
+                                        </div>
+                                        {accion}
+                                    </div>
+                                )}
+                            </article>
+                        )
+                    })}
+                </div>
             )}
 
             {puedeGestionar && (

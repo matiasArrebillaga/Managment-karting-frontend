@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Table from '@mui/material/Table'
+import TableContainer from '@mui/material/TableContainer'
 import TableCell from '@mui/material/TableCell'
 import Typography from '@mui/material/Typography'
 import TableRow from '@mui/material/TableRow'
@@ -78,36 +79,38 @@ function LocalidadesPage() {
                 Nueva Localidad
             </Button>
 
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Nombre</TableCell>
-                        <TableCell>Acciones</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {localidades.map((localidad) => (
-                        <TableRow key={localidad.idLocalidades}>
-                            <TableCell>{localidad.nombre}</TableCell>
-                            <TableCell>
-                                <Button size="small" onClick={() => handleEditar(localidad)}>
-                                    Editar
-                                </Button>
-                                <Button size="small" color="error" onClick={() => handleEliminar(localidad.idLocalidades)}>
-                                    Eliminar
-                                </Button>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                    {localidades.length === 0 && !error && (
+            <TableContainer>
+                <Table>
+                    <TableHead>
                         <TableRow>
-                            <TableCell colSpan={2} align="center">
-                                No hay localidades para mostrar.
-                            </TableCell>
+                            <TableCell>Nombre</TableCell>
+                            <TableCell>Acciones</TableCell>
                         </TableRow>
-                    )}
-                </TableBody>
-            </Table>
+                    </TableHead>
+                    <TableBody>
+                        {localidades.map((localidad) => (
+                            <TableRow key={localidad.idLocalidades}>
+                                <TableCell>{localidad.nombre}</TableCell>
+                                <TableCell>
+                                    <Button size="small" onClick={() => handleEditar(localidad)}>
+                                        Editar
+                                    </Button>
+                                    <Button size="small" color="error" onClick={() => handleEliminar(localidad.idLocalidades)}>
+                                        Eliminar
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                        {localidades.length === 0 && !error && (
+                            <TableRow>
+                                <TableCell colSpan={2} align="center">
+                                    No hay localidades para mostrar.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </TableContainer>
 
             <LocalidadFormDialog
                 abierto={abierto}

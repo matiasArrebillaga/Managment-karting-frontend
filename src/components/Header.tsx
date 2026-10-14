@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { puede } from "../permisos";
 
@@ -6,6 +8,7 @@ import { puede } from "../permisos";
 function Header () {
     const { persona, logout } = useAuth()
     const navigate = useNavigate()
+    const [menuAbierto, setMenuAbierto] = useState(false)
 
     function handleLogout () {
         logout()
@@ -22,7 +25,16 @@ function Header () {
                     </span>
                 </div>
             </Link>
-            <div className="top-actions">
+            <button
+                className="mobile-menu"
+                aria-label={menuAbierto ? "Cerrar menú" : "Abrir menú"}
+                aria-expanded={menuAbierto}
+                onClick={() => setMenuAbierto(!menuAbierto)}
+            >
+                {menuAbierto ? <X size={22} /> : <Menu size={22} />}
+            </button>
+            {/* Cualquier click adentro (un link o Salir) cierra el menú en celular */}
+            <div className={menuAbierto ? "top-actions open" : "top-actions"} onClick={() => setMenuAbierto(false)}>
                 {persona ? (
                     <>
                         <Link to="/carreras">Carreras</Link>

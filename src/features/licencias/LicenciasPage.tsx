@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Table from '@mui/material/Table'
+import TableContainer from '@mui/material/TableContainer'
 import TableCell from '@mui/material/TableCell'
 import Typography from '@mui/material/Typography'
 import TableRow from '@mui/material/TableRow'
@@ -90,37 +91,39 @@ function LicenciasPage() {
                 Nueva Licencia
             </Button>
 
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Titular</TableCell>
-                        <TableCell>Tipo de Licencia</TableCell>
-                        <TableCell>Fecha Emision</TableCell>
-                        <TableCell>Fecha Vencimiento</TableCell>
-                        <TableCell>Acciones</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {licencias.map((licencia) => (
-                        <TableRow key={licencia.idLicencias}>
-                            <TableCell>{nombreTitular(licencia.Personas_idPersona)}</TableCell>
-                            <TableCell>{nombreTipoLicencia(licencia.TiposLicencias_idTipoLicencia)}</TableCell>
-                            <TableCell>{licencia.fechaEmision}</TableCell>
-                            <TableCell>{licencia.fechaVencimiento}</TableCell>
-                            <TableCell>
-                                <Button size="small" onClick={() => handleEditar(licencia)}>
-                                    Editar
-                                </Button>
-                                {puede(persona?.rol.nombre, 'catalogos.eliminar') && (
-                                    <Button size="small" color="error" onClick={() => handleEliminar(licencia.idLicencias)}>
-                                        Eliminar
-                                    </Button>
-                                )}
-                            </TableCell>
+            <TableContainer>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Titular</TableCell>
+                            <TableCell>Tipo de Licencia</TableCell>
+                            <TableCell>Fecha Emision</TableCell>
+                            <TableCell>Fecha Vencimiento</TableCell>
+                            <TableCell>Acciones</TableCell>
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+                    </TableHead>
+                    <TableBody>
+                        {licencias.map((licencia) => (
+                            <TableRow key={licencia.idLicencias}>
+                                <TableCell>{nombreTitular(licencia.Personas_idPersona)}</TableCell>
+                                <TableCell>{nombreTipoLicencia(licencia.TiposLicencias_idTipoLicencia)}</TableCell>
+                                <TableCell>{licencia.fechaEmision}</TableCell>
+                                <TableCell>{licencia.fechaVencimiento}</TableCell>
+                                <TableCell>
+                                    <Button size="small" onClick={() => handleEditar(licencia)}>
+                                        Editar
+                                    </Button>
+                                    {puede(persona?.rol.nombre, 'catalogos.eliminar') && (
+                                        <Button size="small" color="error" onClick={() => handleEliminar(licencia.idLicencias)}>
+                                            Eliminar
+                                        </Button>
+                                    )}
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
 
             <LicenciaFormDialog
                 abierto={abierto}

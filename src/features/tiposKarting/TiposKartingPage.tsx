@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Table from '@mui/material/Table'
+import TableContainer from '@mui/material/TableContainer'
 import TableCell from '@mui/material/TableCell'
 import Typography from '@mui/material/Typography'
 import TableRow from '@mui/material/TableRow'
@@ -82,37 +83,39 @@ function TiposKartingPage() {
                 Nuevo Tipo de Karting
             </Button>
 
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Nombre</TableCell>
-                        <TableCell>Licencia Minima</TableCell>
-                        <TableCell>Precio por hora</TableCell>
-                        <TableCell>Descripcion</TableCell>
-                        <TableCell>Acciones</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {tiposKarting.map((tipo) => (
-                        <TableRow key={tipo.idTiposKarting}>
-                            <TableCell>{tipo.nombre}</TableCell>
-                            <TableCell>{nombreTipoLicencia(tipo.TiposLicencias_idTipoLicenciaMinima)}</TableCell>
-                            <TableCell>${tipo.precioHora.toLocaleString('es-AR')}</TableCell>
-                            <TableCell>{tipo.descripcion}</TableCell>
-                            <TableCell>
-                                <Button size="small" onClick={() => handleEditar(tipo)}>
-                                    Editar
-                                </Button>
-                                {puede(persona?.rol.nombre, 'catalogos.eliminar') && (
-                                    <Button size="small" color="error" onClick={() => handleEliminar(tipo.idTiposKarting)}>
-                                        Eliminar
-                                    </Button>
-                                )}
-                            </TableCell>
+            <TableContainer>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Nombre</TableCell>
+                            <TableCell>Licencia Minima</TableCell>
+                            <TableCell>Precio por hora</TableCell>
+                            <TableCell>Descripcion</TableCell>
+                            <TableCell>Acciones</TableCell>
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+                    </TableHead>
+                    <TableBody>
+                        {tiposKarting.map((tipo) => (
+                            <TableRow key={tipo.idTiposKarting}>
+                                <TableCell>{tipo.nombre}</TableCell>
+                                <TableCell>{nombreTipoLicencia(tipo.TiposLicencias_idTipoLicenciaMinima)}</TableCell>
+                                <TableCell>${tipo.precioHora.toLocaleString('es-AR')}</TableCell>
+                                <TableCell>{tipo.descripcion}</TableCell>
+                                <TableCell>
+                                    <Button size="small" onClick={() => handleEditar(tipo)}>
+                                        Editar
+                                    </Button>
+                                    {puede(persona?.rol.nombre, 'catalogos.eliminar') && (
+                                        <Button size="small" color="error" onClick={() => handleEliminar(tipo.idTiposKarting)}>
+                                            Eliminar
+                                        </Button>
+                                    )}
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
 
             <TipoKartingFormDialog
                 abierto={abierto}

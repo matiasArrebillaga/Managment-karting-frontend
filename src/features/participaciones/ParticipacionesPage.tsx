@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import Alert from '@mui/material/Alert'
-import { Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material'
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material'
 import { getParticipaciones } from '../../services/participacionService'
 import { getPersonas } from '../../services/personaService'
 import { getTorneos } from '../../services/torneoService'
@@ -56,34 +56,36 @@ function ParticipacionesPage () {
             </Typography>
             {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Fecha</TableCell>
-                        <TableCell>Torneo</TableCell>
-                        <TableCell>Circuito</TableCell>
-                        <TableCell>Piloto</TableCell>
-                        <TableCell>Tiempo</TableCell>
-                        <TableCell>Puntos</TableCell>
-                        <TableCell>Posición final</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {ordenadas.map((participacion, indice) => (
-                        <TableRow
-                            key={`${participacion.Carrera_Torneos_idTorneos}-${participacion.Carrera_Circuitos_idCircuitos}-${participacion.Carrera_fecha.toISOString()}-${participacion.Personas_idPersona}-${indice}`}
-                        >
-                            <TableCell>{participacion.Carrera_fecha.toLocaleDateString()}</TableCell>
-                            <TableCell>{nombreTorneo(participacion.Carrera_Torneos_idTorneos)}</TableCell>
-                            <TableCell>{nombreCircuito(participacion.Carrera_Circuitos_idCircuitos)}</TableCell>
-                            <TableCell>{nombrePersona(participacion.Personas_idPersona)}</TableCell>
-                            <TableCell>{participacion.tiempo}</TableCell>
-                            <TableCell>{participacion.puntos}</TableCell>
-                            <TableCell>{participacion.posicion_final}°</TableCell>
+            <TableContainer>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Fecha</TableCell>
+                            <TableCell>Torneo</TableCell>
+                            <TableCell>Circuito</TableCell>
+                            <TableCell>Piloto</TableCell>
+                            <TableCell>Tiempo</TableCell>
+                            <TableCell>Puntos</TableCell>
+                            <TableCell>Posición final</TableCell>
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+                    </TableHead>
+                    <TableBody>
+                        {ordenadas.map((participacion, indice) => (
+                            <TableRow
+                                key={`${participacion.Carrera_Torneos_idTorneos}-${participacion.Carrera_Circuitos_idCircuitos}-${participacion.Carrera_fecha.toISOString()}-${participacion.Personas_idPersona}-${indice}`}
+                            >
+                                <TableCell>{participacion.Carrera_fecha.toLocaleDateString()}</TableCell>
+                                <TableCell>{nombreTorneo(participacion.Carrera_Torneos_idTorneos)}</TableCell>
+                                <TableCell>{nombreCircuito(participacion.Carrera_Circuitos_idCircuitos)}</TableCell>
+                                <TableCell>{nombrePersona(participacion.Personas_idPersona)}</TableCell>
+                                <TableCell>{participacion.tiempo}</TableCell>
+                                <TableCell>{participacion.puntos}</TableCell>
+                                <TableCell>{participacion.posicion_final}°</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
         </div>
     )
 }

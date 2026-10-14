@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Table from '@mui/material/Table'
+import TableContainer from '@mui/material/TableContainer'
 import TableCell from '@mui/material/TableCell'
 import Typography from '@mui/material/Typography'
 import TableRow from '@mui/material/TableRow'
@@ -96,43 +97,45 @@ function KartingsPage() {
                 </Button>
             )}
 
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Modelo</TableCell>
-                        <TableCell>Categoria</TableCell>
-                        <TableCell>Tipo de Karting</TableCell>
-                        <TableCell>Estado</TableCell>
-                        <TableCell>Fecha Adquisicion</TableCell>
-                        {(puedeGestionar || puedeEliminar) && <TableCell>Acciones</TableCell>}
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {kartings.map((karting) => (
-                        <TableRow key={karting.idKartings}>
-                            <TableCell>{karting.modelo}</TableCell>
-                            <TableCell>{karting.categoria}</TableCell>
-                            <TableCell>{nombreTipoKarting(karting.TiposKarting_idTiposKarting)}</TableCell>
-                            <TableCell>{karting.estado}</TableCell>
-                            <TableCell>{karting.fechaAdquisicion}</TableCell>
-                            {(puedeGestionar || puedeEliminar) && (
-                                <TableCell>
-                                    {puedeGestionar && (
-                                        <Button size="small" onClick={() => handleEditar(karting)}>
-                                            Editar
-                                        </Button>
-                                    )}
-                                    {puedeEliminar && (
-                                        <Button size="small" color="error" onClick={() => handleEliminar(karting.idKartings)}>
-                                            Eliminar
-                                        </Button>
-                                    )}
-                                </TableCell>
-                            )}
+            <TableContainer>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Modelo</TableCell>
+                            <TableCell>Categoria</TableCell>
+                            <TableCell>Tipo de Karting</TableCell>
+                            <TableCell>Estado</TableCell>
+                            <TableCell>Fecha Adquisicion</TableCell>
+                            {(puedeGestionar || puedeEliminar) && <TableCell>Acciones</TableCell>}
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+                    </TableHead>
+                    <TableBody>
+                        {kartings.map((karting) => (
+                            <TableRow key={karting.idKartings}>
+                                <TableCell>{karting.modelo}</TableCell>
+                                <TableCell>{karting.categoria}</TableCell>
+                                <TableCell>{nombreTipoKarting(karting.TiposKarting_idTiposKarting)}</TableCell>
+                                <TableCell>{karting.estado}</TableCell>
+                                <TableCell>{karting.fechaAdquisicion}</TableCell>
+                                {(puedeGestionar || puedeEliminar) && (
+                                    <TableCell>
+                                        {puedeGestionar && (
+                                            <Button size="small" onClick={() => handleEditar(karting)}>
+                                                Editar
+                                            </Button>
+                                        )}
+                                        {puedeEliminar && (
+                                            <Button size="small" color="error" onClick={() => handleEliminar(karting.idKartings)}>
+                                                Eliminar
+                                            </Button>
+                                        )}
+                                    </TableCell>
+                                )}
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
 
             <KartingFormDialog
                 abierto={abierto}

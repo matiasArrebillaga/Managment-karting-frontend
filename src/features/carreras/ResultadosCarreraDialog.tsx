@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography } from '@mui/material'
+import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from '@mui/material'
 import { cargarResultadosCarrera, deleteParticipacion, getClasificacionCarrera, updateParticipacion } from '../../services/participacionService'
 import { getInscriptosTorneo } from '../../services/torneoService'
 import type { ICarrera } from '../../types'
@@ -100,49 +100,51 @@ function ResultadosCarreraDialog ({ carrera, puedeBorrar, onCerrar }: Props) {
                 ) : filas.length === 0 ? (
                     <Typography>No hay pilotos inscriptos en el torneo de esta carrera.</Typography>
                 ) : (
-                    <Table size="small">
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>Piloto</TableCell>
-                                <TableCell>Posición</TableCell>
-                                <TableCell>Tiempo (HH:MM:SS)</TableCell>
-                                {yaCargada && <TableCell>Puntos</TableCell>}
-                                {yaCargada && <TableCell>Acciones</TableCell>}
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {filas.map((fila) => (
-                                <TableRow key={fila.idPersona}>
-                                    <TableCell>{fila.piloto}</TableCell>
-                                    <TableCell>
-                                        <TextField
-                                            size="small"
-                                            type="number"
-                                            value={fila.posicion}
-                                            onChange={(event) => cambiar(fila.idPersona, 'posicion', event.target.value)}
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <TextField
-                                            size="small"
-                                            placeholder="00:12:34"
-                                            value={fila.tiempo}
-                                            onChange={(event) => cambiar(fila.idPersona, 'tiempo', event.target.value)}
-                                        />
-                                    </TableCell>
-                                    {yaCargada && <TableCell>{fila.puntos}</TableCell>}
-                                    {yaCargada && (
-                                        <TableCell>
-                                            <Button size="small" onClick={() => handleGuardarFila(fila)}>Guardar</Button>
-                                            {puedeBorrar && (
-                                                <Button size="small" color="error" onClick={() => handleBorrarFila(fila)}>Borrar</Button>
-                                            )}
-                                        </TableCell>
-                                    )}
+                    <TableContainer>
+                        <Table size="small">
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Piloto</TableCell>
+                                    <TableCell>Posición</TableCell>
+                                    <TableCell>Tiempo (HH:MM:SS)</TableCell>
+                                    {yaCargada && <TableCell>Puntos</TableCell>}
+                                    {yaCargada && <TableCell>Acciones</TableCell>}
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                            </TableHead>
+                            <TableBody>
+                                {filas.map((fila) => (
+                                    <TableRow key={fila.idPersona}>
+                                        <TableCell>{fila.piloto}</TableCell>
+                                        <TableCell>
+                                            <TextField
+                                                size="small"
+                                                type="number"
+                                                value={fila.posicion}
+                                                onChange={(event) => cambiar(fila.idPersona, 'posicion', event.target.value)}
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <TextField
+                                                size="small"
+                                                placeholder="00:12:34"
+                                                value={fila.tiempo}
+                                                onChange={(event) => cambiar(fila.idPersona, 'tiempo', event.target.value)}
+                                            />
+                                        </TableCell>
+                                        {yaCargada && <TableCell>{fila.puntos}</TableCell>}
+                                        {yaCargada && (
+                                            <TableCell>
+                                                <Button size="small" onClick={() => handleGuardarFila(fila)}>Guardar</Button>
+                                                {puedeBorrar && (
+                                                    <Button size="small" color="error" onClick={() => handleBorrarFila(fila)}>Borrar</Button>
+                                                )}
+                                            </TableCell>
+                                        )}
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
                 )}
             </DialogContent>
             <DialogActions>

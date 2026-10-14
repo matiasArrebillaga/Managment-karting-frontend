@@ -132,15 +132,22 @@ function crearInscripcion(datos: CreatePersonaTorneo): IInscripcion {
     }
 }
 
-export async function getTorneos(): Promise<ITorneos[]> {
+// estado usa los valores de la API: proximo | en_curso | finalizado
+export type FiltrosTorneos = { estado?: string, idTipoLicencia?: number }
+
+export async function getTorneos(filtros: FiltrosTorneos = {}): Promise<ITorneos[]> {
     if (!usaMocks) {
-        const response = await apiFetch('/torneos')
+        const params = new URLSearchParams()
+        if (filtros.estado) params.set('estado', filtros.estado)
+        if (filtros.idTipoLicencia !== undefined) params.set('idTipoLicencia', String(filtros.idTipoLicencia))
+        const query = params.toString()
+        const response = await apiFetch(`/torneos${query ? `?${query}` : ''}`)
         const data: unknown = await response.json()
         if (!Array.isArray(data)) throw new Error('La API devolvió una lista de torneos inválida')
         return data.map(normalizarTorneo)
     }
     await demora()
-    return torneos
+    return torneos.filter((torneo) => filtros.idTipoLicencia === undefined || torneo.TiposLicencias_idTipoLicencia === filtros.idTipoLicencia)
 }
 
 export async function createTorneo(datos: CreateTorneos): Promise<ITorneos> {

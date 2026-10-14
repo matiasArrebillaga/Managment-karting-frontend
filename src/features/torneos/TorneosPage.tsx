@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Alert, Button, Chip, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material'
+import { Alert, Box, Button, Chip, MenuItem, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography } from '@mui/material'
 import { useAuth } from '../../context/AuthContext'
 import {
     deleteTorneo,
@@ -9,7 +9,8 @@ import {
     getTorneos,
     inscribirseATorneo,
 } from '../../services/torneoService'
-import type { ITorneos } from '../../types'
+import { getTiposLicencia } from '../../services/tipoLicenciaService'
+import type { ITorneos, TipoLicencia } from '../../types'
 import TorneoFormDialog from './TorneoFormDialog'
 import { puede } from '../../permisos'
 
@@ -26,6 +27,13 @@ export function estadoTorneo (torneo: ITorneos) {
     return 'En curso'
 }
 
+// etiqueta que ve el usuario -> valor que espera GET /api/torneos?estado=
+const ESTADOS = [
+    { valor: 'proximo', etiqueta: 'Próximo' },
+    { valor: 'en_curso', etiqueta: 'En curso' },
+    { valor: 'finalizado', etiqueta: 'Terminado' },
+]
+
 function TorneosPage () {
     const { persona } = useAuth()
     const [torneos, setTorneos] = useState<ITorneos[]>([])
@@ -36,6 +44,9 @@ function TorneosPage () {
     const [inscripcionPendiente, setInscripcionPendiente] = useState<number | null>(null)
     const [abierto, setAbierto] = useState(false)
     const [torneoEditando, setTorneoEditando] = useState<ITorneos | null>(null)
+    const [tiposLicencia, setTiposLicencia] = useState<TipoLicencia[]>([])
+    const [filtroEstado, setFiltroEstado] = useState('')
+    const [filtroLicencia, setFiltroLicencia] = useState('')
     const puedeGestionar = puede(persona?.rol.nombre, 'torneos.gestionar')
     const puedeVerInscriptos = puede(persona?.rol.nombre, 'inscripciones.verTodas')
     const puedeAnotarse = puede(persona?.rol.nombre, 'inscripciones.anotarse')
@@ -45,7 +56,10 @@ function TorneosPage () {
         setCargando(true)
         setError('')
         Promise.all([
-            getTorneos(),
+            getTorneos({
+                estado: filtroEstado || undefined,
+                idTipoLicencia: filtroLicencia ? Number(filtroLicencia) : undefined,
+            }),
             persona
                 ? getResumenInscripcionesTorneos(persona.idPersona, puedeVerInscriptos)
                 : Promise.resolve({ torneosAnotados: [], inscriptosPorTorneo: {} }),
@@ -63,7 +77,15 @@ function TorneosPage () {
 
     useEffect(() => {
         cargarTorneos()
+    }, [filtroEstado, filtroLicencia])
+
+    useEffect(() => {
+        getTiposLicencia().then(setTiposLicencia).catch(console.error)
     }, [])
+
+    function nombreLicencia (id: number) {
+        return tiposLicencia.find((tipo) => tipo.idTipoLicencia === id)?.nombre ?? '-'
+    }
 
     function handleNuevo () {
         setTorneoEditando(null)
@@ -128,10 +150,6 @@ function TorneosPage () {
         }
     }
 
-    if (cargando) {
-        return <Typography sx={{ p: 3 }}>Cargando...</Typography>
-    }
-
     return (
         <div style={{ padding: 24 }}>
             <Typography variant="h4" gutterBottom>
@@ -145,11 +163,46 @@ function TorneosPage () {
                 </Button>
             )}
 
+            <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+                <TextField
+                    select
+                    size="small"
+                    label="Estado"
+                    value={filtroEstado}
+                    onChange={(evento) => setFiltroEstado(evento.target.value)}
+                    sx={{ minWidth: 180 }}
+                >
+                    <MenuItem value="">Todos</MenuItem>
+                    {ESTADOS.map((estado) => (
+                        <MenuItem key={estado.valor} value={estado.valor}>{estado.etiqueta}</MenuItem>
+                    ))}
+                </TextField>
+                <TextField
+                    select
+                    size="small"
+                    label="Licencia requerida"
+                    value={filtroLicencia}
+                    onChange={(evento) => setFiltroLicencia(evento.target.value)}
+                    sx={{ minWidth: 220 }}
+                >
+                    <MenuItem value="">Todas</MenuItem>
+                    {tiposLicencia.map((tipo) => (
+                        <MenuItem key={tipo.idTipoLicencia} value={String(tipo.idTipoLicencia)}>{tipo.nombre}</MenuItem>
+                    ))}
+                </TextField>
+            </Box>
+
+            {cargando ? (
+                <Typography>Cargando...</Typography>
+            ) : torneos.length === 0 ? (
+                <Typography color="text.secondary">No hay torneos con esos filtros</Typography>
+            ) : (
             <Table>
                 <TableHead>
                     <TableRow>
                         <TableCell>Nombre</TableCell>
                         <TableCell>Descripción</TableCell>
+                        <TableCell>Licencia requerida</TableCell>
                         {puedeVerInscriptos && <TableCell>Inscriptos / cupo</TableCell>}
                         <TableCell>Fecha de inicio</TableCell>
                         <TableCell>Fecha de fin</TableCell>
@@ -165,6 +218,7 @@ function TorneosPage () {
                             <TableRow key={torneo.idTorneos ?? torneo.nombre}>
                                 <TableCell><Link to={`/torneos/${torneo.idTorneos}`}>{torneo.nombre}</Link></TableCell>
                                 <TableCell>{torneo.descripcion}</TableCell>
+                                <TableCell>{nombreLicencia(torneo.TiposLicencias_idTipoLicencia)}</TableCell>
                                 {puedeVerInscriptos && (
                                     <TableCell>{inscriptosPorTorneo[torneo.idTorneos] ?? 0} / {torneo.cupoMaximo}</TableCell>
                                 )}
@@ -218,6 +272,7 @@ function TorneosPage () {
                     })}
                 </TableBody>
             </Table>
+            )}
 
             {puedeGestionar && (
                 <TorneoFormDialog

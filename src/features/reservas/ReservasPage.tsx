@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { Alert, Button, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from '@mui/material'
 import { useAuth } from '../../context/AuthContext'
 import { deleteReserva, getMisReservas, getReservas, getReservasPorFechas } from '../../services/reservaService'
@@ -10,8 +11,10 @@ import ReservaFormDialog from './ReservaFormDialog'
 import ReservaDetalleDialog from './ReservaDetalleDialog'
 import { puede } from '../../permisos'
 
-function ReservasPage () {
+// soloPropias: historial de la persona logueada (Mi cuenta), aunque sea staff
+function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
     const { persona } = useAuth()
+    const mensaje = (useLocation().state as { mensaje?: string } | null)?.mensaje
     const [reservas, setReservas] = useState<IReserva[]>([])
     const [circuitos, setCircuitos] = useState<Circuito[]>([])
     const [kartings, setKartings] = useState<Karting[]>([])
@@ -25,7 +28,7 @@ function ReservasPage () {
     const [hasta, setHasta] = useState('')
     const [filtro, setFiltro] = useState<{ desde: string; hasta: string } | null>(null)
     const [errorFiltro, setErrorFiltro] = useState('')
-    const puedeGestionar = puede(persona?.rol.nombre, 'reservas.verTodas')
+    const puedeGestionar = !soloPropias && puede(persona?.rol.nombre, 'reservas.verTodas')
     const reservasVisibles = reservas.filter((reserva) => (
         puedeGestionar || reserva.Personas_idPersona === persona?.idPersona
     ))
@@ -152,17 +155,18 @@ function ReservasPage () {
     }
 
     return (
-        <div style={{ padding: 24 }}>
-            <Typography variant="h4" gutterBottom>
-                Reservas
-            </Typography>
-            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        <div className="page">
+            <div className="page-head">
+                <div>
+                    <p className="eyebrow">{soloPropias ? 'Mi cuenta' : 'Pista'}</p>
+                    <h1>{soloPropias ? 'Historial de reservas' : 'Reservas'}</h1>
+                </div>
+                <button className="btn" type="button" onClick={handleNueva}>Nueva reserva</button>
+            </div>
+            {mensaje && <Alert severity="success">{mensaje}</Alert>}
+            {error && <Alert severity="error">{error}</Alert>}
 
-            <Button variant="contained" onClick={handleNueva} sx={{ mb: 2 }}>
-                Nueva Reserva
-            </Button>
-
-            <Stack direction="row" spacing={2} sx={{ mb: 2, flexWrap: 'wrap', alignItems: 'center' }} useFlexGap>
+            <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap', alignItems: 'center' }} useFlexGap>
                 <TextField
                     label="Desde"
                     type="date"
@@ -182,7 +186,7 @@ function ReservasPage () {
                 <Button variant="outlined" onClick={handleFiltrar}>Filtrar</Button>
                 {filtro && <Button onClick={handleLimpiarFiltro}>Ver todas</Button>}
             </Stack>
-            {errorFiltro && <Alert severity="warning" sx={{ mb: 2 }}>{errorFiltro}</Alert>}
+            {errorFiltro && <Alert severity="warning">{errorFiltro}</Alert>}
 
             <TableContainer>
                 <Table>
@@ -191,7 +195,7 @@ function ReservasPage () {
                             <TableCell>Fecha</TableCell>
                             <TableCell>Inicio</TableCell>
                             <TableCell>Fin</TableCell>
-                            <TableCell>Persona</TableCell>
+                            {!soloPropias && <TableCell>Persona</TableCell>}
                             <TableCell>Circuito</TableCell>
                             <TableCell>Karting</TableCell>
                             <TableCell>Monto</TableCell>
@@ -206,7 +210,7 @@ function ReservasPage () {
                                     <TableCell>{mostrarFecha(reserva.fechaReserva)}</TableCell>
                                     <TableCell>{mostrarHora(reserva.horaInicio)}</TableCell>
                                     <TableCell>{mostrarHora(reserva.horaFin)}</TableCell>
-                                    <TableCell>{nombrePersona(reserva.Personas_idPersona)}</TableCell>
+                                    {!soloPropias && <TableCell>{nombrePersona(reserva.Personas_idPersona)}</TableCell>}
                                     <TableCell>{nombreCircuito(reserva.Circuitos_idCircuitos)}</TableCell>
                                     <TableCell>{nombreKarting(reserva.Kartings_idKartings)}</TableCell>
                                     <TableCell>{reserva.monto !== undefined ? `$ ${reserva.monto}` : '—'}</TableCell>
@@ -231,7 +235,7 @@ function ReservasPage () {
                         })}
                         {reservasVisibles.length === 0 && !error && (
                             <TableRow>
-                                <TableCell colSpan={8} align="center">
+                                <TableCell colSpan={soloPropias ? 7 : 8} align="center">
                                     {filtro ? 'No hay reservas en ese rango de fechas.' : 'No hay reservas para mostrar.'}
                                 </TableCell>
                             </TableRow>

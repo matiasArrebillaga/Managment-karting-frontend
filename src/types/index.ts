@@ -115,8 +115,6 @@ export type FilaClasificacion = Schemas['ClasificacionCarreraItem']
 // GET /participaciones/torneo/:id/tabla-general
 export type FilaTablaGeneral = Schemas['TablaGeneralItem']
 
-// Version minima, solo para los desplegables de Licencia.
-// El CRUD completo de Persona (con localidad, rol, login) no esta hecho todavia.
-// dni, mail y telefono: la API los manda; los datos de prueba no
-export type Persona = Pick<Schemas['Persona'], 'idPersona' | 'nombre' | 'apellido'>
-    & Partial<Pick<Schemas['Persona'], 'dni' | 'mail' | 'telefono'>>
+// GET /personas: la API no manda la contraseña ni el nombre del rol (solo idRol)
+export type Persona = Schemas['Persona']
+export type RolDetalle = Schemas['Rol']

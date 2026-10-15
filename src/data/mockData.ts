@@ -4,7 +4,7 @@ import type { Circuito } from '../types'
 import type { Karting } from '../types'
 import type { TipoKarting } from '../types'
 import type { Licencia } from '../types'
-import type { Persona } from '../types'
+import type { Persona, RolDetalle } from '../types'
 import type { ICarrera } from '../types'
 import type { ITorneos } from '../types'
 import type { IReserva } from '../types'
@@ -145,13 +145,19 @@ export const participaciones: IParticipacion[] = [
 
 // Personas: version minima solo para poblar el desplegable de Licencia.
 export const personas: Persona[] = [
-  { idPersona: 1, nombre: 'Maria', apellido: 'Gomez' },
-  { idPersona: 2, nombre: 'Agustina', apellido: 'Castro' },
-  { idPersona: 3, nombre: 'Tomas', apellido: 'Ibarra' },
+  { idPersona: 1, nombre: 'Maria', apellido: 'Gomez', dni: '30111222', fechaNacimiento: '1990-03-12T00:00:00.000Z', mail: 'maria@mail.com', telefono: '3411111111', Localidades_idLocalidades: 1, idRol: 1 },
+  { idPersona: 2, nombre: 'Agustina', apellido: 'Castro', dni: '35222333', fechaNacimiento: '1995-07-21T00:00:00.000Z', mail: 'agustina@mail.com', telefono: '3412222222', Localidades_idLocalidades: 1, idRol: 2 },
+  { idPersona: 3, nombre: 'Tomas', apellido: 'Ibarra', dni: '40333444', fechaNacimiento: '2000-11-05T00:00:00.000Z', mail: 'tomas@mail.com', telefono: '3413333333', Localidades_idLocalidades: 1, idRol: 3 },
 ]
 
 export const licencias: Licencia[] = [
   { idLicencias: 1, fechaEmision: '2025-02-10', fechaVencimiento: '2027-02-10', Personas_idPersona: 1, TiposLicencias_idTipoLicencia: 2 },
   { idLicencias: 2, fechaEmision: '2026-01-05', fechaVencimiento: '2028-01-05', Personas_idPersona: 2, TiposLicencias_idTipoLicencia: 1 },
   { idLicencias: 3, fechaEmision: '2024-11-20', fechaVencimiento: '2026-11-20', Personas_idPersona: 3, TiposLicencias_idTipoLicencia: 3 },
+]
+
+export const roles: RolDetalle[] = [
+  { idRol: 1, nombre: 'ADMIN' },
+  { idRol: 2, nombre: 'EMPLEADO' },
+  { idRol: 3, nombre: 'CLIENTE' },
 ]

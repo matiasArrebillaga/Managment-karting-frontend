@@ -22,6 +22,7 @@ import TorneosPage from './features/torneos/TorneosPage.tsx'
 import TorneoDetallePage from './features/torneos/TorneosDetallePage.tsx'
 import ReservasPage from './features/reservas/ReservasPage.tsx'
 import ReservarPage from './features/reservas/ReservarPage.tsx'
+import PersonasPage from './features/personas/PersonasPage.tsx'
 import ParticipacionesPage from './features/participaciones/ParticipacionesPage.tsx'
 import { AuthProvider } from './context/AuthContext.tsx'
 import RutaProtegida from './components/RutaProtegida.tsx'
@@ -125,6 +126,10 @@ createRoot(document.getElementById('root')!).render(
             <Route
               path="/participaciones"
               element={<RutaProtegida permiso="participaciones.ver"><ParticipacionesPage /></RutaProtegida>}
+            />
+            <Route
+              path="/personas"
+              element={<RutaProtegida permiso="personas.gestionar"><PersonasPage /></RutaProtegida>}
             />
             <Route path="/localidades" element={<RutaProtegida><LocalidadesPage /></RutaProtegida>} />
             <Route path="/circuitos" element={<RutaProtegida><CircuitosPage /></RutaProtegida>} />

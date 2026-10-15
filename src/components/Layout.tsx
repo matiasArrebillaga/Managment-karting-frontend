@@ -178,6 +178,12 @@ function Layout () {
                                 <NavLink to="/circuitos">Circuitos</NavLink>
                                 <NavLink to="/kartings">Kartings</NavLink>
                             </div>
+                            {puede(rol, "personas.gestionar") && (
+                                <div className="aside-grupo">
+                                    <div className="aside-label">Usuarios</div>
+                                    <NavLink to="/personas">Personas</NavLink>
+                                </div>
+                            )}
                             {puede(rol, "catalogos.ver") && (
                                 <div className="aside-grupo">
                                     <details>

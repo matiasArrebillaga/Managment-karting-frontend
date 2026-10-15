@@ -3,7 +3,7 @@ import type { Circuito, IReserva, Karting, Persona } from "../../types"
 
 type Props = {
     reserva: IReserva | null
-    persona?: Persona
+    persona?: Pick<Persona, 'nombre' | 'apellido'> & Partial<Pick<Persona, 'dni' | 'mail' | 'telefono'>>
     karting?: Karting
     circuito?: Circuito
     onCerrar: () => void

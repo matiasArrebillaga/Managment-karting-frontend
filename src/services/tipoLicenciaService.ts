@@ -2,16 +2,10 @@ import type { TipoLicencia } from "../types"
 import { tiposLicencia as seed } from "../data/mockData"
 import { getTiposKarting } from "./tipoKartingService"
 import { getLicencias } from "./licenciaService"
-import { apiFetch, usaMocks } from "./httpClient"
+import { apiFetch, demora, esObjeto, usaMocks } from "./httpClient"
 
 let tiposLicencia: TipoLicencia[] = [...seed]
 let siguienteId = tiposLicencia.length + 1
-
-const demora = () => new Promise((resolve) => setTimeout(resolve, 300))
-
-function esObjeto(valor: unknown): valor is Record<string, unknown> {
-    return typeof valor === 'object' && valor !== null
-}
 
 function normalizarTipo(valor: unknown): TipoLicencia {
     if (

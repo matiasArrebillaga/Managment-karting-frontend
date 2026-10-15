@@ -1,15 +1,10 @@
 import type { Karting } from "../types"
 import { kartings as seed } from "../data/mockData"
-import { apiFetch, usaMocks } from "./httpClient"
+import { apiFetch, demora, esObjeto, usaMocks } from "./httpClient"
+import { fechaLocal } from '../utils/fechas'
 
 let kartings: Karting[] = [...seed]
 let siguienteId = kartings.length + 1
-
-const demora = () => new Promise((resolve) => setTimeout(resolve, 300))
-
-function esObjeto(valor: unknown): valor is Record<string, unknown> {
-    return typeof valor === 'object' && valor !== null
-}
 
 function normalizarKarting(valor: unknown): Karting {
     if (
@@ -25,7 +20,7 @@ function normalizarKarting(valor: unknown): Karting {
     }
 
     const fechaAdquisicion = valor.fechaAdquisicion.slice(0, 10)
-    if (Number.isNaN(new Date(`${fechaAdquisicion}T00:00:00`).getTime())) {
+    if (Number.isNaN(fechaLocal(fechaAdquisicion).getTime())) {
         throw new Error('La API devolvió una fecha de adquisición inválida')
     }
 

@@ -7,6 +7,7 @@ import { getTiposKarting } from '../../services/tipoKartingService'
 import { getPersonas } from '../../services/personaService'
 import type { Circuito, CreateReservaInput, IReserva, Karting, Persona, TipoKarting } from '../../types'
 import { pesos } from '../../utils/formato'
+import { fechaTexto, horaTexto } from '../../utils/fechas'
 
 export type ReservaFormProps = {
     reserva?: IReserva | null
@@ -20,26 +21,6 @@ export type ReservaFormProps = {
 type Campo = 'fecha' | 'horaInicio' | 'horaFin' | 'circuito' | 'karting'
 type ErroresCampo = Partial<Record<Campo, string>>
 
-function fechaInput (fecha: Date | string) {
-    if (typeof fecha === 'string') return fecha.slice(0, 10)
-    const year = fecha.getFullYear()
-    const month = String(fecha.getMonth() + 1).padStart(2, '0')
-    const day = String(fecha.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
-}
-
-function horaInput (fecha: Date | string) {
-    if (typeof fecha === 'string') return fecha.slice(0, 5)
-    const hours = String(fecha.getHours()).padStart(2, '0')
-    const minutes = String(fecha.getMinutes()).padStart(2, '0')
-    return `${hours}:${minutes}`
-}
-
-function fechaMinimaInput () {
-    const hoy = new Date()
-    return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`
-}
-
 function minutosDeHora (hora: string) {
     return Number(hora.slice(0, 2)) * 60 + Number(hora.slice(3, 5))
 }
@@ -48,7 +29,7 @@ function minutosDeHora (hora: string) {
 function validar (fechaReserva: string, horaInicio: string, horaFin: string, circuitoId: string, kartingId: string): ErroresCampo {
     const errores: ErroresCampo = {}
     if (!fechaReserva) errores.fecha = 'Elegí una fecha'
-    else if (fechaReserva < fechaMinimaInput()) errores.fecha = 'La fecha de reserva no puede ser anterior a hoy'
+    else if (fechaReserva < fechaTexto(new Date())) errores.fecha = 'La fecha de reserva no puede ser anterior a hoy'
 
     const formato = /^\d{2}:\d{2}$/
     const horaValida = (valor: string) => formato.test(valor) && minutosDeHora(valor) < 24 * 60 && Number(valor.slice(3)) < 60
@@ -67,9 +48,9 @@ function validar (fechaReserva: string, horaInicio: string, horaFin: string, cir
 
 function ReservaForm ({ reserva, idPersonaActual, nombrePersonaActual, puedeGestionar, onGuardado, onCancelar }: ReservaFormProps) {
     const editando = Boolean(reserva)
-    const [fechaReserva, setFechaReserva] = useState(reserva ? fechaInput(reserva.fechaReserva) : '')
-    const [horaInicio, setHoraInicio] = useState(reserva ? horaInput(reserva.horaInicio) : '')
-    const [horaFin, setHoraFin] = useState(reserva ? horaInput(reserva.horaFin) : '')
+    const [fechaReserva, setFechaReserva] = useState(reserva ? fechaTexto(reserva.fechaReserva) : '')
+    const [horaInicio, setHoraInicio] = useState(reserva ? horaTexto(reserva.horaInicio) : '')
+    const [horaFin, setHoraFin] = useState(reserva ? horaTexto(reserva.horaFin) : '')
     const [personaId, setPersonaId] = useState(String(reserva?.Personas_idPersona ?? idPersonaActual))
     const [circuitoId, setCircuitoId] = useState(reserva ? String(reserva.Circuitos_idCircuitos) : '')
     const [kartingId, setKartingId] = useState(reserva ? String(reserva.Kartings_idKartings) : '')
@@ -170,7 +151,7 @@ function ReservaForm ({ reserva, idPersonaActual, nombrePersonaActual, puedeGest
             <TextField
                 label="Fecha de reserva"
                 type="date"
-                slotProps={{ htmlInput: { min: fechaMinimaInput() }, inputLabel: { shrink: true } }}
+                slotProps={{ htmlInput: { min: fechaTexto(new Date()) }, inputLabel: { shrink: true } }}
                 value={fechaReserva}
                 onChange={(event) => setFechaReserva(event.target.value)}
                 error={Boolean(errores.fecha)}

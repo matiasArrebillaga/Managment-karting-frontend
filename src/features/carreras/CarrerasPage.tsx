@@ -5,7 +5,8 @@ import { useAuth } from '../../context/AuthContext'
 import FilaVacia from '../../components/FilaVacia'
 import { useConfirmar } from '../../components/useConfirmar'
 import { fecha, hora } from '../../utils/formato'
-import { getCarreras, deleteCarrera, getInscripcionesCarreras, desanotarseDeCarrera, fechaApi } from '../../services/carreraService'
+import { getCarreras, deleteCarrera, getInscripcionesCarreras, desanotarseDeCarrera } from '../../services/carreraService'
+import { fechaTexto } from '../../utils/fechas'
 import { getCircuitos } from '../../services/circuitoService'
 import { getTorneos } from '../../services/torneoService'
 import { getKartings } from '../../services/kartingService'
@@ -96,7 +97,7 @@ function CarrerasPage () {
 
     // Una carrera se identifica por fecha + torneo + circuito (su clave compuesta)
     function claveCarrera (fecha: Date, idTorneo: number, idCircuito: number) {
-        return `${fechaApi(fecha)}-${idTorneo}-${idCircuito}`
+        return `${fechaTexto(fecha)}-${idTorneo}-${idCircuito}`
     }
 
     async function handleEliminar (carrera: ICarrera) {

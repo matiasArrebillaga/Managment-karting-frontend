@@ -5,7 +5,7 @@ import { getCarrerasTorneo } from '../../services/carreraService'
 import { getTablaGeneral } from '../../services/participacionService'
 import { getTorneos } from '../../services/torneoService'
 import type { FilaTablaGeneral, ICarrera, ITorneos } from '../../types'
-import { CLASE_ESTADO_TORNEO, estadoTorneo } from './TorneosPage'
+import { CLASE_ESTADO_TORNEO, estadoTorneo } from './estadoTorneo'
 import { fecha, hora } from '../../utils/formato'
 
 function TorneoDetallePage () {

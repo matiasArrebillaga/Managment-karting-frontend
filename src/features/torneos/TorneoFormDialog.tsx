@@ -3,19 +3,13 @@ import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuI
 import { createTorneo, updateTorneo } from '../../services/torneoService'
 import { getTiposLicencia } from '../../services/tipoLicenciaService'
 import type { CreateTorneos, ITorneos, TipoLicencia } from '../../types'
+import { fechaLocal, fechaTexto } from '../../utils/fechas'
 
 type Props = {
     abierto: boolean
     torneo?: ITorneos | null
     onCerrar: () => void
     onGuardado: () => void
-}
-
-function fechaInput (fecha: Date) {
-    const year = fecha.getFullYear()
-    const month = String(fecha.getMonth() + 1).padStart(2, '0')
-    const day = String(fecha.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
 }
 
 function TorneoFormDialog ({ abierto, torneo, onCerrar, onGuardado }: Props) {
@@ -47,8 +41,8 @@ function TorneoFormDialog ({ abierto, torneo, onCerrar, onGuardado }: Props) {
             setNombre(torneo.nombre)
             setDescripcion(torneo.descripcion)
             setCupoMaximo(String(torneo.cupoMaximo))
-            setFechaInicio(fechaInput(torneo.fechaInicio))
-            setFechaFin(fechaInput(torneo.fechaFin))
+            setFechaInicio(fechaTexto(torneo.fechaInicio))
+            setFechaFin(fechaTexto(torneo.fechaFin))
             setLicenciaId(String(torneo.TiposLicencias_idTipoLicencia))
         } else {
             setNombre('')
@@ -75,8 +69,8 @@ function TorneoFormDialog ({ abierto, torneo, onCerrar, onGuardado }: Props) {
                 nombre: nombre.trim(),
                 descripcion: descripcion.trim(),
                 cupoMaximo: Number(cupoMaximo),
-                fechaInicio: new Date(`${fechaInicio}T00:00:00`),
-                fechaFin: new Date(`${fechaFin}T00:00:00`),
+                fechaInicio: fechaLocal(fechaInicio),
+                fechaFin: fechaLocal(fechaFin),
                 TiposLicencias_idTipoLicencia: Number(licenciaId),
             }
             if (editando && torneo?.idTorneos !== undefined) {

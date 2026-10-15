@@ -13,6 +13,7 @@ import { puede } from '../../permisos'
 import FilaVacia from '../../components/FilaVacia'
 import { useConfirmar } from '../../components/useConfirmar'
 import { fecha, hora, pesos } from '../../utils/formato'
+import { fechaLocal } from '../../utils/fechas'
 
 // soloPropias: historial de la persona logueada (Mi cuenta), aunque sea staff
 function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
@@ -42,8 +43,8 @@ function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
         if (puedeGestionar) return rango ? getReservasPorFechas(rango.desde, rango.hasta) : getReservas()
         const propias = await getMisReservas(persona?.idPersona)
         if (!rango) return propias
-        const inicio = new Date(`${rango.desde}T00:00:00`)
-        const fin = new Date(`${rango.hasta}T00:00:00`)
+        const inicio = fechaLocal(rango.desde)
+        const fin = fechaLocal(rango.hasta)
         return propias.filter((reserva) => reserva.fechaReserva >= inicio && reserva.fechaReserva <= fin)
     }
 

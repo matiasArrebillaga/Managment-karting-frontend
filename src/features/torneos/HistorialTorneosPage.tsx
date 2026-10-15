@@ -6,7 +6,7 @@ import { getCarrerasTorneo } from '../../services/carreraService'
 import { getTablaGeneral } from '../../services/participacionService'
 import { getMisTorneos } from '../../services/torneoService'
 import type { FilaTablaGeneral, ITorneos } from '../../types'
-import { CLASE_ESTADO_TORNEO, estadoTorneo } from './TorneosPage'
+import { CLASE_ESTADO_TORNEO, estadoTorneo } from './estadoTorneo'
 import { fecha } from '../../utils/formato'
 
 type FilaHistorial = {

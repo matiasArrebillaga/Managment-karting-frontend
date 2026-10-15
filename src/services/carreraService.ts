@@ -1,38 +1,14 @@
 import type { CreateCarrera, ICarrera, Karting } from '../types'
 import { carreras as seed } from '../data/mockData'
 import { getKartings } from './kartingService'
-import { apiFetch, usaMocks } from './httpClient'
+import { apiFetch, demora, esObjeto, usaMocks } from './httpClient'
+import { fechaLocal, fechaTexto, horaLocal, horaTexto } from '../utils/fechas'
 
 let carreras: ICarrera[] = [...seed]
 let siguienteId = Math.max(0, ...carreras.map((carrera) => carrera.idCarreras ?? 0)) + 1
 const CLAVE_INSCRIPCIONES = 'karting_inscripciones_carreras'
 
 type InscripcionCarrera = { idCarrera: number; idPersona: number; idKarting?: number }
-type CarreraApi = Record<string, unknown>
-
-const demora = () => new Promise((resolve) => setTimeout(resolve, 300))
-
-function aFechaLocal(valor: string): Date {
-    return new Date(`${valor.slice(0, 10)}T00:00:00`)
-}
-
-export function fechaApi(fecha: Date): string {
-    return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`
-}
-
-function horaApi(fecha: Date | string): string {
-    if (typeof fecha === 'string') return fecha.slice(0, 5)
-    return `${String(fecha.getHours()).padStart(2, '0')}:${String(fecha.getMinutes()).padStart(2, '0')}`
-}
-
-function horaLocalApi(valor: string, fecha: Date): Date {
-    const hora = valor.includes('T') ? valor.slice(valor.indexOf('T') + 1, valor.indexOf('T') + 9) : valor.slice(0, 8)
-    return new Date(`${fechaApi(fecha)}T${hora}`)
-}
-
-function esObjeto(valor: unknown): valor is CarreraApi {
-    return typeof valor === 'object' && valor !== null
-}
 
 function normalizarCarrera(valor: unknown): ICarrera {
     if (
@@ -53,9 +29,9 @@ function normalizarCarrera(valor: unknown): ICarrera {
         return karting.idKartings
     })
 
-    const fechaCarrera = aFechaLocal(valor.fechaCarrera)
-    const horaInicio = horaLocalApi(valor.horaInicio, fechaCarrera)
-    const horaFin = horaLocalApi(valor.horaFin, fechaCarrera)
+    const fechaCarrera = fechaLocal(valor.fechaCarrera)
+    const horaInicio = horaLocal(valor.horaInicio, fechaCarrera)
+    const horaFin = horaLocal(valor.horaFin, fechaCarrera)
     if (
         Number.isNaN(fechaCarrera.getTime())
         || Number.isNaN(horaInicio.getTime())
@@ -80,14 +56,14 @@ function normalizarLista(valor: unknown): ICarrera[] {
 }
 
 function rutaCarrera(carrera: ICarrera): string {
-    return `/carreras/${fechaApi(carrera.fechaCarrera)}/${carrera.Torneos_idTorneos}/${carrera.Circuitos_idCircuitos}`
+    return `/carreras/${fechaTexto(carrera.fechaCarrera)}/${carrera.Torneos_idTorneos}/${carrera.Circuitos_idCircuitos}`
 }
 
 function cuerpoApi(datos: CreateCarrera): Record<string, string | number | number[]> {
     return {
-        fechaCarrera: fechaApi(datos.fechaCarrera),
-        horaInicio: horaApi(datos.horaInicio),
-        horaFin: horaApi(datos.horaFin),
+        fechaCarrera: fechaTexto(datos.fechaCarrera),
+        horaInicio: horaTexto(datos.horaInicio),
+        horaFin: horaTexto(datos.horaFin),
         kartings: datos.kartings,
         Torneos_idTorneos: datos.Torneos_idTorneos,
         Circuitos_idCircuitos: datos.Circuitos_idCircuitos,
@@ -150,8 +126,8 @@ export async function createCarrera(datos: CreateCarrera): Promise<ICarrera> {
     const nueva: ICarrera = {
         idCarreras: siguienteId++,
         ...datos,
-        horaInicio: datos.horaInicio instanceof Date ? datos.horaInicio : new Date(`${fechaApi(datos.fechaCarrera)}T${datos.horaInicio}:00`),
-        horaFin: datos.horaFin instanceof Date ? datos.horaFin : new Date(`${fechaApi(datos.fechaCarrera)}T${datos.horaFin}:00`),
+        horaInicio: datos.horaInicio instanceof Date ? datos.horaInicio : horaLocal(datos.horaInicio, datos.fechaCarrera),
+        horaFin: datos.horaFin instanceof Date ? datos.horaFin : horaLocal(datos.horaFin, datos.fechaCarrera),
     }
     carreras.push(nueva)
     return nueva
@@ -162,8 +138,8 @@ export async function updateCarrera(carrera: ICarrera, datos: CreateCarrera): Pr
         const response = await apiFetch(rutaCarrera(carrera), {
             method: 'PUT',
             body: JSON.stringify({
-                horaInicio: horaApi(datos.horaInicio),
-                horaFin: horaApi(datos.horaFin),
+                horaInicio: horaTexto(datos.horaInicio),
+                horaFin: horaTexto(datos.horaFin),
                 kartings: datos.kartings,
             }),
         })
@@ -177,8 +153,8 @@ export async function updateCarrera(carrera: ICarrera, datos: CreateCarrera): Pr
         idCarreras: carrera.idCarreras,
         Kartings_idKartings: datos.kartings[0],
         kartings: datos.kartings,
-        horaInicio: datos.horaInicio instanceof Date ? datos.horaInicio : new Date(`${fechaApi(datos.fechaCarrera)}T${datos.horaInicio}:00`),
-        horaFin: datos.horaFin instanceof Date ? datos.horaFin : new Date(`${fechaApi(datos.fechaCarrera)}T${datos.horaFin}:00`),
+        horaInicio: datos.horaInicio instanceof Date ? datos.horaInicio : horaLocal(datos.horaInicio, datos.fechaCarrera),
+        horaFin: datos.horaFin instanceof Date ? datos.horaFin : horaLocal(datos.horaFin, datos.fechaCarrera),
     }
     carreras[indice] = actualizada
     return actualizada

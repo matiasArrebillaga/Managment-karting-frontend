@@ -12,25 +12,10 @@ import {
 import { getTiposLicencia } from '../../services/tipoLicenciaService'
 import type { ITorneos, TipoLicencia } from '../../types'
 import TorneoFormDialog from './TorneoFormDialog'
+import { CLASE_ESTADO_TORNEO, estadoTorneo } from './estadoTorneo'
 import { puede } from '../../permisos'
 import { useConfirmar } from '../../components/useConfirmar'
 import { fecha } from '../../utils/formato'
-
-export function estadoTorneo (torneo: ITorneos) {
-    const hoy = new Date()
-    hoy.setHours(0, 0, 0, 0)
-    const fechaInicio = new Date(torneo.fechaInicio)
-    const fechaFin = new Date(torneo.fechaFin)
-    fechaInicio.setHours(0, 0, 0, 0)
-    fechaFin.setHours(0, 0, 0, 0)
-
-    if (fechaFin < hoy) return 'Terminado'
-    if (fechaInicio > hoy) return 'Próximo'
-    return 'En curso'
-}
-
-// color de cada estado: el mismo en la lista, el detalle y el historial
-export const CLASE_ESTADO_TORNEO: Record<string, string> = { 'Próximo': 'ok', 'En curso': 'info', 'Terminado': '' }
 
 // etiqueta que ve el usuario -> valor que espera GET /api/torneos?estado=
 const ESTADOS = [

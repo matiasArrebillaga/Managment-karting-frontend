@@ -2,19 +2,11 @@ import type { Circuito, CreateReserva, CreateReservaInput, IReserva, UpdateReser
 import { getCircuitos } from './circuitoService'
 import { getKartings } from './kartingService'
 import { reservas as seed } from '../data/mockData'
-import { apiFetch, usaMocks } from './httpClient'
+import { apiFetch, demora, esObjeto, usaMocks } from './httpClient'
+import { fechaLocal, fechaTexto, horaTexto } from '../utils/fechas'
 
 let reservas: IReserva[] = [...seed]
 let siguienteId = Math.max(0, ...reservas.map((reserva) => reserva.idReservas ?? 0)) + 1
-
-const demora = () => new Promise((resolve) => setTimeout(resolve, 300))
-
-function convertirFecha(valor: Date | string): Date {
-    if (valor instanceof Date) {
-        return new Date(valor.getFullYear(), valor.getMonth(), valor.getDate())
-    }
-    return new Date(`${valor.slice(0, 10)}T00:00:00`)
-}
 
 function combinarFechaHora(fecha: Date, hora: Date | string): Date {
     if (hora instanceof Date) {
@@ -26,21 +18,13 @@ function combinarFechaHora(fecha: Date, hora: Date | string): Date {
 }
 
 function normalizarReserva(datos: CreateReservaInput): CreateReserva {
-    const fechaReserva = convertirFecha(datos.fechaReserva)
+    const fechaReserva = fechaLocal(datos.fechaReserva)
     return {
         ...datos,
         fechaReserva,
         horaInicio: combinarFechaHora(fechaReserva, datos.horaInicio),
         horaFin: combinarFechaHora(fechaReserva, datos.horaFin),
     }
-}
-
-function esObjeto(valor: unknown): valor is Record<string, unknown> {
-    return typeof valor === 'object' && valor !== null
-}
-
-function horaDeApi(valor: string): string {
-    return valor.includes('T') ? valor.slice(11, 16) : valor.slice(0, 5)
 }
 
 function normalizarReservaApi(valor: unknown): IReserva {
@@ -61,7 +45,7 @@ function normalizarReservaApi(valor: unknown): IReserva {
         throw new Error('La API de reservas no devolvió los campos requeridos por el modelo del backend')
     }
 
-    const fechaReserva = new Date(`${fecha.slice(0, 10)}T00:00:00`)
+    const fechaReserva = fechaLocal(fecha)
     if (Number.isNaN(fechaReserva.getTime())) {
         throw new Error('La API devolvió una fecha de reserva inválida')
     }
@@ -69,8 +53,8 @@ function normalizarReservaApi(valor: unknown): IReserva {
     return {
         idReservas: valor.idReservas,
         fechaReserva,
-        horaInicio: typeof horaInicio === 'string' ? horaDeApi(horaInicio) : '',
-        horaFin: typeof horaFin === 'string' ? horaDeApi(horaFin) : '',
+        horaInicio: typeof horaInicio === 'string' ? horaTexto(horaInicio) : '',
+        horaFin: typeof horaFin === 'string' ? horaTexto(horaFin) : '',
         Personas_idPersona: valor.Personas_idPersona,
         Circuitos_idCircuitos: valor.Circuitos_idCircuitos,
         Kartings_idKartings: valor.Kartings_idKartings,
@@ -92,16 +76,13 @@ function datosApi(
 ): Record<string, string | number> {
     const cuerpo: Record<string, string | number> = {}
     if (datos.fechaReserva !== undefined) {
-        const fecha = datos.fechaReserva instanceof Date
-            ? fechaInputApi(datos.fechaReserva)
-            : datos.fechaReserva.slice(0, 10)
-        cuerpo.fechaReserva = `${fecha}T00:00:00.000Z`
+        cuerpo.fechaReserva = `${fechaTexto(datos.fechaReserva)}T00:00:00.000Z`
     }
     if (datos.horaInicio !== undefined && datos.horaInicio !== '') {
-        cuerpo.horaInicio = horaInputApi(datos.horaInicio)
+        cuerpo.horaInicio = horaTexto(datos.horaInicio)
     }
     if (datos.horaFin !== undefined && datos.horaFin !== '') {
-        cuerpo.horaFin = horaInputApi(datos.horaFin)
+        cuerpo.horaFin = horaTexto(datos.horaFin)
     }
     if (datos.Circuitos_idCircuitos !== undefined) {
         cuerpo.Circuitos_idCircuitos = datos.Circuitos_idCircuitos
@@ -114,18 +95,6 @@ function datosApi(
     }
     if (datos.monto !== undefined) cuerpo.monto = datos.monto
     return cuerpo
-}
-
-function fechaInputApi(fecha: Date): string {
-    const año = fecha.getFullYear()
-    const mes = String(fecha.getMonth() + 1).padStart(2, '0')
-    const dia = String(fecha.getDate()).padStart(2, '0')
-    return `${año}-${mes}-${dia}`
-}
-
-function horaInputApi(hora: Date | string): string {
-    if (typeof hora === 'string') return hora.slice(0, 5)
-    return `${String(hora.getHours()).padStart(2, '0')}:${String(hora.getMinutes()).padStart(2, '0')}`
 }
 
 type RangoReserva = Pick<IReserva, 'horaInicio' | 'horaFin'>
@@ -199,7 +168,7 @@ export async function getKartingsDisponiblesReserva(
     idReservaIgnorada?: number,
 ): Promise<Karting[]> {
     await demora()
-    const fecha = convertirFecha(fechaReserva)
+    const fecha = fechaLocal(fechaReserva)
     const horario = {
         fechaReserva: fecha,
         horaInicio: combinarFechaHora(fecha, horaInicio),
@@ -221,7 +190,7 @@ export async function getCircuitosDisponiblesReserva(
     idReservaIgnorada?: number,
 ): Promise<Circuito[]> {
     await demora()
-    const fecha = convertirFecha(fechaReserva)
+    const fecha = fechaLocal(fechaReserva)
     const horario = {
         horaInicio: combinarFechaHora(fecha, horaInicio),
         horaFin: combinarFechaHora(fecha, horaFin),
@@ -266,7 +235,7 @@ export async function updateReserva(id: number, datos: UpdateReservaInput): Prom
     if (indice === -1) throw new Error(`No existe una reserva con id ${id}`)
 
     const actual = reservas[indice]
-    const fechaReserva = datos.fechaReserva === undefined ? actual.fechaReserva : convertirFecha(datos.fechaReserva)
+    const fechaReserva = datos.fechaReserva === undefined ? actual.fechaReserva : fechaLocal(datos.fechaReserva)
     const horaInicio = datos.horaInicio === undefined
         ? combinarFechaHora(fechaReserva, actual.horaInicio)
         : combinarFechaHora(fechaReserva, datos.horaInicio)
@@ -308,12 +277,12 @@ export async function getReservasPorFechas(desde: string, hasta: string): Promis
     }
     await demora()
     return reservas.filter((reserva) => {
-        const dia = fechaInputApi(reserva.fechaReserva)
+        const dia = fechaTexto(reserva.fechaReserva)
         return dia >= desde && dia <= hasta
     })
 }
 
 export async function getReservasDelDia(fecha: Date): Promise<IReserva[]> {
-    const dia = fechaInputApi(fecha)
+    const dia = fechaTexto(fecha)
     return getReservasPorFechas(dia, dia)
 }

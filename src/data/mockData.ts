@@ -10,38 +10,6 @@ import type { ITorneos } from '../types'
 import type { IReserva } from '../types'
 import type { IParticipacion } from '../types'
 
-export type Race = {
-  id: number
-  time: string
-  name: string
-  circuit: string
-  drivers: number
-  status: 'En curso' | 'Próxima' | 'Finalizada'
-}
-
-export type Kart = {
-  id: number
-  model: string
-  category: string
-  status: 'Disponible' | 'Mantenimiento'
-}
-
-export const races: Race[] = [
-  { id: 1, time: '10:00', name: 'Torneo Primavera', circuit: 'Circuito 01', drivers: 8, status: 'En curso' },
-  { id: 2, time: '11:00', name: 'Torneo Primavera', circuit: 'Circuito 02', drivers: 10, status: 'Próxima' },
-  { id: 3, time: '12:30', name: 'Copa Rosario', circuit: 'Circuito 04', drivers: 12, status: 'Próxima' },
-  { id: 4, time: '14:00', name: 'Gran Premio Santa Fe', circuit: 'Circuito 05', drivers: 15, status: 'Finalizada' },
-]
-
-export const karts: Kart[] = [
-  { id: 1, model: 'K01', category: 'Junior', status: 'Disponible' },
-  { id: 2, model: 'K02', category: 'Junior', status: 'Disponible' },
-  { id: 3, model: 'K03', category: 'Junior', status: 'Mantenimiento' },
-  { id: 4, model: 'K04', category: 'Senior', status: 'Disponible' },
-  { id: 5, model: 'K05', category: 'Senior', status: 'Disponible' },
-  { id: 6, model: 'K06', category: 'Senior', status: 'Disponible' },
-]
-
 // A partir de aca, los datos siguen exactamente la estructura de prisma/schema.prisma del backend real.
 
 export const localidades: Localidad[] = [

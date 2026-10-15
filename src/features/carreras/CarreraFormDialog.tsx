@@ -6,6 +6,7 @@ import { getTorneos } from '../../services/torneoService'
 import { getKartings } from '../../services/kartingService'
 import { getTiposKarting } from '../../services/tipoKartingService'
 import { usaMocks } from '../../services/httpClient'
+import { fechaLocal, fechaTexto, horaTexto } from '../../utils/fechas'
 import type { Circuito, CreateCarrera, ICarrera, ITorneos, Karting, TipoKarting } from '../../types'
 
 type Props = {
@@ -13,19 +14,6 @@ type Props = {
     carrera?: ICarrera | null
     onCerrar: () => void
     onGuardado: () => void
-}
-
-function fechaLocal (fecha: Date) {
-    const year = fecha.getFullYear()
-    const month = String(fecha.getMonth() + 1).padStart(2, '0')
-    const day = String(fecha.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
-}
-
-function horaLocal (fecha: Date) {
-    const hours = String(fecha.getHours()).padStart(2, '0')
-    const minutes = String(fecha.getMinutes()).padStart(2, '0')
-    return `${hours}:${minutes}`
 }
 
 function CarreraFormDialog ({ abierto, carrera, onCerrar, onGuardado }: Props) {
@@ -69,9 +57,9 @@ function CarreraFormDialog ({ abierto, carrera, onCerrar, onGuardado }: Props) {
 
     useEffect(() => {
         if (carrera) {
-            setFechaCarrera(fechaLocal(carrera.fechaCarrera))
-            setHoraInicio(horaLocal(carrera.horaInicio))
-            setHoraFin(horaLocal(carrera.horaFin))
+            setFechaCarrera(fechaTexto(carrera.fechaCarrera))
+            setHoraInicio(horaTexto(carrera.horaInicio))
+            setHoraFin(horaTexto(carrera.horaFin))
             setTorneoId(String(carrera.Torneos_idTorneos))
             setCircuitoId(String(carrera.Circuitos_idCircuitos))
             const ids = carrera.kartings ?? (carrera.Kartings_idKartings === undefined ? [] : [carrera.Kartings_idKartings])
@@ -101,7 +89,7 @@ function CarreraFormDialog ({ abierto, carrera, onCerrar, onGuardado }: Props) {
         setError('')
         try {
             const datos: CreateCarrera = {
-                fechaCarrera: new Date(`${fechaCarrera}T00:00:00`),
+                fechaCarrera: fechaLocal(fechaCarrera),
                 horaInicio,
                 horaFin,
                 kartings: kartingIds.map(Number),

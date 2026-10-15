@@ -1,12 +1,7 @@
 import type { DatosRegistro, Rol, Sesion } from '../types'
-
-const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api').replace(/\/+$/, '')
+import { API_URL, esObjeto } from './httpClient'
 
 export type { DatosRegistro, Rol, Sesion }
-
-function esObjeto(valor: unknown): valor is Record<string, unknown> {
-    return typeof valor === 'object' && valor !== null
-}
 
 async function leerError(response: Response, mensajePorDefecto: string): Promise<Error> {
     const cuerpo: unknown = await response.json().catch(() => null)

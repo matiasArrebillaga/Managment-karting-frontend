@@ -1,15 +1,9 @@
 import type { Circuito } from "../types"
 import { circuitos as seed } from "../data/mockData"
-import { apiFetch, usaMocks } from "./httpClient"
+import { apiFetch, demora, esObjeto, usaMocks } from "./httpClient"
 
 let circuitos: Circuito[] = [...seed]
 let siguienteId = circuitos.length + 1
-
-const demora = () => new Promise((resolve) => setTimeout(resolve, 300))
-
-function esObjeto(valor: unknown): valor is Record<string, unknown> {
-    return typeof valor === 'object' && valor !== null
-}
 
 function normalizarCircuito(valor: unknown): Circuito {
     if (

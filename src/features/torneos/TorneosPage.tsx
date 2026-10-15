@@ -15,6 +15,7 @@ import TorneoFormDialog from './TorneoFormDialog'
 import { CLASE_ESTADO_TORNEO, estadoTorneo } from './estadoTorneo'
 import { puede } from '../../permisos'
 import { useConfirmar } from '../../components/useConfirmar'
+import { useAviso } from '../../context/AvisoContext'
 import { fecha } from '../../utils/formato'
 
 // etiqueta que ve el usuario -> valor que espera GET /api/torneos?estado=
@@ -27,6 +28,7 @@ const ESTADOS = [
 function TorneosPage () {
     const { persona } = useAuth()
     const { confirmar, dialogo } = useConfirmar()
+    const avisar = useAviso()
     const [torneos, setTorneos] = useState<ITorneos[]>([])
     const [torneosAnotados, setTorneosAnotados] = useState<number[]>([])
     const [inscriptosPorTorneo, setInscriptosPorTorneo] = useState<Record<number, number>>({})
@@ -93,6 +95,7 @@ function TorneosPage () {
         setAbierto(false)
         setTorneoEditando(null)
         cargarTorneos()
+        avisar('Torneo guardado')
     }
 
     async function handleEliminar (torneo: ITorneos) {
@@ -101,8 +104,9 @@ function TorneosPage () {
         try {
             await deleteTorneo(torneo.idTorneos)
             cargarTorneos()
+            avisar('Torneo eliminado')
         } catch (motivo) {
-            setError(motivo instanceof Error ? motivo.message : 'No se pudo eliminar el torneo')
+            avisar(motivo instanceof Error ? motivo.message : 'No se pudo eliminar el torneo', 'error')
         }
     }
 
@@ -110,7 +114,6 @@ function TorneosPage () {
         if (!persona) return
 
         setInscripcionPendiente(idTorneo)
-        setError('')
         try {
             await inscribirseATorneo(idTorneo, persona.idPersona)
             setTorneosAnotados((actuales) => [...actuales, idTorneo])
@@ -118,8 +121,9 @@ function TorneosPage () {
                 ...actuales,
                 [idTorneo]: (actuales[idTorneo] ?? 0) + 1,
             }))
+            avisar('Te anotaste en el torneo')
         } catch (motivo) {
-            setError(motivo instanceof Error ? motivo.message : 'No se pudo completar la inscripción')
+            avisar(motivo instanceof Error ? motivo.message : 'No se pudo completar la inscripción', 'error')
         } finally {
             setInscripcionPendiente(null)
         }
@@ -128,7 +132,6 @@ function TorneosPage () {
     async function handleDesanotarse (idTorneo: number) {
         if (!persona || !(await confirmar('¿Desanotarte de este torneo?', 'Desanotarme'))) return
 
-        setError('')
         try {
             await desanotarseDeTorneo(idTorneo, persona.idPersona)
             setTorneosAnotados((actuales) => actuales.filter((id) => id !== idTorneo))
@@ -136,8 +139,9 @@ function TorneosPage () {
                 ...actuales,
                 [idTorneo]: Math.max(0, (actuales[idTorneo] ?? 0) - 1),
             }))
+            avisar('Te desanotaste del torneo')
         } catch (motivo) {
-            setError(motivo instanceof Error ? motivo.message : 'No se pudo cancelar la inscripción')
+            avisar(motivo instanceof Error ? motivo.message : 'No se pudo cancelar la inscripción', 'error')
         }
     }
 

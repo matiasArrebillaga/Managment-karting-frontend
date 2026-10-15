@@ -12,6 +12,7 @@ import ReservaDetalleDialog from './ReservaDetalleDialog'
 import { puede } from '../../permisos'
 import FilaVacia from '../../components/FilaVacia'
 import { useConfirmar } from '../../components/useConfirmar'
+import { useAviso } from '../../context/AvisoContext'
 import { fecha, hora, pesos } from '../../utils/formato'
 import { fechaLocal } from '../../utils/fechas'
 
@@ -31,6 +32,7 @@ async function buscarReservas (puedeGestionar: boolean, idPersona: number | unde
 function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
     const { persona } = useAuth()
     const { confirmar, dialogo } = useConfirmar()
+    const avisar = useAviso()
     const mensaje = (useLocation().state as { mensaje?: string } | null)?.mensaje
     const [reservas, setReservas] = useState<IReserva[]>([])
     const [circuitos, setCircuitos] = useState<Circuito[]>([])
@@ -131,6 +133,7 @@ function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
         setAbierto(false)
         setReservaEditando(null)
         cargarReservas()
+        avisar('Reserva guardada')
     }
 
     async function handleEliminar (id: number) {
@@ -139,8 +142,9 @@ function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
         try {
             await deleteReserva(id)
             cargarReservas()
+            avisar('Reserva cancelada')
         } catch (motivo) {
-            setError(motivo instanceof Error ? motivo.message : 'No se pudo cancelar la reserva')
+            avisar(motivo instanceof Error ? motivo.message : 'No se pudo cancelar la reserva', 'error')
         }
     }
 

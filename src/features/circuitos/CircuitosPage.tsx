@@ -7,10 +7,12 @@ import type { Circuito } from '../../types'
 import CircuitoFormDialog from './CircuitoFormDialog'
 import FilaVacia from '../../components/FilaVacia'
 import { useConfirmar } from '../../components/useConfirmar'
+import { useAviso } from '../../context/AvisoContext'
 
 function CircuitosPage() {
     const { persona } = useAuth()
     const { confirmar, dialogo } = useConfirmar()
+    const avisar = useAviso()
     const [circuitos, setCircuitos] = useState<Circuito[]>([])
     const [cargando, setCargando] = useState(true)
     const [error, setError] = useState('')
@@ -51,6 +53,7 @@ function CircuitosPage() {
         setAbierto(false)
         setCircuitoEditando(null)
         cargarCircuitos()
+        avisar('Circuito guardado')
     }
 
     async function handleEliminar(id: number) {
@@ -59,8 +62,9 @@ function CircuitosPage() {
         try {
             await deleteCircuito(id)
             cargarCircuitos()
+            avisar('Circuito eliminado')
         } catch (motivo) {
-            setError(motivo instanceof Error ? motivo.message : 'No se pudo eliminar el circuito')
+            avisar(motivo instanceof Error ? motivo.message : 'No se pudo eliminar el circuito', 'error')
         }
     }
 

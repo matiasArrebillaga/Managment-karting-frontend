@@ -5,9 +5,11 @@ import type { Localidad } from '../../types'
 import LocalidadFormDialog from './LocalidadFormDialog'
 import FilaVacia from '../../components/FilaVacia'
 import { useConfirmar } from '../../components/useConfirmar'
+import { useAviso } from '../../context/AvisoContext'
 
 function LocalidadesPage() {
     const { confirmar, dialogo } = useConfirmar()
+    const avisar = useAviso()
     const [localidades, setLocalidades] = useState<Localidad[]>([])
     const [cargando, setCargando] = useState(true)
     const [error, setError] = useState('')
@@ -44,6 +46,7 @@ function LocalidadesPage() {
         setAbierto(false)
         setLocalidadEditando(null)
         cargarLocalidades()
+        avisar('Localidad guardada')
     }
 
     async function handleEliminar(localidad: Localidad) {
@@ -52,8 +55,9 @@ function LocalidadesPage() {
         try {
             await deleteLocalidad(localidad.idLocalidades)
             cargarLocalidades()
+            avisar('Localidad eliminada')
         } catch (motivo) {
-            setError(motivo instanceof Error ? motivo.message : 'No se pudo eliminar la localidad')
+            avisar(motivo instanceof Error ? motivo.message : 'No se pudo eliminar la localidad', 'error')
         }
     }
 

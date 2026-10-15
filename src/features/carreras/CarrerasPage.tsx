@@ -4,6 +4,7 @@ import { Alert, Button, Table, TableBody, TableCell, TableContainer, TableHead, 
 import { useAuth } from '../../context/AuthContext'
 import FilaVacia from '../../components/FilaVacia'
 import { useConfirmar } from '../../components/useConfirmar'
+import { useAviso } from '../../context/AvisoContext'
 import { fecha, hora } from '../../utils/formato'
 import { getCarreras, deleteCarrera, getInscripcionesCarreras, desanotarseDeCarrera } from '../../services/carreraService'
 import { fechaTexto } from '../../utils/fechas'
@@ -26,6 +27,7 @@ function claveCarrera (fecha: Date, idTorneo: number, idCircuito: number) {
 function CarrerasPage () {
     const { persona } = useAuth()
     const { confirmar, dialogo } = useConfirmar()
+    const avisar = useAviso()
     const [carreras, setCarreras] = useState<ICarrera[]>([])
     const [inscripciones, setInscripciones] = useState<number[]>([])
     const [circuitos, setCircuitos] = useState<Circuito[]>([])
@@ -85,6 +87,7 @@ function CarrerasPage () {
         setAbierto(false)
         setCarreraEditando(null)
         cargarCarreras()
+        avisar('Carrera guardada')
     }
 
     function nombreCircuito (id: number) {
@@ -107,8 +110,9 @@ function CarrerasPage () {
         try {
             await deleteCarrera(carrera)
             cargarCarreras()
+            avisar('Carrera eliminada')
         } catch (motivo) {
-            setError(motivo instanceof Error ? motivo.message : 'No se pudo eliminar la carrera')
+            avisar(motivo instanceof Error ? motivo.message : 'No se pudo eliminar la carrera', 'error')
         }
     }
 
@@ -120,6 +124,7 @@ function CarrerasPage () {
         const idCarrera = carreraInscribiendo?.idCarreras
         if (idCarrera !== undefined) setInscripciones((actuales) => [...actuales, idCarrera])
         setCarreraInscribiendo(null)
+        avisar('Te inscribiste en la carrera')
     }
 
     async function handleDesanotarse (idCarrera?: number) {
@@ -129,8 +134,9 @@ function CarrerasPage () {
         try {
             await desanotarseDeCarrera(idCarrera, persona.idPersona)
             setInscripciones((actuales) => actuales.filter((id) => id !== idCarrera))
+            avisar('Te desanotaste de la carrera')
         } catch (motivo) {
-            setError(motivo instanceof Error ? motivo.message : 'No se pudo cancelar la inscripción')
+            avisar(motivo instanceof Error ? motivo.message : 'No se pudo cancelar la inscripción', 'error')
         }
     }
 

@@ -7,12 +7,14 @@ import type { Localidad, Persona, Rol, RolDetalle } from '../../types'
 import PersonaFormDialog from './PersonaFormDialog'
 import FilaVacia from '../../components/FilaVacia'
 import { useConfirmar } from '../../components/useConfirmar'
+import { useAviso } from '../../context/AvisoContext'
 
 const ROLES: Rol[] = ['CLIENTE', 'EMPLEADO', 'ADMIN']
 
 function PersonasPage() {
     const { persona: yo } = useAuth()
     const { confirmar, dialogo } = useConfirmar()
+    const avisar = useAviso()
     const [personas, setPersonas] = useState<Persona[]>([])
     const [roles, setRoles] = useState<RolDetalle[]>([])
     const [localidades, setLocalidades] = useState<Localidad[]>([])
@@ -60,6 +62,7 @@ function PersonasPage() {
         setAbierto(false)
         setPersonaEditando(null)
         cargarPersonas()
+        avisar('Persona guardada')
     }
 
     function handleAbrirRol(persona: Persona) {
@@ -87,8 +90,9 @@ function PersonasPage() {
         try {
             await deletePersona(persona.idPersona)
             cargarPersonas()
+            avisar('Persona eliminada')
         } catch (motivo) {
-            setError(motivo instanceof Error ? motivo.message : 'No se pudo eliminar la persona')
+            avisar(motivo instanceof Error ? motivo.message : 'No se pudo eliminar la persona', 'error')
         }
     }
 

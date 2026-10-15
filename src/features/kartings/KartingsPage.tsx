@@ -8,11 +8,13 @@ import type { Karting, TipoKarting } from '../../types'
 import KartingFormDialog from './KartingFormDialog'
 import FilaVacia from '../../components/FilaVacia'
 import { useConfirmar } from '../../components/useConfirmar'
+import { useAviso } from '../../context/AvisoContext'
 import { fecha } from '../../utils/formato'
 
 function KartingsPage() {
     const { persona } = useAuth()
     const { confirmar, dialogo } = useConfirmar()
+    const avisar = useAviso()
     const [kartings, setKartings] = useState<Karting[]>([])
     const [tiposKarting, setTiposKarting] = useState<TipoKarting[]>([])
     const [cargando, setCargando] = useState(true)
@@ -61,6 +63,7 @@ function KartingsPage() {
         setAbierto(false)
         setKartingEditando(null)
         cargarKartings()
+        avisar('Karting guardado')
     }
 
     async function handleEliminar(karting: Karting) {
@@ -69,8 +72,9 @@ function KartingsPage() {
         try {
             await deleteKarting(karting.idKartings)
             cargarKartings()
+            avisar('Karting eliminado')
         } catch (motivo) {
-            setError(motivo instanceof Error ? motivo.message : 'No se pudo eliminar el karting')
+            avisar(motivo instanceof Error ? motivo.message : 'No se pudo eliminar el karting', 'error')
         }
     }
 

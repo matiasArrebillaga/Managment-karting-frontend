@@ -4,6 +4,7 @@ import { cargarResultadosCarrera, deleteParticipacion, getClasificacionCarrera, 
 import { getInscriptosTorneo } from '../../services/torneoService'
 import type { ICarrera } from '../../types'
 import { useConfirmar } from '../../components/useConfirmar'
+import { useAviso } from '../../context/AvisoContext'
 
 // Una fila sirve para los dos modos: cargar (inscriptos vacíos) o corregir (clasificación guardada)
 type Fila = { idPersona: number; piloto: string; posicion: string; tiempo: string; puntos?: number }
@@ -62,6 +63,7 @@ function ResultadosCarreraDialog ({ carrera, puedeBorrar, onCerrar }: Props) {
     const [error, setError] = useState('')
     const [guardando, setGuardando] = useState(false)
     const { confirmar, dialogo } = useConfirmar()
+    const avisar = useAviso()
 
     // también se usa en ejecutar() para recargar después de guardar o borrar
     const cargar = useCallback(() => leerFilas(carrera).then((datos) => {
@@ -81,13 +83,14 @@ function ResultadosCarreraDialog ({ carrera, puedeBorrar, onCerrar }: Props) {
         setFilas((actuales) => actuales.map((fila) => (fila.idPersona === idPersona ? { ...fila, [campo]: valor } : fila)))
     }
 
-    // Corre la acción contra el backend y recarga; si falla muestra el mensaje del backend
-    async function ejecutar (accion: (carreraActual: ICarrera) => Promise<void>) {
+    // Corre la acción contra el backend, recarga y avisa; si falla muestra el mensaje del backend
+    async function ejecutar (accion: (carreraActual: ICarrera) => Promise<void>, exito: string) {
         setError('')
         setGuardando(true)
         try {
             await accion(carrera)
             await cargar()
+            avisar(exito)
         } catch (motivo) {
             setError(motivo instanceof Error ? motivo.message : 'No se pudo guardar')
         } finally {
@@ -104,7 +107,7 @@ function ResultadosCarreraDialog ({ carrera, puedeBorrar, onCerrar }: Props) {
             return
         }
         ejecutar((carreraActual) => cargarResultadosCarrera(carreraActual, corrieron
-            .map((fila) => ({ Personas_idPersona: fila.idPersona, posicion_final: Number(fila.posicion), tiempo: fila.tiempo }))))
+            .map((fila) => ({ Personas_idPersona: fila.idPersona, posicion_final: Number(fila.posicion), tiempo: fila.tiempo }))), 'Resultados cargados')
     }
 
     function handleGuardarFila (fila: Fila) {
@@ -116,12 +119,12 @@ function ResultadosCarreraDialog ({ carrera, puedeBorrar, onCerrar }: Props) {
         ejecutar((carreraActual) => updateParticipacion(carreraActual, fila.idPersona, {
             posicion_final: Number(fila.posicion),
             tiempo: fila.tiempo,
-        }))
+        }), `Resultado de ${fila.piloto} actualizado`)
     }
 
     async function handleBorrarFila (fila: Fila) {
         if (!(await confirmar(`¿Borrar el resultado de ${fila.piloto}?`, 'Borrar'))) return
-        ejecutar((carreraActual) => deleteParticipacion(carreraActual, fila.idPersona))
+        ejecutar((carreraActual) => deleteParticipacion(carreraActual, fila.idPersona), `Resultado de ${fila.piloto} borrado`)
     }
 
     return (

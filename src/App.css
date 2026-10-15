@@ -27,7 +27,7 @@
     --sans: 'Geist', 'Helvetica Neue', Arial, sans-serif;
     --mono: 'Geist Mono', 'SF Mono', Consolas, monospace;
     --serif: 'Instrument Serif', Georgia, serif;
-    --topbar-h: 64px;
+    --topbar-h: 76px;
     color-scheme: dark;
 }
 
@@ -88,7 +88,7 @@ a {
     text-decoration: none;
 }
 
-.brand svg {
+.brand img {
     width: 22px;
     height: 22px;
     flex: none;
@@ -97,8 +97,8 @@ a {
 .icon-btn {
     display: grid;
     place-items: center;
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     flex: none;
     padding: 0;
     color: var(--fg);
@@ -113,7 +113,7 @@ a {
     align-items: center;
     justify-content: flex-end;
     gap: 16px;
-    font-size: 13px;
+    font-size: 15px;
 }
 
 .topbar-right > a {
@@ -189,10 +189,10 @@ a {
 .avatar {
     display: grid;
     place-items: center;
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     flex: none;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 600;
     background: var(--bg);
     border: 1px solid var(--line);
@@ -1059,11 +1059,9 @@ body::before {
     height: 1px;
     background: linear-gradient(90deg, transparent, var(--ciruela) 25%, var(--rojo) 75%, transparent);
 }
-.brand { gap: 10px; font-size: 15px; }
-.brand svg { width: 26px; height: 26px; }
-.brand svg > rect { fill: var(--ciruela); stroke: rgba(255,255,255,.18); }
-.brand svg g { fill: #fff; }
-.brand .ciudad { color: var(--muted); font-family: var(--serif); font-style: italic; font-size: 17px; font-weight: 400; }
+.brand { gap: 12px; font-size: 17px; }
+.brand img { width: 58px; height: 58px; }
+.brand .ciudad { color: var(--muted); font-family: var(--serif); font-style: italic; font-size: 20px; font-weight: 400; }
 
 /* ---- Botones de la top bar ---- */
 .main-nav a.active { color: var(--fg); }
@@ -1077,7 +1075,7 @@ body::before {
     border-radius: 10px;
     transition: color .15s, border-color .15s, background .15s;
 }
-.icon-btn.gestion svg { width: 16px; height: 16px; }
+.icon-btn.gestion svg { width: 18px; height: 18px; }
 .icon-btn.gestion span { display: none; }
 .icon-btn.gestion:hover { color: var(--fg); border-color: rgba(255,255,255,.24); }
 .icon-btn.gestion[aria-expanded="true"] { color: var(--fg); background: rgba(70,22,74,.45); border-color: rgba(201,154,205,.3); }
@@ -1108,7 +1106,7 @@ body::before {
 }
 
 @media (min-width: 900px) {
-    .icon-btn.gestion { width: auto; height: 36px; display: inline-flex; gap: 8px; padding: 0 12px; font-size: 13px; }
+    .icon-btn.gestion { width: auto; height: 42px; display: inline-flex; gap: 8px; padding: 0 16px; font-size: 15px; }
     .icon-btn.gestion span { display: inline; }
 
     /* Navegación: control segmentado con indicador que se desliza */
@@ -1127,11 +1125,12 @@ body::before {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        padding: 7px 16px;
+        padding: 10px 20px;
+        font-size: 15px;
         border-radius: 999px;
         transition: color .2s;
     }
-    .main-nav a svg { display: block; width: 16px; height: 16px; opacity: .7; transition: opacity .2s; }
+    .main-nav a svg { display: block; width: 18px; height: 18px; opacity: .7; transition: opacity .2s; }
     .main-nav a:hover svg, .main-nav a.active svg { opacity: 1; }
     .main-nav a + a::before { content: none; }
     .main-nav a.active span { padding: 0; background: none; }
@@ -1151,7 +1150,7 @@ body::before {
     }
 
     .account-btn { padding: 3px 3px 3px 3px; }
-    .account-btn .label { display: block; font-size: 13px; font-weight: 500; }
+    .account-btn .label { display: block; font-size: 15px; font-weight: 500; }
     .account-btn .chevron { display: block; }
 }
 

@@ -9,16 +9,8 @@ const ESCRITORIO = "(min-width: 900px)";
 function Logo () {
     return (
         <Link to="/" className="brand">
-            <svg viewBox="0 0 22 22" aria-hidden="true">
-                <rect x="0.5" y="0.5" width="21" height="21" rx="5" fill="none" stroke="currentColor" />
-                <g fill="currentColor">
-                    <rect x="5" y="5" width="4" height="4" />
-                    <rect x="13" y="5" width="4" height="4" />
-                    <rect x="9" y="9" width="4" height="4" />
-                    <rect x="5" y="13" width="4" height="4" />
-                    <rect x="13" y="13" width="4" height="4" />
-                </g>
-            </svg>
+            {/* mismo archivo que el ícono de la pestaña (index.html) */}
+            <img src="/logo.svg" alt="" />
             <span>Management-Karting <span className="ciudad">Rosario</span></span>
         </Link>
     );

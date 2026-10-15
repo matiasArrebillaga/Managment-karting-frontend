@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- sin fondo: fuera del círculo todo es transparente -->
+  <defs>
+    <!-- ciruela → rojo, los mismos colores de la página (ciruela y rojo de App.css) -->
+    <linearGradient id="marca" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#46164A"/>
+      <stop offset="1" stop-color="#9E0505"/>
+    </linearGradient>
+    <clipPath id="disco"><circle cx="32" cy="32" r="27"/></clipPath>
+    <!-- cuadros de 4x4 alineados con el borde de arriba de la franja -->
+    <pattern id="cuadros" x="0" y="45.5" width="8" height="8" patternUnits="userSpaceOnUse">
+      <rect width="8" height="8" fill="#EEE9EC"/>
+      <rect width="4" height="4" fill="#0E0B0F"/>
+      <rect x="4" y="4" width="4" height="4" fill="#0E0B0F"/>
+    </pattern>
+  </defs>
+
+  <!-- disco interior: acá vive la k -->
+  <circle cx="32" cy="32" r="27" fill="url(#marca)"/>
+
+  <!-- franja de abajo: bandera a cuadros, recortada al disco -->
+  <rect x="0" y="45.5" width="64" height="8" fill="url(#cuadros)" clip-path="url(#disco)"/>
+
+  <!-- aro de tacómetro: va por fuera del disco (r 27 a 31.5), no le quita lugar a la k -->
+  <circle cx="32" cy="32" r="29.25" fill="none" stroke="#161218" stroke-width="4.5"/>
+  <!-- marcas: 60 rayitas en la vuelta, blancas hasta la zona roja de arriba a la derecha -->
+  <path d="M61.25 32A29.25 29.25 0 1 1 46.63 6.67" fill="none" stroke="#EEE9EC" stroke-opacity=".55" stroke-width="2.4" stroke-dasharray=".7 2.36"/>
+  <path d="M46.63 6.67A29.25 29.25 0 0 1 61.25 32" fill="none" stroke="#F0857E" stroke-width="2.4" stroke-dasharray=".7 2.36"/>
+  <circle cx="32" cy="32" r="31.4" fill="none" stroke="url(#marca)" stroke-width="1"/>
+  <circle cx="32" cy="32" r="27" fill="none" stroke="#0E0B0F" stroke-width=".8"/>
+
+  <!-- la k: queda adentro del disco; el borde oscuro la separa de fondos claros -->
+  <g fill="#EEE9EC" stroke="#0E0B0F" stroke-width="1" stroke-linejoin="round">
+    <path d="M31 30 41 18H46L38.5 29 47 44H41L34 33.5 31 37Z"/>
+    <rect x="24" y="7.5" width="7" height="36.5" rx="2"/>
+  </g>
+
+  <!-- bandera a cuadros sobre el palo -->
+  <g fill="#0E0B0F">
+    <rect x="24.5" y="11" width="1.5" height="1.75"/>
+    <rect x="27.5" y="11" width="1.5" height="1.75"/>
+    <rect x="26" y="12.75" width="1.5" height="1.75"/>
+    <rect x="29" y="12.75" width="1.5" height="1.75"/>
+  </g>
+</svg>

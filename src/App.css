@@ -1040,9 +1040,17 @@ body::before {
 
 /* ---- Header: vidrio oscuro + hilo ciruela→rojo ---- */
 .topbar {
-    background: rgba(14, 11, 15, 0.72);
-    backdrop-filter: blur(14px) saturate(140%);
+    background: var(--bg);
     border-bottom: 1px solid var(--line);
+}
+/* El desenfoque solo en escritorio: backdrop-filter convierte al header en el "contenedor" de sus hijos
+   position: fixed, y en celular la barra de navegación (.main-nav, que vive adentro del header)
+   quedaría pegada al header en vez de abajo de la pantalla. */
+@media (min-width: 900px) {
+    .topbar {
+        background: rgba(14, 11, 15, 0.72);
+        backdrop-filter: blur(14px) saturate(140%);
+    }
 }
 .topbar::after {
     content: "";

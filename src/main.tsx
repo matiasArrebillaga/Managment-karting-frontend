@@ -24,7 +24,8 @@ import ReservasPage from './features/reservas/ReservasPage.tsx'
 import ReservarPage from './features/reservas/ReservarPage.tsx'
 import PersonasPage from './features/personas/PersonasPage.tsx'
 import ParticipacionesPage from './features/participaciones/ParticipacionesPage.tsx'
-import { AuthProvider } from './context/AuthContext.tsx'
+import { AuthProvider } from './context/AuthProvider.tsx'
+import { AvisoProvider } from './context/AvisoProvider.tsx'
 import RutaProtegida from './components/RutaProtegida.tsx'
 
 // Misma paleta que los tokens de App.css (oscuro fijo).
@@ -112,6 +113,7 @@ createRoot(document.getElementById('root')!).render(
       <AuthProvider>
         <ThemeProvider theme={theme}>
           <CssBaseline />
+          <AvisoProvider>
           <Routes>
             <Route element={<Layout />}>
             <Route path="/" element={<InicioPage />} />
@@ -152,6 +154,7 @@ createRoot(document.getElementById('root')!).render(
             <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>
+          </AvisoProvider>
         </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>

@@ -9,11 +9,13 @@ import { useAuth } from '../../context/AuthContext'
 import { puede } from '../../permisos'
 import FilaVacia from '../../components/FilaVacia'
 import { useConfirmar } from '../../components/useConfirmar'
+import { useAviso } from '../../context/AvisoContext'
 import { fecha } from '../../utils/formato'
 
 function LicenciasPage() {
     const { persona } = useAuth()
     const { confirmar, dialogo } = useConfirmar()
+    const avisar = useAviso()
     const [licencias, setLicencias] = useState<Licencia[]>([])
     const [tiposLicencia, setTiposLicencia] = useState<TipoLicencia[]>([])
     const [personas, setPersonas] = useState<Persona[]>([])
@@ -23,10 +25,9 @@ function LicenciasPage() {
     const [licenciaEditando, setLicenciaEditando] = useState<Licencia | null>(null)
 
     function cargarLicencias() {
-        setCargando(true)
-        setError('')
         Promise.all([getLicencias(), getTiposLicencia(), getPersonas()])
             .then(([datosLicencias, datosTipos, datosPersonas]) => {
+                setError('')
                 setLicencias(datosLicencias)
                 setTiposLicencia(datosTipos)
                 setPersonas(datosPersonas)
@@ -64,6 +65,7 @@ function LicenciasPage() {
         setAbierto(false)
         setLicenciaEditando(null)
         cargarLicencias()
+        avisar('Licencia guardada')
     }
 
     async function handleEliminar(licencia: Licencia) {
@@ -72,8 +74,9 @@ function LicenciasPage() {
         try {
             await deleteLicencia(licencia.idLicencias)
             cargarLicencias()
+            avisar('Licencia eliminada')
         } catch (motivo) {
-            setError(motivo instanceof Error ? motivo.message : 'No se pudo eliminar la licencia')
+            avisar(motivo instanceof Error ? motivo.message : 'No se pudo eliminar la licencia', 'error')
         }
     }
 
@@ -125,12 +128,13 @@ function LicenciasPage() {
                 </Table>
             </TableContainer>
 
-            <LicenciaFormDialog
-                abierto={abierto}
-                licencia={licenciaEditando}
-                onCerrar={() => setAbierto(false)}
-                onGuardado={handleGuardado}
-            />
+            {abierto && (
+                <LicenciaFormDialog
+                    licencia={licenciaEditando}
+                    onCerrar={() => setAbierto(false)}
+                    onGuardado={handleGuardado}
+                />
+            )}
             {dialogo}
         </div>
     )

@@ -1,42 +1,35 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import { login as loginService, register as registerService, type DatosRegistro, type Sesion } from "../services/authService"
 import { EVENTO_SESION_INVALIDA } from "../services/httpClient"
 import type { PersonaAuth } from "../types"
-
-type AuthContextValue = {
-    persona: PersonaAuth | null
-    cargando: boolean
-    login: (mail: string, contraseña: string) => Promise<void>
-    register: (datos: DatosRegistro) => Promise<void>
-    logout: () => void
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null)
+import { AuthContext } from "./AuthContext"
 
 const CLAVE_STORAGE = 'karting_sesion'
 
-export function AuthProvider ({ children }: { children: ReactNode }) {
-    const [persona, setPersona] = useState<PersonaAuth | null>(null)
-    const [cargando, setCargando] = useState(true)
+// localStorage es síncrono: la sesión guardada se lee al crear el estado,
+// así el primer render ya sabe si hay alguien logueado (no hace falta un estado "cargando").
+function leerSesionGuardada (): PersonaAuth | null {
+    try {
+        const guardada = localStorage.getItem(CLAVE_STORAGE)
+        if (!guardada) return null
+        const sesion: Sesion = JSON.parse(guardada)
+        return sesion.persona
+    } catch {
+        localStorage.removeItem(CLAVE_STORAGE)
+        return null
+    }
+}
 
+export function AuthProvider ({ children }: { children: ReactNode }) {
+    const [persona, setPersona] = useState(leerSesionGuardada)
+
+    // httpClient avisa con este evento cuando el backend rechaza el token
     useEffect(() => {
         function handleSesionInvalida () {
             localStorage.removeItem(CLAVE_STORAGE)
             setPersona(null)
         }
-
         window.addEventListener(EVENTO_SESION_INVALIDA, handleSesionInvalida)
-        try {
-            const guardada = localStorage.getItem(CLAVE_STORAGE)
-            if (guardada) {
-                const sesion: Sesion = JSON.parse(guardada)
-                setPersona(sesion.persona)
-            }
-        } catch {
-            localStorage.removeItem(CLAVE_STORAGE)
-        } finally {
-            setCargando(false)
-        }
         return () => window.removeEventListener(EVENTO_SESION_INVALIDA, handleSesionInvalida)
     }, [])
 
@@ -58,16 +51,8 @@ export function AuthProvider ({ children }: { children: ReactNode }) {
     }
 
     return (
-        <AuthContext.Provider value={{ persona, cargando, login, register, logout }}>
+        <AuthContext.Provider value={{ persona, login, register, logout }}>
             {children}
         </AuthContext.Provider>
     )
-}
-
-export function useAuth () {
-    const contexto = useContext(AuthContext)
-    if (!contexto) {
-        throw new Error('useAuth debe usarse dentro de un AuthProvider')
-    }
-    return contexto
 }

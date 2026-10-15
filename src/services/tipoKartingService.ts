@@ -1,16 +1,10 @@
 import type { TipoKarting } from "../types"
 import { tiposKarting as seed } from "../data/mockData"
 import { getKartings } from "./kartingService"
-import { apiFetch, usaMocks } from "./httpClient"
+import { apiFetch, demora, esObjeto, usaMocks } from "./httpClient"
 
 let tiposKarting: TipoKarting[] = [...seed]
 let siguienteId = tiposKarting.length + 1
-
-const demora = () => new Promise((resolve) => setTimeout(resolve, 300))
-
-function esObjeto(valor: unknown): valor is Record<string, unknown> {
-    return typeof valor === 'object' && valor !== null
-}
 
 function normalizarTipo(valor: unknown): TipoKarting {
     // precioHora es Decimal en la base: Prisma lo serializa como string

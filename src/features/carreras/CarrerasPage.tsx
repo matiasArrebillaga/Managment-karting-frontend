@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Alert, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
 import { useAuth } from '../../context/AuthContext'
 import FilaVacia from '../../components/FilaVacia'
 import { useConfirmar } from '../../components/useConfirmar'
+import { useAviso } from '../../context/AvisoContext'
 import { fecha, hora } from '../../utils/formato'
-import { getCarreras, deleteCarrera, getInscripcionesCarreras, desanotarseDeCarrera, fechaApi } from '../../services/carreraService'
+import { getCarreras, deleteCarrera, getInscripcionesCarreras, desanotarseDeCarrera } from '../../services/carreraService'
+import { fechaTexto } from '../../utils/fechas'
 import { getCircuitos } from '../../services/circuitoService'
 import { getTorneos } from '../../services/torneoService'
 import { getKartings } from '../../services/kartingService'
@@ -17,9 +19,15 @@ import { getParticipaciones } from '../../services/participacionService'
 import ResultadosCarreraDialog from './ResultadosCarreraDialog'
 import { puede } from '../../permisos'
 
+// Una carrera se identifica por fecha + torneo + circuito (su clave compuesta)
+function claveCarrera (fecha: Date, idTorneo: number, idCircuito: number) {
+    return `${fechaTexto(fecha)}-${idTorneo}-${idCircuito}`
+}
+
 function CarrerasPage () {
     const { persona } = useAuth()
     const { confirmar, dialogo } = useConfirmar()
+    const avisar = useAviso()
     const [carreras, setCarreras] = useState<ICarrera[]>([])
     const [inscripciones, setInscripciones] = useState<number[]>([])
     const [circuitos, setCircuitos] = useState<Circuito[]>([])
@@ -35,9 +43,9 @@ function CarrerasPage () {
     const puedeGestionar = puede(persona?.rol.nombre, 'carreras.gestionar')
     const puedeEliminar = puede(persona?.rol.nombre, 'carreras.eliminar')
 
-    function cargarCarreras () {
-        setCargando(true)
-        setError('')
+    // useCallback: la función cambia solo si cambian persona o permisos, y el efecto de abajo
+    // la usa como dependencia para recargar exactamente en esos casos
+    const cargarCarreras = useCallback(() => {
         Promise.all([
             getCarreras(),
             getCircuitos(),
@@ -53,16 +61,17 @@ function CarrerasPage () {
                 setKartings(datosKartings)
                 setInscripciones(datosInscripciones)
                 setConResultados(datosParticipaciones.map((p) => claveCarrera(p.Carrera_fecha, p.Carrera_Torneos_idTorneos, p.Carrera_Circuitos_idCircuitos)))
+                setError('')
             })
             .catch((motivo: unknown) => {
                 setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar las carreras')
             })
             .finally(() => setCargando(false))
-    }
+    }, [persona, puedeGestionar])
 
     useEffect(() => {
         cargarCarreras()
-    }, [])
+    }, [cargarCarreras])
 
     function handleNueva () {
         setCarreraEditando(null)
@@ -78,6 +87,7 @@ function CarrerasPage () {
         setAbierto(false)
         setCarreraEditando(null)
         cargarCarreras()
+        avisar('Carrera guardada')
     }
 
     function nombreCircuito (id: number) {
@@ -94,19 +104,15 @@ function CarrerasPage () {
         return karting ? karting.modelo : `#${id}`
     }
 
-    // Una carrera se identifica por fecha + torneo + circuito (su clave compuesta)
-    function claveCarrera (fecha: Date, idTorneo: number, idCircuito: number) {
-        return `${fechaApi(fecha)}-${idTorneo}-${idCircuito}`
-    }
-
     async function handleEliminar (carrera: ICarrera) {
         if (!(await confirmar(`¿Eliminar la carrera del ${fecha(carrera.fechaCarrera)}?`, 'Eliminar'))) return
 
         try {
             await deleteCarrera(carrera)
             cargarCarreras()
+            avisar('Carrera eliminada')
         } catch (motivo) {
-            setError(motivo instanceof Error ? motivo.message : 'No se pudo eliminar la carrera')
+            avisar(motivo instanceof Error ? motivo.message : 'No se pudo eliminar la carrera', 'error')
         }
     }
 
@@ -118,6 +124,7 @@ function CarrerasPage () {
         const idCarrera = carreraInscribiendo?.idCarreras
         if (idCarrera !== undefined) setInscripciones((actuales) => [...actuales, idCarrera])
         setCarreraInscribiendo(null)
+        avisar('Te inscribiste en la carrera')
     }
 
     async function handleDesanotarse (idCarrera?: number) {
@@ -127,8 +134,9 @@ function CarrerasPage () {
         try {
             await desanotarseDeCarrera(idCarrera, persona.idPersona)
             setInscripciones((actuales) => actuales.filter((id) => id !== idCarrera))
+            avisar('Te desanotaste de la carrera')
         } catch (motivo) {
-            setError(motivo instanceof Error ? motivo.message : 'No se pudo cancelar la inscripción')
+            avisar(motivo instanceof Error ? motivo.message : 'No se pudo cancelar la inscripción', 'error')
         }
     }
 
@@ -205,29 +213,31 @@ function CarrerasPage () {
                 </Table>
             </TableContainer>
 
-            <CarreraFormDialog
-                abierto={abierto}
-                carrera={carreraEditando}
-                onCerrar={() => setAbierto(false)}
-                onGuardado={handleGuardado}
-            />
-            {persona && (
+            {abierto && (
+                <CarreraFormDialog
+                    carrera={carreraEditando}
+                    onCerrar={() => setAbierto(false)}
+                    onGuardado={handleGuardado}
+                />
+            )}
+            {persona && carreraInscribiendo && (
                 <CarreraInscripcionDialog
-                    abierto={Boolean(carreraInscribiendo)}
                     carrera={carreraInscribiendo}
                     idPersona={persona.idPersona}
                     onCerrar={() => setCarreraInscribiendo(null)}
                     onInscripto={handleInscripto}
                 />
             )}
-            <ResultadosCarreraDialog
-                carrera={carreraResultados}
-                puedeBorrar={puede(persona?.rol.nombre, 'resultados.eliminar')}
-                onCerrar={() => {
-                    setCarreraResultados(null)
-                    cargarCarreras()
-                }}
-            />
+            {carreraResultados && (
+                <ResultadosCarreraDialog
+                    carrera={carreraResultados}
+                    puedeBorrar={puede(persona?.rol.nombre, 'resultados.eliminar')}
+                    onCerrar={() => {
+                        setCarreraResultados(null)
+                        cargarCarreras()
+                    }}
+                />
+            )}
             {dialogo}
         </div>
     )

@@ -1,15 +1,9 @@
 import type { Localidad } from '../types'
 import { localidades as seed } from '../data/mockData'
-import { API_URL, apiFetch, usaMocks } from './httpClient'
+import { API_URL, apiFetch, demora, esObjeto, usaMocks } from './httpClient'
 
 let localidades: Localidad[] = [...seed]
 let siguienteId = localidades.length + 1
-
-const demora = () => new Promise((resolve) => setTimeout(resolve, 300))
-
-function esObjeto(valor: unknown): valor is Record<string, unknown> {
-    return typeof valor === 'object' && valor !== null
-}
 
 function normalizarLocalidad(valor: unknown): Localidad {
     if (

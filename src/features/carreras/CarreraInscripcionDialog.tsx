@@ -4,36 +4,31 @@ import { getKartingsDisponiblesCarrera, inscribirseEnCarrera } from '../../servi
 import type { ICarrera, Karting } from '../../types'
 
 type Props = {
-    abierto: boolean
-    carrera: ICarrera | null
+    carrera: ICarrera
     idPersona: number
     onCerrar: () => void
     onInscripto: () => void
 }
 
-function CarreraInscripcionDialog ({ abierto, carrera, idPersona, onCerrar, onInscripto }: Props) {
+function CarreraInscripcionDialog ({ carrera, idPersona, onCerrar, onInscripto }: Props) {
     const [kartings, setKartings] = useState<Karting[]>([])
     const [kartingId, setKartingId] = useState('')
-    const [cargando, setCargando] = useState(false)
+    const [cargando, setCargando] = useState(carrera.idCarreras !== undefined)
     const [guardando, setGuardando] = useState(false)
     const [error, setError] = useState('')
 
     useEffect(() => {
-        if (!abierto || !carrera || carrera.idCarreras === undefined) return
-
-        setCargando(true)
-        setError('')
-        setKartingId('')
+        if (carrera.idCarreras === undefined) return
         getKartingsDisponiblesCarrera(carrera.idCarreras)
             .then(setKartings)
             .catch((motivo: unknown) => {
                 setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los kartings disponibles')
             })
             .finally(() => setCargando(false))
-    }, [abierto, carrera])
+    }, [carrera])
 
     async function handleConfirmar () {
-        if (!carrera || carrera.idCarreras === undefined || !kartingId) return
+        if (carrera.idCarreras === undefined || !kartingId) return
 
         setGuardando(true)
         setError('')
@@ -48,7 +43,7 @@ function CarreraInscripcionDialog ({ abierto, carrera, idPersona, onCerrar, onIn
     }
 
     return (
-        <Dialog open={abierto} onClose={onCerrar}>
+        <Dialog open onClose={onCerrar}>
             <DialogTitle>Anotarme a la carrera</DialogTitle>
             <DialogContent>
                 <Stack spacing={2} sx={{ mt: 1 }}>

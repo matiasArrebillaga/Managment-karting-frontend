@@ -3,28 +3,21 @@ import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuI
 import { createTorneo, updateTorneo } from '../../services/torneoService'
 import { getTiposLicencia } from '../../services/tipoLicenciaService'
 import type { CreateTorneos, ITorneos, TipoLicencia } from '../../types'
+import { fechaLocal, fechaTexto } from '../../utils/fechas'
 
 type Props = {
-    abierto: boolean
     torneo?: ITorneos | null
     onCerrar: () => void
     onGuardado: () => void
 }
 
-function fechaInput (fecha: Date) {
-    const year = fecha.getFullYear()
-    const month = String(fecha.getMonth() + 1).padStart(2, '0')
-    const day = String(fecha.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
-}
-
-function TorneoFormDialog ({ abierto, torneo, onCerrar, onGuardado }: Props) {
-    const [nombre, setNombre] = useState('')
-    const [descripcion, setDescripcion] = useState('')
-    const [cupoMaximo, setCupoMaximo] = useState('')
-    const [fechaInicio, setFechaInicio] = useState('')
-    const [fechaFin, setFechaFin] = useState('')
-    const [licenciaId, setLicenciaId] = useState('')
+function TorneoFormDialog ({ torneo, onCerrar, onGuardado }: Props) {
+    const [nombre, setNombre] = useState(torneo?.nombre ?? '')
+    const [descripcion, setDescripcion] = useState(torneo?.descripcion ?? '')
+    const [cupoMaximo, setCupoMaximo] = useState(torneo ? String(torneo.cupoMaximo) : '')
+    const [fechaInicio, setFechaInicio] = useState(torneo ? fechaTexto(torneo.fechaInicio) : '')
+    const [fechaFin, setFechaFin] = useState(torneo ? fechaTexto(torneo.fechaFin) : '')
+    const [licenciaId, setLicenciaId] = useState(torneo ? String(torneo.TiposLicencias_idTipoLicencia) : '')
     const [tiposLicencia, setTiposLicencia] = useState<TipoLicencia[]>([])
     const [guardando, setGuardando] = useState(false)
     const [error, setError] = useState('')
@@ -34,31 +27,12 @@ function TorneoFormDialog ({ abierto, torneo, onCerrar, onGuardado }: Props) {
     const puedeGuardar = nombre.trim() !== '' && cupoMaximo !== '' && Number(cupoMaximo) > 0 && fechasValidas && licenciaId !== ''
 
     useEffect(() => {
-        if (!abierto) return
         getTiposLicencia()
             .then(setTiposLicencia)
             .catch((motivo: unknown) => {
                 setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los tipos de licencia')
             })
-    }, [abierto])
-
-    useEffect(() => {
-        if (torneo) {
-            setNombre(torneo.nombre)
-            setDescripcion(torneo.descripcion)
-            setCupoMaximo(String(torneo.cupoMaximo))
-            setFechaInicio(fechaInput(torneo.fechaInicio))
-            setFechaFin(fechaInput(torneo.fechaFin))
-            setLicenciaId(String(torneo.TiposLicencias_idTipoLicencia))
-        } else {
-            setNombre('')
-            setDescripcion('')
-            setCupoMaximo('')
-            setFechaInicio('')
-            setFechaFin('')
-            setLicenciaId('')
-        }
-    }, [torneo, abierto])
+    }, [])
 
     async function handleGuardar () {
         if (!puedeGuardar) {
@@ -75,8 +49,8 @@ function TorneoFormDialog ({ abierto, torneo, onCerrar, onGuardado }: Props) {
                 nombre: nombre.trim(),
                 descripcion: descripcion.trim(),
                 cupoMaximo: Number(cupoMaximo),
-                fechaInicio: new Date(`${fechaInicio}T00:00:00`),
-                fechaFin: new Date(`${fechaFin}T00:00:00`),
+                fechaInicio: fechaLocal(fechaInicio),
+                fechaFin: fechaLocal(fechaFin),
                 TiposLicencias_idTipoLicencia: Number(licenciaId),
             }
             if (editando && torneo?.idTorneos !== undefined) {
@@ -93,7 +67,7 @@ function TorneoFormDialog ({ abierto, torneo, onCerrar, onGuardado }: Props) {
     }
 
     return (
-        <Dialog open={abierto} onClose={onCerrar}>
+        <Dialog open onClose={onCerrar}>
             <DialogTitle>{editando ? 'Editar Torneo' : 'Nuevo Torneo'}</DialogTitle>
             <DialogContent>
                 <Stack spacing={2} sx={{ mt: 1 }}>

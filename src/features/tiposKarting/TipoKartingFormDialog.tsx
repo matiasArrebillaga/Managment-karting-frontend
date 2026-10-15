@@ -5,17 +5,16 @@ import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuI
 import type { TipoKarting, TipoLicencia } from "../../types"
 
 type Props = {
-    abierto: boolean
     tipoKarting?: TipoKarting | null
     onCerrar: () => void
     onGuardado: () => void
 }
 
-function TipoKartingFormDialog({ abierto, tipoKarting, onCerrar, onGuardado }: Props) {
-    const [nombre, setNombre] = useState('')
-    const [descripcion, setDescripcion] = useState('')
-    const [precioHora, setPrecioHora] = useState('')
-    const [tipoLicenciaMinimaId, setTipoLicenciaMinimaId] = useState('')
+function TipoKartingFormDialog({ tipoKarting, onCerrar, onGuardado }: Props) {
+    const [nombre, setNombre] = useState(tipoKarting?.nombre ?? '')
+    const [descripcion, setDescripcion] = useState(tipoKarting?.descripcion ?? '')
+    const [precioHora, setPrecioHora] = useState(tipoKarting ? String(tipoKarting.precioHora) : '')
+    const [tipoLicenciaMinimaId, setTipoLicenciaMinimaId] = useState(tipoKarting ? String(tipoKarting.TiposLicencias_idTipoLicenciaMinima) : '')
     const [tiposLicencia, setTiposLicencia] = useState<TipoLicencia[]>([])
     const [guardando, setGuardando] = useState(false)
     const [error, setError] = useState('')
@@ -23,27 +22,10 @@ function TipoKartingFormDialog({ abierto, tipoKarting, onCerrar, onGuardado }: P
     const editando = Boolean(tipoKarting)
 
     useEffect(() => {
-        if (abierto) {
-            getTiposLicencia()
-                .then((datos) => setTiposLicencia(datos))
-                .catch((motivo) => setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los tipos de licencia'))
-        }
-    }, [abierto])
-
-    useEffect(() => {
-        if (tipoKarting) {
-            setNombre(tipoKarting.nombre)
-            setDescripcion(tipoKarting.descripcion)
-            setPrecioHora(String(tipoKarting.precioHora))
-            setTipoLicenciaMinimaId(String(tipoKarting.TiposLicencias_idTipoLicenciaMinima))
-        } else {
-            setNombre('')
-            setDescripcion('')
-            setPrecioHora('')
-            setTipoLicenciaMinimaId('')
-        }
-        setError('')
-    }, [tipoKarting, abierto])
+        getTiposLicencia()
+            .then((datos) => setTiposLicencia(datos))
+            .catch((motivo) => setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los tipos de licencia'))
+    }, [])
 
     async function handleGuardar() {
         setGuardando(true)
@@ -69,7 +51,7 @@ function TipoKartingFormDialog({ abierto, tipoKarting, onCerrar, onGuardado }: P
     }
 
     return (
-        <Dialog open={abierto} onClose={onCerrar}>
+        <Dialog open onClose={onCerrar}>
             <DialogTitle>{editando ? 'Editar Tipo de Karting' : 'Nuevo Tipo de Karting'}</DialogTitle>
             <DialogContent>
                 <Stack spacing={2} sx={{ mt: 1 }}>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { createCircuito, updateCircuito } from "../../services/circuitoService"
 import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Stack, TextField } from "@mui/material"
 import type { Circuito } from "../../types"
@@ -6,16 +6,15 @@ import type { Circuito } from "../../types"
 const DIFICULTADES = ['Facil', 'Media', 'Dificil']
 
 type Props = {
-    abierto: boolean
     circuito?: Circuito | null
     onCerrar: () => void
     onGuardado: () => void
 }
 
-function CircuitoFormDialog({ abierto, circuito, onCerrar, onGuardado }: Props) {
-    const [distancia, setDistancia] = useState('')
-    const [dificultad, setDificultad] = useState('')
-    const [maximo, setMaximo] = useState('')
+function CircuitoFormDialog({ circuito, onCerrar, onGuardado }: Props) {
+    const [distancia, setDistancia] = useState(circuito ? String(circuito.distancia) : '')
+    const [dificultad, setDificultad] = useState(circuito?.dificultad ?? '')
+    const [maximo, setMaximo] = useState(circuito ? String(circuito.maximo) : '')
     const [guardando, setGuardando] = useState(false)
     const [error, setError] = useState('')
 
@@ -25,18 +24,6 @@ function CircuitoFormDialog({ abierto, circuito, onCerrar, onGuardado }: Props) 
         && dificultad !== ''
         && Number.isInteger(Number(maximo))
         && Number(maximo) > 0
-
-    useEffect(() => {
-        if (circuito) {
-            setDistancia(String(circuito.distancia))
-            setDificultad(circuito.dificultad)
-            setMaximo(String(circuito.maximo))
-        } else {
-            setDistancia('')
-            setDificultad('')
-            setMaximo('')
-        }
-    }, [circuito, abierto])
 
     async function handleGuardar() {
         if (!puedeGuardar) {
@@ -65,7 +52,7 @@ function CircuitoFormDialog({ abierto, circuito, onCerrar, onGuardado }: Props) 
     }
 
     return (
-        <Dialog open={abierto} onClose={onCerrar}>
+        <Dialog open onClose={onCerrar}>
             <DialogTitle>{editando ? 'Editar Circuito' : 'Nuevo Circuito'}</DialogTitle>
             <DialogContent>
                 <Stack spacing={2} sx={{ mt: 1 }}>

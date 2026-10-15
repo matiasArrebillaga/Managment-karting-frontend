@@ -1,7 +1,8 @@
 import type { CreatePersonaTorneo, CreateTorneos, IInscripcion, ITorneos, Persona, UpdateTorneos } from '../types'
 import { torneos as seed } from '../data/mockData'
 import { getCarreras } from './carreraService'
-import { apiFetch, usaMocks } from './httpClient'
+import { apiFetch, demora, esObjeto, usaMocks } from './httpClient'
+import { fechaLocal, fechaTexto } from '../utils/fechas'
 import { getPersonas } from './personaService'
 
 let torneos: ITorneos[] = [...seed]
@@ -15,12 +16,6 @@ type InscripcionGuardada = {
     idPersona?: number
     fecha_inscripcion?: Date | string
     hora_inscripcion?: Date | string
-}
-
-const demora = () => new Promise((resolve) => setTimeout(resolve, 300))
-
-function esObjeto(valor: unknown): valor is Record<string, unknown> {
-    return typeof valor === 'object' && valor !== null
 }
 
 function comoFecha(valor?: Date | string): Date {
@@ -42,8 +37,8 @@ function normalizarTorneo(valor: unknown): ITorneos {
         throw new Error('La API devolvió un torneo con un formato inválido')
     }
 
-    const fechaInicio = new Date(`${valor.fechaInicio.slice(0, 10)}T00:00:00`)
-    const fechaFin = new Date(`${valor.fechaFin.slice(0, 10)}T00:00:00`)
+    const fechaInicio = fechaLocal(valor.fechaInicio)
+    const fechaFin = fechaLocal(valor.fechaFin)
     if (Number.isNaN(fechaInicio.getTime()) || Number.isNaN(fechaFin.getTime())) {
         throw new Error('La API devolvió fechas de torneo inválidas')
     }
@@ -89,14 +84,10 @@ function datosTorneoApi(datos: CreateTorneos): Record<string, string | number> {
         nombre: datos.nombre,
         descripcion: datos.descripcion,
         cupoMaximo: datos.cupoMaximo,
-        fechaInicio: fechaApi(datos.fechaInicio),
-        fechaFin: fechaApi(datos.fechaFin),
+        fechaInicio: fechaTexto(datos.fechaInicio),
+        fechaFin: fechaTexto(datos.fechaFin),
         TiposLicencias_idTipoLicencia: datos.TiposLicencias_idTipoLicencia,
     }
-}
-
-function fechaApi(fecha: Date): string {
-    return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`
 }
 
 function obtenerInscripciones(): IInscripcion[] {
@@ -171,8 +162,8 @@ export async function updateTorneo(id: number, datos: UpdateTorneos): Promise<IT
             method: 'PATCH',
             body: JSON.stringify({
                 ...datos,
-                ...(datos.fechaInicio ? { fechaInicio: fechaApi(datos.fechaInicio) } : {}),
-                ...(datos.fechaFin ? { fechaFin: fechaApi(datos.fechaFin) } : {}),
+                ...(datos.fechaInicio ? { fechaInicio: fechaTexto(datos.fechaInicio) } : {}),
+                ...(datos.fechaFin ? { fechaFin: fechaTexto(datos.fechaFin) } : {}),
             }),
         })
         return normalizarTorneo(await response.json())

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Alert, MenuItem, TextField } from '@mui/material'
 import { useAuth } from '../../context/AuthContext'
@@ -12,25 +12,11 @@ import {
 import { getTiposLicencia } from '../../services/tipoLicenciaService'
 import type { ITorneos, TipoLicencia } from '../../types'
 import TorneoFormDialog from './TorneoFormDialog'
+import { CLASE_ESTADO_TORNEO, estadoTorneo } from './estadoTorneo'
 import { puede } from '../../permisos'
 import { useConfirmar } from '../../components/useConfirmar'
+import { useAviso } from '../../context/AvisoContext'
 import { fecha } from '../../utils/formato'
-
-export function estadoTorneo (torneo: ITorneos) {
-    const hoy = new Date()
-    hoy.setHours(0, 0, 0, 0)
-    const fechaInicio = new Date(torneo.fechaInicio)
-    const fechaFin = new Date(torneo.fechaFin)
-    fechaInicio.setHours(0, 0, 0, 0)
-    fechaFin.setHours(0, 0, 0, 0)
-
-    if (fechaFin < hoy) return 'Terminado'
-    if (fechaInicio > hoy) return 'Próximo'
-    return 'En curso'
-}
-
-// color de cada estado: el mismo en la lista, el detalle y el historial
-export const CLASE_ESTADO_TORNEO: Record<string, string> = { 'Próximo': 'ok', 'En curso': 'info', 'Terminado': '' }
 
 // etiqueta que ve el usuario -> valor que espera GET /api/torneos?estado=
 const ESTADOS = [
@@ -42,6 +28,7 @@ const ESTADOS = [
 function TorneosPage () {
     const { persona } = useAuth()
     const { confirmar, dialogo } = useConfirmar()
+    const avisar = useAviso()
     const [torneos, setTorneos] = useState<ITorneos[]>([])
     const [torneosAnotados, setTorneosAnotados] = useState<number[]>([])
     const [inscriptosPorTorneo, setInscriptosPorTorneo] = useState<Record<number, number>>({})
@@ -59,9 +46,8 @@ function TorneosPage () {
     const puedeAnotarse = puede(persona?.rol.nombre, 'inscripciones.anotarse')
     const puedeEliminar = puede(persona?.rol.nombre, 'torneos.eliminar')
 
-    function cargarTorneos () {
-        setCargando(true)
-        setError('')
+    // se recrea cuando cambian los filtros o la persona, y eso dispara el efecto de recarga
+    const cargarTorneos = useCallback(() => {
         Promise.all([
             getTorneos({
                 estado: filtroEstado || undefined,
@@ -75,16 +61,17 @@ function TorneosPage () {
                 setTorneos(datosTorneos)
                 setTorneosAnotados(resumen.torneosAnotados)
                 setInscriptosPorTorneo(resumen.inscriptosPorTorneo)
+                setError('')
             })
             .catch((motivo: unknown) => {
                 setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los torneos')
             })
             .finally(() => setCargando(false))
-    }
+    }, [filtroEstado, filtroLicencia, persona, puedeVerInscriptos])
 
     useEffect(() => {
         cargarTorneos()
-    }, [filtroEstado, filtroLicencia])
+    }, [cargarTorneos])
 
     useEffect(() => {
         getTiposLicencia().then(setTiposLicencia).catch(console.error)
@@ -108,6 +95,7 @@ function TorneosPage () {
         setAbierto(false)
         setTorneoEditando(null)
         cargarTorneos()
+        avisar('Torneo guardado')
     }
 
     async function handleEliminar (torneo: ITorneos) {
@@ -116,8 +104,9 @@ function TorneosPage () {
         try {
             await deleteTorneo(torneo.idTorneos)
             cargarTorneos()
+            avisar('Torneo eliminado')
         } catch (motivo) {
-            setError(motivo instanceof Error ? motivo.message : 'No se pudo eliminar el torneo')
+            avisar(motivo instanceof Error ? motivo.message : 'No se pudo eliminar el torneo', 'error')
         }
     }
 
@@ -125,7 +114,6 @@ function TorneosPage () {
         if (!persona) return
 
         setInscripcionPendiente(idTorneo)
-        setError('')
         try {
             await inscribirseATorneo(idTorneo, persona.idPersona)
             setTorneosAnotados((actuales) => [...actuales, idTorneo])
@@ -133,8 +121,9 @@ function TorneosPage () {
                 ...actuales,
                 [idTorneo]: (actuales[idTorneo] ?? 0) + 1,
             }))
+            avisar('Te anotaste en el torneo')
         } catch (motivo) {
-            setError(motivo instanceof Error ? motivo.message : 'No se pudo completar la inscripción')
+            avisar(motivo instanceof Error ? motivo.message : 'No se pudo completar la inscripción', 'error')
         } finally {
             setInscripcionPendiente(null)
         }
@@ -143,7 +132,6 @@ function TorneosPage () {
     async function handleDesanotarse (idTorneo: number) {
         if (!persona || !(await confirmar('¿Desanotarte de este torneo?', 'Desanotarme'))) return
 
-        setError('')
         try {
             await desanotarseDeTorneo(idTorneo, persona.idPersona)
             setTorneosAnotados((actuales) => actuales.filter((id) => id !== idTorneo))
@@ -151,8 +139,9 @@ function TorneosPage () {
                 ...actuales,
                 [idTorneo]: Math.max(0, (actuales[idTorneo] ?? 0) - 1),
             }))
+            avisar('Te desanotaste del torneo')
         } catch (motivo) {
-            setError(motivo instanceof Error ? motivo.message : 'No se pudo cancelar la inscripción')
+            avisar(motivo instanceof Error ? motivo.message : 'No se pudo cancelar la inscripción', 'error')
         }
     }
 
@@ -284,9 +273,8 @@ function TorneosPage () {
                 </div>
             )}
 
-            {puedeGestionar && (
+            {puedeGestionar && abierto && (
                 <TorneoFormDialog
-                    abierto={abierto}
                     torneo={torneoEditando}
                     onCerrar={() => setAbierto(false)}
                     onGuardado={handleGuardado}

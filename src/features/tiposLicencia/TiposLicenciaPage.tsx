@@ -7,10 +7,12 @@ import { useAuth } from '../../context/AuthContext'
 import { puede } from '../../permisos'
 import FilaVacia from '../../components/FilaVacia'
 import { useConfirmar } from '../../components/useConfirmar'
+import { useAviso } from '../../context/AvisoContext'
 
 function TiposLicenciaPage() {
     const { persona } = useAuth()
     const { confirmar, dialogo } = useConfirmar()
+    const avisar = useAviso()
     const [tiposLicencia, setTiposLicencia] = useState<TipoLicencia[]>([])
     const [cargando, setCargando] = useState(true)
     const [error, setError] = useState('')
@@ -18,10 +20,11 @@ function TiposLicenciaPage() {
     const [tipoEditando, setTipoEditando] = useState<TipoLicencia | null>(null)
 
     function cargarTiposLicencia() {
-        setCargando(true)
-        setError('')
         getTiposLicencia()
-            .then((datos) => setTiposLicencia(datos))
+            .then((datos) => {
+                setTiposLicencia(datos)
+                setError('')
+            })
             .catch((motivo: unknown) => {
                 setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los tipos de licencia')
             })
@@ -46,6 +49,7 @@ function TiposLicenciaPage() {
         setAbierto(false)
         setTipoEditando(null)
         cargarTiposLicencia()
+        avisar('Tipo de licencia guardado')
     }
 
     async function handleEliminar(tipo: TipoLicencia) {
@@ -54,8 +58,9 @@ function TiposLicenciaPage() {
         try {
             await deleteTipoLicencia(tipo.idTipoLicencia)
             cargarTiposLicencia()
+            avisar('Tipo de licencia eliminado')
         } catch (motivo) {
-            setError(motivo instanceof Error ? motivo.message : 'No se pudo eliminar el tipo de licencia')
+            avisar(motivo instanceof Error ? motivo.message : 'No se pudo eliminar el tipo de licencia', 'error')
         }
     }
 
@@ -105,12 +110,13 @@ function TiposLicenciaPage() {
                 </Table>
             </TableContainer>
 
-            <TipoLicenciaFormDialog
-                abierto={abierto}
-                tipoLicencia={tipoEditando}
-                onCerrar={() => setAbierto(false)}
-                onGuardado={handleGuardado}
-            />
+            {abierto && (
+                <TipoLicenciaFormDialog
+                    tipoLicencia={tipoEditando}
+                    onCerrar={() => setAbierto(false)}
+                    onGuardado={handleGuardado}
+                />
+            )}
             {dialogo}
         </div>
     )

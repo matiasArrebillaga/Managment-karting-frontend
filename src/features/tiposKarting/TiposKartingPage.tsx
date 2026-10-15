@@ -8,11 +8,13 @@ import { useAuth } from '../../context/AuthContext'
 import { puede } from '../../permisos'
 import FilaVacia from '../../components/FilaVacia'
 import { useConfirmar } from '../../components/useConfirmar'
+import { useAviso } from '../../context/AvisoContext'
 import { pesos } from '../../utils/formato'
 
 function TiposKartingPage() {
     const { persona } = useAuth()
     const { confirmar, dialogo } = useConfirmar()
+    const avisar = useAviso()
     const [tiposKarting, setTiposKarting] = useState<TipoKarting[]>([])
     const [tiposLicencia, setTiposLicencia] = useState<TipoLicencia[]>([])
     const [cargando, setCargando] = useState(true)
@@ -21,10 +23,9 @@ function TiposKartingPage() {
     const [tipoEditando, setTipoEditando] = useState<TipoKarting | null>(null)
 
     function cargarTiposKarting() {
-        setCargando(true)
-        setError('')
         Promise.all([getTiposKarting(), getTiposLicencia()])
             .then(([datosTipos, datosLicencia]) => {
+                setError('')
                 setTiposKarting(datosTipos)
                 setTiposLicencia(datosLicencia)
             })
@@ -56,6 +57,7 @@ function TiposKartingPage() {
         setAbierto(false)
         setTipoEditando(null)
         cargarTiposKarting()
+        avisar('Tipo de karting guardado')
     }
 
     async function handleEliminar(tipo: TipoKarting) {
@@ -64,8 +66,9 @@ function TiposKartingPage() {
         try {
             await deleteTipoKarting(tipo.idTiposKarting)
             cargarTiposKarting()
+            avisar('Tipo de karting eliminado')
         } catch (motivo) {
-            setError(motivo instanceof Error ? motivo.message : 'No se pudo eliminar el tipo de karting')
+            avisar(motivo instanceof Error ? motivo.message : 'No se pudo eliminar el tipo de karting', 'error')
         }
     }
 
@@ -117,12 +120,13 @@ function TiposKartingPage() {
                 </Table>
             </TableContainer>
 
-            <TipoKartingFormDialog
-                abierto={abierto}
-                tipoKarting={tipoEditando}
-                onCerrar={() => setAbierto(false)}
-                onGuardado={handleGuardado}
-            />
+            {abierto && (
+                <TipoKartingFormDialog
+                    tipoKarting={tipoEditando}
+                    onCerrar={() => setAbierto(false)}
+                    onGuardado={handleGuardado}
+                />
+            )}
             {dialogo}
         </div>
     )

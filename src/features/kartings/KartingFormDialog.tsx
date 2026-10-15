@@ -7,18 +7,17 @@ import type { Karting, TipoKarting } from "../../types"
 const ESTADOS = ['Disponible', 'Mantenimiento']
 
 type Props = {
-    abierto: boolean
     karting?: Karting | null
     onCerrar: () => void
     onGuardado: () => void
 }
 
-function KartingFormDialog({ abierto, karting, onCerrar, onGuardado }: Props) {
-    const [categoria, setCategoria] = useState('')
-    const [modelo, setModelo] = useState('')
-    const [estado, setEstado] = useState('')
-    const [fechaAdquisicion, setFechaAdquisicion] = useState('')
-    const [tipoKartingId, setTipoKartingId] = useState('')
+function KartingFormDialog({ karting, onCerrar, onGuardado }: Props) {
+    const [categoria, setCategoria] = useState(karting?.categoria ?? '')
+    const [modelo, setModelo] = useState(karting?.modelo ?? '')
+    const [estado, setEstado] = useState(karting?.estado ?? '')
+    const [fechaAdquisicion, setFechaAdquisicion] = useState(karting?.fechaAdquisicion ?? '')
+    const [tipoKartingId, setTipoKartingId] = useState(karting ? String(karting.TiposKarting_idTiposKarting) : '')
     const [tiposKarting, setTiposKarting] = useState<TipoKarting[]>([])
     const [guardando, setGuardando] = useState(false)
     const [error, setError] = useState('')
@@ -31,30 +30,12 @@ function KartingFormDialog({ abierto, karting, onCerrar, onGuardado }: Props) {
         && Number(tipoKartingId) > 0
 
     useEffect(() => {
-        if (abierto) {
-            getTiposKarting()
-                .then(setTiposKarting)
-                .catch((motivo: unknown) => {
-                    setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los tipos de karting')
-                })
-        }
-    }, [abierto])
-
-    useEffect(() => {
-        if (karting) {
-            setCategoria(karting.categoria)
-            setModelo(karting.modelo)
-            setEstado(karting.estado)
-            setFechaAdquisicion(karting.fechaAdquisicion)
-            setTipoKartingId(String(karting.TiposKarting_idTiposKarting))
-        } else {
-            setCategoria('')
-            setModelo('')
-            setEstado('')
-            setFechaAdquisicion('')
-            setTipoKartingId('')
-        }
-    }, [karting, abierto])
+        getTiposKarting()
+            .then(setTiposKarting)
+            .catch((motivo: unknown) => {
+                setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los tipos de karting')
+            })
+    }, [])
 
     async function handleGuardar() {
         if (!puedeGuardar) {
@@ -85,7 +66,7 @@ function KartingFormDialog({ abierto, karting, onCerrar, onGuardado }: Props) {
     }
 
     return (
-        <Dialog open={abierto} onClose={onCerrar}>
+        <Dialog open onClose={onCerrar}>
             <DialogTitle>{editando ? 'Editar Karting' : 'Nuevo Karting'}</DialogTitle>
             <DialogContent>
                 <Stack spacing={2} sx={{ mt: 1 }}>

@@ -1,11 +1,9 @@
 import type { DatosRegistro, Persona, Rol, RolDetalle } from "../types"
 import { personas as seed, roles as rolesSeed } from "../data/mockData"
-import { apiFetch, usaMocks } from "./httpClient"
+import { apiFetch, demora, usaMocks } from "./httpClient"
 
 let personas: Persona[] = [...seed]
 let siguienteId = personas.length + 1
-
-const demora = () => new Promise((resolve) => setTimeout(resolve, 300))
 
 // Sin contraseña: en una edición vacía significa "no cambiarla"
 export type DatosPersona = Omit<DatosRegistro, 'contraseña'> & { contraseña?: string }

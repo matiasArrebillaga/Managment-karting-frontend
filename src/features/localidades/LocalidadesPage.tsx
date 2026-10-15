@@ -5,25 +5,27 @@ import type { Localidad } from '../../types'
 import LocalidadFormDialog from './LocalidadFormDialog'
 import FilaVacia from '../../components/FilaVacia'
 import { useConfirmar } from '../../components/useConfirmar'
+import { useAviso } from '../../context/AvisoContext'
 
 function LocalidadesPage() {
     const { confirmar, dialogo } = useConfirmar()
+    const avisar = useAviso()
     const [localidades, setLocalidades] = useState<Localidad[]>([])
     const [cargando, setCargando] = useState(true)
     const [error, setError] = useState('')
     const [abierto, setAbierto] = useState(false)
     const [localidadEditando, setLocalidadEditando] = useState<Localidad | null>(null)
 
-    async function cargarLocalidades() {
-        setCargando(true)
-        setError('')
-        try {
-            setLocalidades(await getLocalidades())
-        } catch (motivo) {
-            setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar las localidades')
-        } finally {
-            setCargando(false)
-        }
+    function cargarLocalidades() {
+        getLocalidades()
+            .then((datos) => {
+                setLocalidades(datos)
+                setError('')
+            })
+            .catch((motivo: unknown) => {
+                setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar las localidades')
+            })
+            .finally(() => setCargando(false))
     }
 
     useEffect(() => {
@@ -44,6 +46,7 @@ function LocalidadesPage() {
         setAbierto(false)
         setLocalidadEditando(null)
         cargarLocalidades()
+        avisar('Localidad guardada')
     }
 
     async function handleEliminar(localidad: Localidad) {
@@ -52,8 +55,9 @@ function LocalidadesPage() {
         try {
             await deleteLocalidad(localidad.idLocalidades)
             cargarLocalidades()
+            avisar('Localidad eliminada')
         } catch (motivo) {
-            setError(motivo instanceof Error ? motivo.message : 'No se pudo eliminar la localidad')
+            avisar(motivo instanceof Error ? motivo.message : 'No se pudo eliminar la localidad', 'error')
         }
     }
 
@@ -97,12 +101,13 @@ function LocalidadesPage() {
                 </Table>
             </TableContainer>
 
-            <LocalidadFormDialog
-                abierto={abierto}
-                localidad={localidadEditando}
-                onCerrar={() => setAbierto(false)}
-                onGuardado={handleGuardado}
-            />
+            {abierto && (
+                <LocalidadFormDialog
+                    localidad={localidadEditando}
+                    onCerrar={() => setAbierto(false)}
+                    onGuardado={handleGuardado}
+                />
+            )}
             {dialogo}
         </div>
     )

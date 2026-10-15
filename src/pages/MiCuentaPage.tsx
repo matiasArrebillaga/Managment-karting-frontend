@@ -9,6 +9,7 @@ import { getMisReservas } from "../services/reservaService";
 import { getMisTorneos } from "../services/torneoService";
 import type { Circuito, ICarrera, IReserva, ITorneos, Karting } from "../types";
 import { fecha as fechaCorta, hora, pesos } from "../utils/formato";
+import { fechaLocal } from "../utils/fechas";
 
 function inicioDelDia (fecha: Date): Date {
     return new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
@@ -61,7 +62,7 @@ function MiCuentaPage () {
         return kartings.find((karting) => karting.idKartings === id)?.modelo ?? `Kart #${id}`;
     }
 
-    const vencimiento = licencia ? new Date(`${licencia.fechaVencimiento}T00:00:00`) : null;
+    const vencimiento = licencia ? fechaLocal(licencia.fechaVencimiento) : null;
     const vigente = vencimiento !== null && vencimiento >= inicioDelDia(new Date());
 
     return (

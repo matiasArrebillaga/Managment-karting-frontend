@@ -18,6 +18,7 @@ const PERMISOS = {
     'inscripciones.verTodas': ['ADMIN', 'EMPLEADO'],
     'inscripciones.anotarse': ['CLIENTE', 'EMPLEADO'],
     'reservas.verTodas': ['ADMIN', 'EMPLEADO'],
+    'personas.gestionar': ['ADMIN'],
 } satisfies Record<string, Rol[]>
 
 export type Permiso = keyof typeof PERMISOS

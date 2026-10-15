@@ -4,17 +4,16 @@ import { CalendarDays } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { puede } from "../permisos";
 import { getCarreras } from "../services/carreraService";
+import { getCircuitos } from "../services/circuitoService";
 import { getKartings } from "../services/kartingService";
+import { getPersonas } from "../services/personaService";
 import { getReservasDelDia } from "../services/reservaService";
-import type { ICarrera, IReserva, Karting } from "../types";
+import { getTorneos } from "../services/torneoService";
+import type { Circuito, ICarrera, IReserva, ITorneos, Karting, Persona } from "../types";
+import { hora } from "../utils/formato";
 
 function inicioDelDia (fecha: Date): Date {
     return new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
-}
-
-function hora (fecha: Date | string): string {
-    if (typeof fecha === "string") return fecha.slice(0, 5);
-    return `${String(fecha.getHours()).padStart(2, "0")}:${String(fecha.getMinutes()).padStart(2, "0")}`;
 }
 
 function estadoCarrera (carrera: ICarrera, ahora: Date): string {
@@ -34,23 +33,48 @@ function Dashboard () {
     const [carreras, setCarreras] = useState<ICarrera[]>([]);
     const [reservas, setReservas] = useState<IReserva[]>([]);
     const [kartings, setKartings] = useState<Karting[]>([]);
+    const [circuitos, setCircuitos] = useState<Circuito[]>([]);
+    const [torneos, setTorneos] = useState<ITorneos[]>([]);
+    const [personas, setPersonas] = useState<Persona[]>([]);
     const [error, setError] = useState("");
 
     useEffect(() => {
         if (!esStaff) return;
         const dia = inicioDelDia(new Date());
-        Promise.all([getCarreras(), getReservasDelDia(dia), getKartings()])
-            .then(([datosCarreras, datosReservas, datosKartings]) => {
+        Promise.all([getCarreras(), getReservasDelDia(dia), getKartings(), getCircuitos(), getTorneos(), getPersonas()])
+            .then(([datosCarreras, datosReservas, datosKartings, datosCircuitos, datosTorneos, datosPersonas]) => {
                 setCarreras(datosCarreras
                     .filter((carrera) => carrera.fechaCarrera.getTime() === dia.getTime())
                     .sort((a, b) => a.horaInicio.getTime() - b.horaInicio.getTime()));
                 setReservas([...datosReservas].sort((a, b) => hora(a.horaInicio).localeCompare(hora(b.horaInicio))));
                 setKartings(datosKartings);
+                setCircuitos(datosCircuitos);
+                setTorneos(datosTorneos);
+                setPersonas(datosPersonas);
             })
             .catch((err: Error) => setError(err.message));
     }, [esStaff]);
 
     if (!esStaff) return <Navigate to="/mi-cuenta" replace />;
+
+    // si el catálogo no trae el registro, queda el número para no mostrar un hueco
+    function nombreTorneo (id: number) {
+        return torneos.find((torneo) => torneo.idTorneos === id)?.nombre ?? `Torneo #${id}`;
+    }
+
+    function nombreCircuito (id: number) {
+        const circuito = circuitos.find((item) => item.idCircuitos === id);
+        return circuito ? `Circuito ${id} (${circuito.distancia} m)` : `Circuito #${id}`;
+    }
+
+    function nombreKarting (id: number) {
+        return kartings.find((karting) => karting.idKartings === id)?.modelo ?? `Kart #${id}`;
+    }
+
+    function nombrePersona (id: number) {
+        const titular = personas.find((item) => item.idPersona === id);
+        return titular ? `${titular.nombre} ${titular.apellido}` : `Persona #${id}`;
+    }
 
     return (
         <div className="page">
@@ -83,8 +107,8 @@ function Dashboard () {
                                 <div className="row" key={`${carrera.Torneos_idTorneos}-${carrera.Circuitos_idCircuitos}`}>
                                     <time>{hora(carrera.horaInicio)}</time>
                                     <div>
-                                        Torneo #{carrera.Torneos_idTorneos}
-                                        <small>Circuito #{carrera.Circuitos_idCircuitos} · {carrera.kartings?.length ?? 0} kartings</small>
+                                        {nombreTorneo(carrera.Torneos_idTorneos)}
+                                        <small>{nombreCircuito(carrera.Circuitos_idCircuitos)} · {carrera.kartings?.length ?? 0} kartings</small>
                                     </div>
                                     <span className={`tag ${CLASE_ESTADO[estado]}`}>{estado}</span>
                                 </div>
@@ -103,8 +127,8 @@ function Dashboard () {
                             <div className="row" key={reserva.idReservas}>
                                 <time>{hora(reserva.horaInicio)}</time>
                                 <div>
-                                    Kart #{reserva.Kartings_idKartings}
-                                    <small>Circuito #{reserva.Circuitos_idCircuitos} · hasta {hora(reserva.horaFin)}</small>
+                                    {nombrePersona(reserva.Personas_idPersona)}
+                                    <small>{nombreKarting(reserva.Kartings_idKartings)} · {nombreCircuito(reserva.Circuitos_idCircuitos)} · hasta {hora(reserva.horaFin)}</small>
                                 </div>
                                 <span />
                             </div>

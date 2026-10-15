@@ -45,7 +45,7 @@ const paleta = {
   divider: 'rgba(255, 255, 255, 0.08)',
 }
 
-// En xs (< 600px) los Dialog van a pantalla completa.
+// En xs (< 600px) los Dialog van a pantalla completa; desde sm todos tienen el mismo ancho.
 const theme = createTheme({
   cssVariables: true,
   palette: paleta,
@@ -81,7 +81,7 @@ const theme = createTheme({
         head: ({ theme }) => ({
           color: theme.vars.palette.text.secondary,
           fontFamily: "'Geist Mono', Consolas, monospace",
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: 500,
           letterSpacing: '0.05em',
           textTransform: 'uppercase',
@@ -89,6 +89,7 @@ const theme = createTheme({
       },
     },
     MuiDialog: {
+      defaultProps: { fullWidth: true, maxWidth: 'sm' },
       styleOverrides: {
         paper: ({ theme }) => ({
           [theme.breakpoints.down('sm')]: {

@@ -6,6 +6,7 @@ import { getKartings } from '../../services/kartingService'
 import { getTiposKarting } from '../../services/tipoKartingService'
 import { getPersonas } from '../../services/personaService'
 import type { Circuito, CreateReservaInput, IReserva, Karting, Persona, TipoKarting } from '../../types'
+import { pesos } from '../../utils/formato'
 
 export type ReservaFormProps = {
     reserva?: IReserva | null
@@ -16,7 +17,7 @@ export type ReservaFormProps = {
     onCancelar?: () => void
 }
 
-type Campo = 'fecha' | 'horaFin' | 'circuito' | 'karting'
+type Campo = 'fecha' | 'horaInicio' | 'horaFin' | 'circuito' | 'karting'
 type ErroresCampo = Partial<Record<Campo, string>>
 
 function fechaInput (fecha: Date | string) {
@@ -50,16 +51,10 @@ function validar (fechaReserva: string, horaInicio: string, horaFin: string, cir
     else if (fechaReserva < fechaMinimaInput()) errores.fecha = 'La fecha de reserva no puede ser anterior a hoy'
 
     const formato = /^\d{2}:\d{2}$/
-    if (!formato.test(horaInicio) || !formato.test(horaFin)) {
-        errores.horaFin = 'Ingresá la hora de inicio y la de fin (HH:MM)'
-    } else if (
-        minutosDeHora(horaInicio) >= 24 * 60
-        || minutosDeHora(horaFin) >= 24 * 60
-        || Number(horaInicio.slice(3)) >= 60
-        || Number(horaFin.slice(3)) >= 60
-    ) {
-        errores.horaFin = 'Ingresá horarios válidos en formato HH:MM'
-    } else {
+    const horaValida = (valor: string) => formato.test(valor) && minutosDeHora(valor) < 24 * 60 && Number(valor.slice(3)) < 60
+    if (!horaValida(horaInicio)) errores.horaInicio = 'Ingresá una hora de inicio válida (HH:MM)'
+    if (!horaValida(horaFin)) errores.horaFin = 'Ingresá una hora de fin válida (HH:MM)'
+    if (!errores.horaInicio && !errores.horaFin) {
         const duracion = minutosDeHora(horaFin) - minutosDeHora(horaInicio)
         if (duracion <= 0) errores.horaFin = 'La hora de fin debe ser posterior a la hora de inicio'
         else if (duracion % 60 !== 0) errores.horaFin = 'La duración debe ser de horas enteras (1 h, 2 h, 3 h...)'
@@ -119,13 +114,6 @@ function ReservaForm ({ reserva, idPersonaActual, nombrePersonaActual, puedeGest
         }
     }, [puedeGestionar, reserva])
 
-    // al cambiar fecha u horario se vuelve a elegir circuito y karting, como antes
-    function cambiarHorario (setter: (valor: string) => void, valor: string) {
-        setter(valor)
-        setCircuitoId('')
-        setKartingId('')
-    }
-
     async function handleGuardar () {
         const nuevosErrores = validar(fechaReserva, horaInicio, horaFin, circuitoId, kartingId)
         setErrores(nuevosErrores)
@@ -184,7 +172,7 @@ function ReservaForm ({ reserva, idPersonaActual, nombrePersonaActual, puedeGest
                 type="date"
                 slotProps={{ htmlInput: { min: fechaMinimaInput() }, inputLabel: { shrink: true } }}
                 value={fechaReserva}
-                onChange={(event) => cambiarHorario(setFechaReserva, event.target.value)}
+                onChange={(event) => setFechaReserva(event.target.value)}
                 error={Boolean(errores.fecha)}
                 helperText={errores.fecha}
                 required
@@ -196,7 +184,9 @@ function ReservaForm ({ reserva, idPersonaActual, nombrePersonaActual, puedeGest
                     type="time"
                     slotProps={{ htmlInput: { step: 3600 }, inputLabel: { shrink: true } }}
                     value={horaInicio}
-                    onChange={(event) => cambiarHorario(setHoraInicio, event.target.value)}
+                    onChange={(event) => setHoraInicio(event.target.value)}
+                    error={Boolean(errores.horaInicio)}
+                    helperText={errores.horaInicio}
                     required
                     fullWidth
                 />
@@ -205,7 +195,7 @@ function ReservaForm ({ reserva, idPersonaActual, nombrePersonaActual, puedeGest
                     type="time"
                     slotProps={{ htmlInput: { step: 3600 }, inputLabel: { shrink: true } }}
                     value={horaFin}
-                    onChange={(event) => cambiarHorario(setHoraFin, event.target.value)}
+                    onChange={(event) => setHoraFin(event.target.value)}
                     error={Boolean(errores.horaFin)}
                     helperText={errores.horaFin}
                     required
@@ -218,7 +208,7 @@ function ReservaForm ({ reserva, idPersonaActual, nombrePersonaActual, puedeGest
                 <>
                     <TextField
                         select
-                        label="Circuito disponible"
+                        label="Circuito"
                         value={circuitoId}
                         onChange={(event) => setCircuitoId(event.target.value)}
                         error={Boolean(errores.circuito)}
@@ -255,7 +245,7 @@ function ReservaForm ({ reserva, idPersonaActual, nombrePersonaActual, puedeGest
             {error && <Alert severity="error">{error}</Alert>}
             <div className="form-pie">
                 <span className="small">
-                    Monto: <strong className="mono">{montoEstimado !== null ? `$${montoEstimado.toLocaleString('es-AR')}` : '-'}</strong>
+                    Monto: <strong className="mono">{montoEstimado !== null ? pesos(montoEstimado) : '-'}</strong>
                 </span>
                 <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
                     {onCancelar && <Button onClick={onCancelar}>Cancelar</Button>}

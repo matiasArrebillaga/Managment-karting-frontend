@@ -2,22 +2,16 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getCarrerasTorneo } from "../services/carreraService";
+import { getCircuitos } from "../services/circuitoService";
+import { getKartings } from "../services/kartingService";
 import { getMisLicencias, type MiLicencia } from "../services/licenciaService";
 import { getMisReservas } from "../services/reservaService";
 import { getMisTorneos } from "../services/torneoService";
-import type { ICarrera, IReserva, ITorneos } from "../types";
+import type { Circuito, ICarrera, IReserva, ITorneos, Karting } from "../types";
+import { fecha as fechaCorta, hora, pesos } from "../utils/formato";
 
 function inicioDelDia (fecha: Date): Date {
     return new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
-}
-
-function hora (fecha: Date | string): string {
-    if (typeof fecha === "string") return fecha.slice(0, 5);
-    return `${String(fecha.getHours()).padStart(2, "0")}:${String(fecha.getMinutes()).padStart(2, "0")}`;
-}
-
-function fechaCorta (fecha: Date): string {
-    return fecha.toLocaleDateString("es-AR");
 }
 
 function MiCuentaPage () {
@@ -26,6 +20,8 @@ function MiCuentaPage () {
     const [torneos, setTorneos] = useState<ITorneos[]>([]);
     const [carreras, setCarreras] = useState<ICarrera[]>([]);
     const [licencia, setLicencia] = useState<MiLicencia | null>(null);
+    const [circuitos, setCircuitos] = useState<Circuito[]>([]);
+    const [kartings, setKartings] = useState<Karting[]>([]);
     const [error, setError] = useState("");
 
     useEffect(() => {
@@ -49,6 +45,21 @@ function MiCuentaPage () {
             })
             .catch((err: Error) => setError(err.message));
     }, [persona?.idPersona]);
+
+    // los nombres son un extra: si fallan, las filas muestran el número
+    useEffect(() => {
+        getCircuitos().then(setCircuitos).catch(() => setCircuitos([]));
+        getKartings().then(setKartings).catch(() => setKartings([]));
+    }, []);
+
+    function nombreCircuito (id: number) {
+        const circuito = circuitos.find((item) => item.idCircuitos === id);
+        return circuito ? `Circuito ${id} (${circuito.distancia} m)` : `Circuito #${id}`;
+    }
+
+    function nombreKarting (id: number) {
+        return kartings.find((karting) => karting.idKartings === id)?.modelo ?? `Kart #${id}`;
+    }
 
     const vencimiento = licencia ? new Date(`${licencia.fechaVencimiento}T00:00:00`) : null;
     const vigente = vencimiento !== null && vencimiento >= inicioDelDia(new Date());
@@ -78,9 +89,9 @@ function MiCuentaPage () {
                                 <time>{hora(reserva.horaInicio)}</time>
                                 <div>
                                     {fechaCorta(reserva.fechaReserva)}
-                                    <small>Kart #{reserva.Kartings_idKartings} · Circuito #{reserva.Circuitos_idCircuitos} · hasta {hora(reserva.horaFin)}</small>
+                                    <small>{nombreKarting(reserva.Kartings_idKartings)} · {nombreCircuito(reserva.Circuitos_idCircuitos)} · hasta {hora(reserva.horaFin)}</small>
                                 </div>
-                                <span className="mono">{reserva.monto !== undefined ? `$${reserva.monto}` : ""}</span>
+                                <span className="mono">{reserva.monto !== undefined ? pesos(reserva.monto) : ""}</span>
                             </div>
                         ))}
                     </div>
@@ -91,8 +102,8 @@ function MiCuentaPage () {
                         <>
                             <dl className="lic">
                                 <div><dt>Tipo</dt><dd>{licencia.tipo}</dd></div>
-                                <div><dt>Emitida</dt><dd className="mono">{new Date(`${licencia.fechaEmision}T00:00:00`).toLocaleDateString("es-AR")}</dd></div>
-                                <div><dt>Vencimiento</dt><dd className="mono">{vencimiento.toLocaleDateString("es-AR")}</dd></div>
+                                <div><dt>Emitida</dt><dd className="mono">{fechaCorta(licencia.fechaEmision)}</dd></div>
+                                <div><dt>Vencimiento</dt><dd className="mono">{fechaCorta(vencimiento)}</dd></div>
                             </dl>
                             <div className="lic-pie">
                                 <span className="small">Define qué karts y torneos podés usar</span>
@@ -134,7 +145,7 @@ function MiCuentaPage () {
                             <time>{fechaCorta(carrera.fechaCarrera).slice(0, -5)}</time>
                             <div>
                                 {torneos.find((torneo) => torneo.idTorneos === carrera.Torneos_idTorneos)?.nombre}
-                                <small>{hora(carrera.horaInicio)} a {hora(carrera.horaFin)} · Circuito #{carrera.Circuitos_idCircuitos}</small>
+                                <small>{hora(carrera.horaInicio)} a {hora(carrera.horaFin)} · {nombreCircuito(carrera.Circuitos_idCircuitos)}</small>
                             </div>
                             <span />
                         </div>

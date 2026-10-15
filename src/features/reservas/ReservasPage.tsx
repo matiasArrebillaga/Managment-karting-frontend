@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Alert, Button, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from '@mui/material'
+import { Alert, Button, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField } from '@mui/material'
 import { useAuth } from '../../context/AuthContext'
 import { deleteReserva, getMisReservas, getReservas, getReservasPorFechas } from '../../services/reservaService'
 import { getCircuitos } from '../../services/circuitoService'
@@ -10,10 +10,14 @@ import type { Circuito, IReserva, Karting, Persona } from '../../types'
 import ReservaFormDialog from './ReservaFormDialog'
 import ReservaDetalleDialog from './ReservaDetalleDialog'
 import { puede } from '../../permisos'
+import FilaVacia from '../../components/FilaVacia'
+import { useConfirmar } from '../../components/useConfirmar'
+import { fecha, hora, pesos } from '../../utils/formato'
 
 // soloPropias: historial de la persona logueada (Mi cuenta), aunque sea staff
 function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
     const { persona } = useAuth()
+    const { confirmar, dialogo } = useConfirmar()
     const mensaje = (useLocation().state as { mensaje?: string } | null)?.mensaje
     const [reservas, setReservas] = useState<IReserva[]>([])
     const [circuitos, setCircuitos] = useState<Circuito[]>([])
@@ -86,16 +90,6 @@ function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
         return karting ? `${karting.modelo} (${karting.categoria})` : `#${id}`
     }
 
-    function mostrarFecha (fecha: Date) {
-        return fecha.toLocaleDateString()
-    }
-
-    function mostrarHora (hora: Date | string) {
-        return typeof hora === 'string'
-            ? hora.slice(0, 5)
-            : hora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    }
-
     function handleFiltrar () {
         if (!desde || !hasta) {
             setErrorFiltro('Completá las dos fechas para filtrar')
@@ -139,19 +133,14 @@ function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
     }
 
     async function handleEliminar (id: number) {
-        if (!window.confirm('¿Seguro que querés cancelar esta reserva?')) return
+        if (!(await confirmar('¿Cancelar esta reserva?', 'Cancelar reserva'))) return
 
         try {
             await deleteReserva(id)
             cargarReservas()
-        } catch (error) {
-            alert(error instanceof Error ? error.message : 'No se pudo cancelar la reserva')
-            console.error(error)
+        } catch (motivo) {
+            setError(motivo instanceof Error ? motivo.message : 'No se pudo cancelar la reserva')
         }
-    }
-
-    if (cargando) {
-        return <Typography sx={{ p: 3 }}>Cargando...</Typography>
     }
 
     return (
@@ -183,7 +172,7 @@ function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
                     onChange={(e) => setHasta(e.target.value)}
                     slotProps={{ inputLabel: { shrink: true } }}
                 />
-                <Button variant="outlined" onClick={handleFiltrar}>Filtrar</Button>
+                <Button variant="outlined" onClick={handleFiltrar} disabled={cargando}>{cargando && filtro ? 'Filtrando...' : 'Filtrar'}</Button>
                 {filtro && <Button onClick={handleLimpiarFiltro}>Ver todas</Button>}
             </Stack>
             {errorFiltro && <Alert severity="warning">{errorFiltro}</Alert>}
@@ -206,15 +195,26 @@ function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
                         {reservasVisibles.map((reserva) => {
                             const puedeModificar = puedeGestionar || persona?.idPersona === reserva.Personas_idPersona
                             return (
-                                <TableRow key={reserva.idReservas} hover sx={{ cursor: 'pointer' }} onClick={() => setReservaDetalle(reserva)}>
-                                    <TableCell>{mostrarFecha(reserva.fechaReserva)}</TableCell>
-                                    <TableCell>{mostrarHora(reserva.horaInicio)}</TableCell>
-                                    <TableCell>{mostrarHora(reserva.horaFin)}</TableCell>
+                                <TableRow
+                                    key={reserva.idReservas}
+                                    hover
+                                    sx={{ cursor: 'pointer' }}
+                                    // la fila entera abre el detalle: con tabIndex y Enter también se abre desde el teclado
+                                    tabIndex={0}
+                                    aria-label={`Ver reserva del ${fecha(reserva.fechaReserva)} a las ${hora(reserva.horaInicio)}`}
+                                    onClick={() => setReservaDetalle(reserva)}
+                                    onKeyDown={(evento) => {
+                                        if (evento.key === 'Enter' && evento.target === evento.currentTarget) setReservaDetalle(reserva)
+                                    }}
+                                >
+                                    <TableCell>{fecha(reserva.fechaReserva)}</TableCell>
+                                    <TableCell>{hora(reserva.horaInicio)}</TableCell>
+                                    <TableCell>{hora(reserva.horaFin)}</TableCell>
                                     {!soloPropias && <TableCell>{nombrePersona(reserva.Personas_idPersona)}</TableCell>}
                                     <TableCell>{nombreCircuito(reserva.Circuitos_idCircuitos)}</TableCell>
                                     <TableCell>{nombreKarting(reserva.Kartings_idKartings)}</TableCell>
-                                    <TableCell>{reserva.monto !== undefined ? `$ ${reserva.monto}` : '—'}</TableCell>
-                                    <TableCell onClick={(e) => e.stopPropagation()}>
+                                    <TableCell>{reserva.monto !== undefined ? pesos(reserva.monto) : '—'}</TableCell>
+                                    <TableCell sx={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>
                                         {puedeModificar && (
                                             <>
                                                 <Button size="small" onClick={() => handleEditar(reserva)}>
@@ -234,11 +234,11 @@ function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
                             )
                         })}
                         {reservasVisibles.length === 0 && !error && (
-                            <TableRow>
-                                <TableCell colSpan={soloPropias ? 7 : 8} align="center">
-                                    {filtro ? 'No hay reservas en ese rango de fechas.' : 'No hay reservas para mostrar.'}
-                                </TableCell>
-                            </TableRow>
+                            <FilaVacia
+                                columnas={soloPropias ? 7 : 8}
+                                cargando={cargando}
+                                texto={filtro ? 'No hay reservas en ese rango de fechas.' : 'No hay reservas para mostrar.'}
+                            />
                         )}
                     </TableBody>
                 </Table>
@@ -263,6 +263,7 @@ function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
                     onGuardado={handleGuardado}
                 />
             )}
+            {dialogo}
         </div>
     )
 }

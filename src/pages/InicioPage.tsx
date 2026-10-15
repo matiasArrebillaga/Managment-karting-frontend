@@ -93,7 +93,7 @@ function InicioPage () {
                                 y la tabla general define al campeón. Cada torneo tiene cupo limitado y una licencia mínima para anotarse.
                             </p>
                         </div>
-                        <Link className="btn" to={destino("/torneos")}>Reservar torneo</Link>
+                        <Link className="btn" to={destino("/torneos")}>Ver torneos</Link>
                     </div>
                 </article>
             </div>

@@ -1,29 +1,30 @@
 import { useEffect, useState } from 'react'
-import Table from '@mui/material/Table'
-import TableContainer from '@mui/material/TableContainer'
-import TableCell from '@mui/material/TableCell'
-import Typography from '@mui/material/Typography'
-import TableRow from '@mui/material/TableRow'
-import TableHead from '@mui/material/TableHead'
-import TableBody from '@mui/material/TableBody'
-import Button from '@mui/material/Button'
+import { Alert, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
 import { getTiposLicencia, deleteTipoLicencia } from '../../services/tipoLicenciaService'
 import type { TipoLicencia } from '../../types'
 import TipoLicenciaFormDialog from './TipoLicenciaFormDialog'
 import { useAuth } from '../../context/AuthContext'
 import { puede } from '../../permisos'
+import FilaVacia from '../../components/FilaVacia'
+import { useConfirmar } from '../../components/useConfirmar'
 
 function TiposLicenciaPage() {
     const { persona } = useAuth()
+    const { confirmar, dialogo } = useConfirmar()
     const [tiposLicencia, setTiposLicencia] = useState<TipoLicencia[]>([])
     const [cargando, setCargando] = useState(true)
+    const [error, setError] = useState('')
     const [abierto, setAbierto] = useState(false)
     const [tipoEditando, setTipoEditando] = useState<TipoLicencia | null>(null)
 
     function cargarTiposLicencia() {
         setCargando(true)
+        setError('')
         getTiposLicencia()
             .then((datos) => setTiposLicencia(datos))
+            .catch((motivo: unknown) => {
+                setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los tipos de licencia')
+            })
             .finally(() => setCargando(false))
     }
 
@@ -47,32 +48,27 @@ function TiposLicenciaPage() {
         cargarTiposLicencia()
     }
 
-    async function handleEliminar(id: number) {
-        const confirmar = window.confirm('¿Seguro que querés eliminar este tipo de licencia?')
-        if (!confirmar) return
+    async function handleEliminar(tipo: TipoLicencia) {
+        if (!(await confirmar(`¿Eliminar el tipo de licencia ${tipo.nombre}?`, 'Eliminar'))) return
 
         try {
-            await deleteTipoLicencia(id)
+            await deleteTipoLicencia(tipo.idTipoLicencia)
             cargarTiposLicencia()
-        } catch (error) {
-            alert(error instanceof Error ? error.message : 'No se pudo eliminar el tipo de licencia')
-            console.error(error)
+        } catch (motivo) {
+            setError(motivo instanceof Error ? motivo.message : 'No se pudo eliminar el tipo de licencia')
         }
     }
 
-    if (cargando) {
-        return <Typography sx={{ p: 3 }}>Cargando...</Typography>
-    }
-
     return (
-        <div style={{ padding: 24 }}>
-            <Typography variant="h4" gutterBottom>
-                Tipos de Licencia
-            </Typography>
-
-            <Button variant="contained" onClick={handleNuevo} sx={{ mb: 2 }}>
-                Nuevo Tipo de Licencia
-            </Button>
+        <div className="page">
+            <div className="page-head">
+                <div>
+                    <p className="eyebrow">Catálogos</p>
+                    <h1>Tipos de licencia</h1>
+                </div>
+                <button className="btn" type="button" onClick={handleNuevo}>Nuevo tipo de licencia</button>
+            </div>
+            {error && <Alert severity="error">{error}</Alert>}
 
             <TableContainer>
                 <Table>
@@ -80,7 +76,7 @@ function TiposLicenciaPage() {
                         <TableRow>
                             <TableCell>Nombre</TableCell>
                             <TableCell>Nivel</TableCell>
-                            <TableCell>Descripcion</TableCell>
+                            <TableCell>Descripción</TableCell>
                             <TableCell>Acciones</TableCell>
                         </TableRow>
                     </TableHead>
@@ -90,18 +86,21 @@ function TiposLicenciaPage() {
                                 <TableCell>{tipo.nombre}</TableCell>
                                 <TableCell>{tipo.nivel}</TableCell>
                                 <TableCell>{tipo.descripcion}</TableCell>
-                                <TableCell>
+                                <TableCell sx={{ whiteSpace: 'nowrap' }}>
                                     <Button size="small" onClick={() => handleEditar(tipo)}>
                                         Editar
                                     </Button>
                                     {puede(persona?.rol.nombre, 'catalogos.eliminar') && (
-                                        <Button size="small" color="error" onClick={() => handleEliminar(tipo.idTipoLicencia)}>
+                                        <Button size="small" color="error" onClick={() => handleEliminar(tipo)}>
                                             Eliminar
                                         </Button>
                                     )}
                                 </TableCell>
                             </TableRow>
                         ))}
+                        {tiposLicencia.length === 0 && !error && (
+                            <FilaVacia columnas={4} cargando={cargando} texto="No hay tipos de licencia cargados." />
+                        )}
                     </TableBody>
                 </Table>
             </TableContainer>
@@ -112,6 +111,7 @@ function TiposLicenciaPage() {
                 onCerrar={() => setAbierto(false)}
                 onGuardado={handleGuardado}
             />
+            {dialogo}
         </div>
     )
 }

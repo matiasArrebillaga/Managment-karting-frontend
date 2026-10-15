@@ -51,7 +51,7 @@ function CarreraInscripcionDialog ({ abierto, carrera, idPersona, onCerrar, onIn
         <Dialog open={abierto} onClose={onCerrar}>
             <DialogTitle>Anotarme a la carrera</DialogTitle>
             <DialogContent>
-                <Stack spacing={2} sx={{ mt: 1, minWidth: 320 }}>
+                <Stack spacing={2} sx={{ mt: 1 }}>
                     {cargando ? (
                         <Typography>Cargando kartings disponibles...</Typography>
                     ) : kartings.length > 0 ? (

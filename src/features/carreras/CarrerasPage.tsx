@@ -1,14 +1,10 @@
 import { useEffect, useState } from 'react'
-import Alert from '@mui/material/Alert'
-import Table from '@mui/material/Table'
-import TableContainer from '@mui/material/TableContainer'
-import TableCell from '@mui/material/TableCell'
-import Typography from '@mui/material/Typography'
-import TableRow from '@mui/material/TableRow'
-import TableHead from '@mui/material/TableHead'
-import TableBody from '@mui/material/TableBody'
-import Button from '@mui/material/Button'
+import { Link } from 'react-router-dom'
+import { Alert, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
 import { useAuth } from '../../context/AuthContext'
+import FilaVacia from '../../components/FilaVacia'
+import { useConfirmar } from '../../components/useConfirmar'
+import { fecha, hora } from '../../utils/formato'
 import { getCarreras, deleteCarrera, getInscripcionesCarreras, desanotarseDeCarrera, fechaApi } from '../../services/carreraService'
 import { getCircuitos } from '../../services/circuitoService'
 import { getTorneos } from '../../services/torneoService'
@@ -23,6 +19,7 @@ import { puede } from '../../permisos'
 
 function CarrerasPage () {
     const { persona } = useAuth()
+    const { confirmar, dialogo } = useConfirmar()
     const [carreras, setCarreras] = useState<ICarrera[]>([])
     const [inscripciones, setInscripciones] = useState<number[]>([])
     const [circuitos, setCircuitos] = useState<Circuito[]>([])
@@ -40,6 +37,7 @@ function CarrerasPage () {
 
     function cargarCarreras () {
         setCargando(true)
+        setError('')
         Promise.all([
             getCarreras(),
             getCircuitos(),
@@ -102,15 +100,13 @@ function CarrerasPage () {
     }
 
     async function handleEliminar (carrera: ICarrera) {
-        const confirmar = window.confirm('¿Seguro que querés eliminar esta carrera?')
-        if (!confirmar) return
+        if (!(await confirmar(`¿Eliminar la carrera del ${fecha(carrera.fechaCarrera)}?`, 'Eliminar'))) return
 
         try {
             await deleteCarrera(carrera)
             cargarCarreras()
-        } catch (error) {
-            alert(error instanceof Error ? error.message : 'No se pudo eliminar la carrera')
-            console.error(error)
+        } catch (motivo) {
+            setError(motivo instanceof Error ? motivo.message : 'No se pudo eliminar la carrera')
         }
     }
 
@@ -126,38 +122,29 @@ function CarrerasPage () {
 
     async function handleDesanotarse (idCarrera?: number) {
         if (!persona || idCarrera === undefined) return
-        if (!window.confirm('¿Seguro que querés desanotarte de esta carrera?')) return
+        if (!(await confirmar('¿Desanotarte de esta carrera?', 'Desanotarme'))) return
 
         try {
             await desanotarseDeCarrera(idCarrera, persona.idPersona)
             setInscripciones((actuales) => actuales.filter((id) => id !== idCarrera))
-        } catch (error) {
-            alert(error instanceof Error ? error.message : 'No se pudo cancelar la inscripción')
-            console.error(error)
+        } catch (motivo) {
+            setError(motivo instanceof Error ? motivo.message : 'No se pudo cancelar la inscripción')
         }
     }
 
-    if (cargando) {
-        return <Typography sx={{ p: 3 }}>Cargando...</Typography>
-    }
-
     return (
-        <div style={{ padding: 24 }}>
-            <Typography variant="h4" gutterBottom>
-                Carreras
-            </Typography>
-            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-            {!usaMocks && (
-                <Alert severity="info" sx={{ mb: 2 }}>
-                    La API permite gestionar carreras. La inscripción a una carrera todavía no está disponible en el backend; la inscripción a torneos se gestiona desde Torneos.
-                </Alert>
-            )}
-
-            {puedeGestionar && (
-                <Button variant="contained" onClick={handleNueva} sx={{ mb: 2 }}>
-                    Nueva Carrera
-                </Button>
-            )}
+        <div className="page">
+            <div className="page-head">
+                <div>
+                    <p className="eyebrow">Competencia</p>
+                    <h1>Carreras y resultados</h1>
+                    {!usaMocks && (
+                        <p className="sub">Para correr una carrera, anotate al torneo desde <Link to="/torneos">Torneos</Link>.</p>
+                    )}
+                </div>
+                {puedeGestionar && <button className="btn" type="button" onClick={handleNueva}>Nueva carrera</button>}
+            </div>
+            {error && <Alert severity="error">{error}</Alert>}
 
             <TableContainer>
                 <Table>
@@ -175,13 +162,13 @@ function CarrerasPage () {
                     <TableBody>
                         {carreras.map((carrera) => (
                             <TableRow key={`${carrera.fechaCarrera.toISOString()}-${carrera.Torneos_idTorneos}-${carrera.Circuitos_idCircuitos}`}>
-                                <TableCell>{carrera.fechaCarrera.toLocaleDateString()}</TableCell>
-                                <TableCell>{carrera.horaInicio.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
-                                <TableCell>{carrera.horaFin.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
+                                <TableCell>{fecha(carrera.fechaCarrera)}</TableCell>
+                                <TableCell>{hora(carrera.horaInicio)}</TableCell>
+                                <TableCell>{hora(carrera.horaFin)}</TableCell>
                                 <TableCell>{nombreTorneo(carrera.Torneos_idTorneos)}</TableCell>
                                 <TableCell>{nombreCircuito(carrera.Circuitos_idCircuitos)}</TableCell>
                                 <TableCell>{(carrera.kartings ?? (carrera.Kartings_idKartings === undefined ? [] : [carrera.Kartings_idKartings])).map(nombreKarting).join(', ') || '—'}</TableCell>
-                                <TableCell>
+                                <TableCell sx={{ whiteSpace: 'nowrap' }}>
                                     {puedeGestionar && (
                                         <>
                                             <Button size="small" onClick={() => handleEditar(carrera)}>
@@ -211,6 +198,9 @@ function CarrerasPage () {
                                 </TableCell>
                             </TableRow>
                         ))}
+                        {carreras.length === 0 && !error && (
+                            <FilaVacia columnas={7} cargando={cargando} texto="No hay carreras cargadas." />
+                        )}
                     </TableBody>
                 </Table>
             </TableContainer>
@@ -238,6 +228,7 @@ function CarrerasPage () {
                     cargarCarreras()
                 }}
             />
+            {dialogo}
         </div>
     )
 }

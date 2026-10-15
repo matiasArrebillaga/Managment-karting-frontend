@@ -5,11 +5,14 @@ import { getLocalidades } from '../../services/localidadService'
 import { useAuth } from '../../context/AuthContext'
 import type { Localidad, Persona, Rol, RolDetalle } from '../../types'
 import PersonaFormDialog from './PersonaFormDialog'
+import FilaVacia from '../../components/FilaVacia'
+import { useConfirmar } from '../../components/useConfirmar'
 
 const ROLES: Rol[] = ['CLIENTE', 'EMPLEADO', 'ADMIN']
 
 function PersonasPage() {
     const { persona: yo } = useAuth()
+    const { confirmar, dialogo } = useConfirmar()
     const [personas, setPersonas] = useState<Persona[]>([])
     const [roles, setRoles] = useState<RolDetalle[]>([])
     const [localidades, setLocalidades] = useState<Localidad[]>([])
@@ -20,6 +23,7 @@ function PersonasPage() {
     const [personaRol, setPersonaRol] = useState<Persona | null>(null)
     const [rolNuevo, setRolNuevo] = useState<Rol>('CLIENTE')
     const [errorRol, setErrorRol] = useState('')
+    const [guardandoRol, setGuardandoRol] = useState(false)
 
     async function cargarPersonas() {
         setCargando(true)
@@ -67,39 +71,38 @@ function PersonasPage() {
 
     async function handleGuardarRol() {
         if (!personaRol) return
+        setGuardandoRol(true)
         try {
             await asignarRol(personaRol.idPersona, rolNuevo)
             setPersonaRol(null)
             cargarPersonas()
         } catch (motivo) {
             setErrorRol(motivo instanceof Error ? motivo.message : 'No se pudo cambiar el rol')
+        } finally {
+            setGuardandoRol(false)
         }
     }
 
     async function handleEliminar(persona: Persona) {
-        if (!window.confirm(`¿Seguro que querés eliminar a ${persona.nombre} ${persona.apellido}?`)) return
+        if (!(await confirmar(`¿Eliminar a ${persona.nombre} ${persona.apellido}?`, 'Eliminar'))) return
         try {
             await deletePersona(persona.idPersona)
             cargarPersonas()
         } catch (motivo) {
-            alert(motivo instanceof Error ? motivo.message : 'No se pudo eliminar la persona')
+            setError(motivo instanceof Error ? motivo.message : 'No se pudo eliminar la persona')
         }
     }
 
-    if (cargando) {
-        return <Typography sx={{ p: 3 }}>Cargando...</Typography>
-    }
-
     return (
-        <div style={{ padding: 24 }}>
-            <Typography variant="h4" gutterBottom>
-                Personas
-            </Typography>
-            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-
-            <Button variant="contained" onClick={handleNueva} sx={{ mb: 2 }}>
-                Nueva persona
-            </Button>
+        <div className="page">
+            <div className="page-head">
+                <div>
+                    <p className="eyebrow">Usuarios</p>
+                    <h1>Personas</h1>
+                </div>
+                <button className="btn" type="button" onClick={handleNueva}>Nueva persona</button>
+            </div>
+            {error && <Alert severity="error">{error}</Alert>}
 
             <TableContainer>
                 <Table>
@@ -133,11 +136,7 @@ function PersonasPage() {
                             )
                         })}
                         {personas.length === 0 && !error && (
-                            <TableRow>
-                                <TableCell colSpan={6} align="center">
-                                    No hay personas para mostrar.
-                                </TableCell>
-                            </TableRow>
+                            <FilaVacia columnas={6} cargando={cargando} texto="No hay personas para mostrar." />
                         )}
                     </TableBody>
                 </Table>
@@ -161,9 +160,12 @@ function PersonasPage() {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setPersonaRol(null)}>Cancelar</Button>
-                    <Button variant="contained" onClick={handleGuardarRol}>Guardar</Button>
+                    <Button variant="contained" onClick={handleGuardarRol} disabled={guardandoRol}>
+                        {guardandoRol ? 'Guardando...' : 'Guardar'}
+                    </Button>
                 </DialogActions>
             </Dialog>
+            {dialogo}
         </div>
     )
 }

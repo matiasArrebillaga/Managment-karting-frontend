@@ -1,18 +1,13 @@
 import { useEffect, useState } from 'react'
-import Table from '@mui/material/Table'
-import TableContainer from '@mui/material/TableContainer'
-import TableCell from '@mui/material/TableCell'
-import Typography from '@mui/material/Typography'
-import TableRow from '@mui/material/TableRow'
-import TableHead from '@mui/material/TableHead'
-import TableBody from '@mui/material/TableBody'
-import Button from '@mui/material/Button'
-import Alert from '@mui/material/Alert'
+import { Alert, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
 import { getLocalidades, deleteLocalidad } from '../../services/localidadService'
 import type { Localidad } from '../../types'
 import LocalidadFormDialog from './LocalidadFormDialog'
+import FilaVacia from '../../components/FilaVacia'
+import { useConfirmar } from '../../components/useConfirmar'
 
 function LocalidadesPage() {
+    const { confirmar, dialogo } = useConfirmar()
     const [localidades, setLocalidades] = useState<Localidad[]>([])
     const [cargando, setCargando] = useState(true)
     const [error, setError] = useState('')
@@ -51,33 +46,27 @@ function LocalidadesPage() {
         cargarLocalidades()
     }
 
-    async function handleEliminar(id: number) {
-        const confirmar = window.confirm('¿Seguro que querés eliminar esta localidad?')
-        if (!confirmar) return
+    async function handleEliminar(localidad: Localidad) {
+        if (!(await confirmar(`¿Eliminar la localidad ${localidad.nombre}?`, 'Eliminar'))) return
 
         try {
-            await deleteLocalidad(id)
+            await deleteLocalidad(localidad.idLocalidades)
             cargarLocalidades()
-        } catch (error) {
-            alert(error instanceof Error ? error.message : 'No se pudo eliminar la localidad')
-            console.error(error)
+        } catch (motivo) {
+            setError(motivo instanceof Error ? motivo.message : 'No se pudo eliminar la localidad')
         }
     }
 
-    if (cargando) {
-        return <Typography sx={{ p: 3 }}>Cargando...</Typography>
-    }
-
     return (
-        <div style={{ padding: 24 }}>
-            <Typography variant="h4" gutterBottom>
-                Localidades
-            </Typography>
-            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-
-            <Button variant="contained" onClick={handleNueva} sx={{ mb: 2 }}>
-                Nueva Localidad
-            </Button>
+        <div className="page">
+            <div className="page-head">
+                <div>
+                    <p className="eyebrow">Catálogos</p>
+                    <h1>Localidades</h1>
+                </div>
+                <button className="btn" type="button" onClick={handleNueva}>Nueva localidad</button>
+            </div>
+            {error && <Alert severity="error">{error}</Alert>}
 
             <TableContainer>
                 <Table>
@@ -91,22 +80,18 @@ function LocalidadesPage() {
                         {localidades.map((localidad) => (
                             <TableRow key={localidad.idLocalidades}>
                                 <TableCell>{localidad.nombre}</TableCell>
-                                <TableCell>
+                                <TableCell sx={{ whiteSpace: 'nowrap' }}>
                                     <Button size="small" onClick={() => handleEditar(localidad)}>
                                         Editar
                                     </Button>
-                                    <Button size="small" color="error" onClick={() => handleEliminar(localidad.idLocalidades)}>
+                                    <Button size="small" color="error" onClick={() => handleEliminar(localidad)}>
                                         Eliminar
                                     </Button>
                                 </TableCell>
                             </TableRow>
                         ))}
                         {localidades.length === 0 && !error && (
-                            <TableRow>
-                                <TableCell colSpan={2} align="center">
-                                    No hay localidades para mostrar.
-                                </TableCell>
-                            </TableRow>
+                            <FilaVacia columnas={2} cargando={cargando} texto="No hay localidades para mostrar." />
                         )}
                     </TableBody>
                 </Table>
@@ -118,6 +103,7 @@ function LocalidadesPage() {
                 onCerrar={() => setAbierto(false)}
                 onGuardado={handleGuardado}
             />
+            {dialogo}
         </div>
     )
 }

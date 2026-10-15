@@ -1,5 +1,6 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Stack, Typography } from "@mui/material"
 import type { Circuito, IReserva, Karting, Persona } from "../../types"
+import { fecha, hora, pesos } from "../../utils/formato"
 
 type Props = {
     reserva: IReserva | null
@@ -17,12 +18,6 @@ function Dato({ etiqueta, valor }: { etiqueta: string; valor?: string | number }
     )
 }
 
-function mostrarHora(hora: Date | string) {
-    return typeof hora === 'string'
-        ? hora.slice(0, 5)
-        : hora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-}
-
 function ReservaDetalleDialog({ reserva, persona, karting, circuito, onCerrar }: Props) {
     return (
         <Dialog open={reserva !== null} onClose={onCerrar} fullWidth maxWidth="sm">
@@ -31,9 +26,9 @@ function ReservaDetalleDialog({ reserva, persona, karting, circuito, onCerrar }:
                 <DialogContent>
                     <Stack spacing={1}>
                         <Typography variant="h6">Reserva</Typography>
-                        <Dato etiqueta="Fecha" valor={reserva.fechaReserva.toLocaleDateString()} />
-                        <Dato etiqueta="Horario" valor={`${mostrarHora(reserva.horaInicio)} a ${mostrarHora(reserva.horaFin)}`} />
-                        <Dato etiqueta="Monto" valor={reserva.monto !== undefined ? `$ ${reserva.monto}` : undefined} />
+                        <Dato etiqueta="Fecha" valor={fecha(reserva.fechaReserva)} />
+                        <Dato etiqueta="Horario" valor={`${hora(reserva.horaInicio)} a ${hora(reserva.horaFin)}`} />
+                        <Dato etiqueta="Monto" valor={reserva.monto !== undefined ? pesos(reserva.monto) : undefined} />
                         <Dato
                             etiqueta="Circuito"
                             valor={circuito ? `#${circuito.idCircuitos} · ${circuito.distancia} m · ${circuito.dificultad}` : `#${reserva.Circuitos_idCircuitos}`}

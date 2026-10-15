@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import Alert from '@mui/material/Alert'
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material'
+import { Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
 import { getParticipaciones } from '../../services/participacionService'
 import { getPersonas } from '../../services/personaService'
 import { getTorneos } from '../../services/torneoService'
 import { getCircuitos } from '../../services/circuitoService'
 import type { Circuito, IParticipacion, ITorneos, Persona } from '../../types'
+import FilaVacia from '../../components/FilaVacia'
+import { fecha } from '../../utils/formato'
 
 function ParticipacionesPage () {
     const [participaciones, setParticipaciones] = useState<IParticipacion[]>([])
@@ -43,18 +44,18 @@ function ParticipacionesPage () {
         return circuito ? `Circuito ${id} (${circuito.distancia} m)` : `#${id}`
     }
 
-    if (cargando) {
-        return <Typography sx={{ p: 3 }}>Cargando...</Typography>
-    }
-
     const ordenadas = [...participaciones].sort((a, b) => a.posicion_final - b.posicion_final)
 
     return (
-        <div style={{ padding: 24 }}>
-            <Typography variant="h4" gutterBottom>
-                Participaciones
-            </Typography>
-            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        <div className="page">
+            <div className="page-head">
+                <div>
+                    <p className="eyebrow">Competencia</p>
+                    <h1>Participaciones</h1>
+                    <p className="sub">Resultados cargados de todas las carreras.</p>
+                </div>
+            </div>
+            {error && <Alert severity="error">{error}</Alert>}
 
             <TableContainer>
                 <Table>
@@ -74,7 +75,7 @@ function ParticipacionesPage () {
                             <TableRow
                                 key={`${participacion.Carrera_Torneos_idTorneos}-${participacion.Carrera_Circuitos_idCircuitos}-${participacion.Carrera_fecha.toISOString()}-${participacion.Personas_idPersona}-${indice}`}
                             >
-                                <TableCell>{participacion.Carrera_fecha.toLocaleDateString()}</TableCell>
+                                <TableCell>{fecha(participacion.Carrera_fecha)}</TableCell>
                                 <TableCell>{nombreTorneo(participacion.Carrera_Torneos_idTorneos)}</TableCell>
                                 <TableCell>{nombreCircuito(participacion.Carrera_Circuitos_idCircuitos)}</TableCell>
                                 <TableCell>{nombrePersona(participacion.Personas_idPersona)}</TableCell>
@@ -83,6 +84,9 @@ function ParticipacionesPage () {
                                 <TableCell>{participacion.posicion_final}°</TableCell>
                             </TableRow>
                         ))}
+                        {participaciones.length === 0 && !error && (
+                            <FilaVacia columnas={7} cargando={cargando} texto="Todavía no hay resultados cargados." />
+                        )}
                     </TableBody>
                 </Table>
             </TableContainer>

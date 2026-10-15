@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { Alert, Chip, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material'
+import { Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
 import { getCarrerasTorneo } from '../../services/carreraService'
 import { getTablaGeneral } from '../../services/participacionService'
 import { getTorneos } from '../../services/torneoService'
 import type { FilaTablaGeneral, ICarrera, ITorneos } from '../../types'
-import { estadoTorneo } from './TorneosPage'
+import { CLASE_ESTADO_TORNEO, estadoTorneo } from './TorneosPage'
+import { fecha, hora } from '../../utils/formato'
 
 function TorneoDetallePage () {
     const id = Number(useParams().id)
@@ -29,14 +30,14 @@ function TorneoDetallePage () {
     }, [id])
 
     if (cargando) {
-        return <Typography sx={{ p: 3 }}>Cargando...</Typography>
+        return <div className="page"><p className="empty">Cargando...</p></div>
     }
 
     if (!torneo) {
         return (
-            <div style={{ padding: 24 }}>
-                <Alert severity="error" sx={{ mb: 2 }}>{error || 'El torneo no existe'}</Alert>
-                <Link to="/torneos">Volver a Torneos</Link>
+            <div className="page">
+                <Alert severity="error">{error || 'El torneo no existe'}</Alert>
+                <Link className="link" to="/torneos">← Volver a Torneos</Link>
             </div>
         )
     }
@@ -44,76 +45,78 @@ function TorneoDetallePage () {
     const estado = estadoTorneo(torneo)
 
     return (
-        <div style={{ padding: 24 }}>
-            <Link to="/torneos">← Torneos</Link>
-            <Typography variant="h4" gutterBottom sx={{ mt: 1 }}>
-                {torneo.nombre}{' '}
-                <Chip
-                    size="small"
-                    label={estado}
-                    color={estado === 'Terminado' ? 'default' : estado === 'En curso' ? 'success' : 'primary'}
-                />
-            </Typography>
-            <Typography>{torneo.descripcion}</Typography>
-            <Typography color="text.secondary" sx={{ mb: 3 }}>
-                Del {torneo.fechaInicio.toLocaleDateString()} al {torneo.fechaFin.toLocaleDateString()} · Cupo: {torneo.cupoMaximo}
-            </Typography>
+        <div className="page">
+            <div className="page-head">
+                <div>
+                    <p className="eyebrow"><Link to="/torneos">← Torneos</Link></p>
+                    <h1>{torneo.nombre}</h1>
+                    {torneo.descripcion && <p className="sub">{torneo.descripcion}</p>}
+                    <p className="small">
+                        Del {fecha(torneo.fechaInicio)} al {fecha(torneo.fechaFin)} · Cupo: {torneo.cupoMaximo}
+                    </p>
+                </div>
+                <span className={`tag ${CLASE_ESTADO_TORNEO[estado]}`}>{estado}</span>
+            </div>
 
-            <Typography variant="h5" gutterBottom>Carreras</Typography>
-            {carreras.length === 0 ? (
-                <Typography sx={{ mb: 3 }}>Este torneo todavía no tiene carreras.</Typography>
-            ) : (
-                <TableContainer>
-                    <Table size="small" sx={{ mb: 3 }}>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>Fecha</TableCell>
-                                <TableCell>Inicio</TableCell>
-                                <TableCell>Fin</TableCell>
-                                <TableCell>Circuito</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {carreras.map((carrera) => (
-                                <TableRow key={`${carrera.fechaCarrera.toISOString()}-${carrera.Circuitos_idCircuitos}`}>
-                                    <TableCell>{carrera.fechaCarrera.toLocaleDateString()}</TableCell>
-                                    <TableCell>{carrera.horaInicio.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
-                                    <TableCell>{carrera.horaFin.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</TableCell>
-                                    <TableCell>Circuito {carrera.Circuitos_idCircuitos}</TableCell>
+            <section className="panel">
+                <div className="panel-head"><h2>Carreras</h2></div>
+                {carreras.length === 0 ? (
+                    <p className="empty">Este torneo todavía no tiene carreras.</p>
+                ) : (
+                    <TableContainer>
+                        <Table size="small">
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Fecha</TableCell>
+                                    <TableCell>Inicio</TableCell>
+                                    <TableCell>Fin</TableCell>
+                                    <TableCell>Circuito</TableCell>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            )}
+                            </TableHead>
+                            <TableBody>
+                                {carreras.map((carrera) => (
+                                    <TableRow key={`${carrera.fechaCarrera.toISOString()}-${carrera.Circuitos_idCircuitos}`}>
+                                        <TableCell>{fecha(carrera.fechaCarrera)}</TableCell>
+                                        <TableCell>{hora(carrera.horaInicio)}</TableCell>
+                                        <TableCell>{hora(carrera.horaFin)}</TableCell>
+                                        <TableCell>Circuito {carrera.Circuitos_idCircuitos}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                )}
+            </section>
 
-            <Typography variant="h5" gutterBottom>Tabla general</Typography>
-            {tabla.length === 0 ? (
-                <Typography>Todavía no hay resultados cargados.</Typography>
-            ) : (
-                <TableContainer>
-                    <Table size="small">
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>Pos.</TableCell>
-                                <TableCell>Piloto</TableCell>
-                                <TableCell>Puntos</TableCell>
-                                <TableCell>Victorias</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {tabla.map((fila) => (
-                                <TableRow key={fila.idPersona}>
-                                    <TableCell>{fila.posicion}</TableCell>
-                                    <TableCell>{fila.nombre} {fila.apellido}</TableCell>
-                                    <TableCell>{fila.puntosTotales}</TableCell>
-                                    <TableCell>{fila.victorias}</TableCell>
+            <section className="panel">
+                <div className="panel-head"><h2>Tabla general</h2></div>
+                {tabla.length === 0 ? (
+                    <p className="empty">Todavía no hay resultados cargados.</p>
+                ) : (
+                    <TableContainer>
+                        <Table size="small">
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Pos.</TableCell>
+                                    <TableCell>Piloto</TableCell>
+                                    <TableCell>Puntos</TableCell>
+                                    <TableCell>Victorias</TableCell>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            )}
+                            </TableHead>
+                            <TableBody>
+                                {tabla.map((fila) => (
+                                    <TableRow key={fila.idPersona}>
+                                        <TableCell>{fila.posicion}°</TableCell>
+                                        <TableCell>{fila.nombre} {fila.apellido}</TableCell>
+                                        <TableCell>{fila.puntosTotales}</TableCell>
+                                        <TableCell>{fila.victorias}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                )}
+            </section>
         </div>
     )
 }

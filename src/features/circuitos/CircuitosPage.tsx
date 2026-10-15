@@ -1,21 +1,16 @@
 import { useEffect, useState } from 'react'
-import Alert from '@mui/material/Alert'
-import Table from '@mui/material/Table'
-import TableContainer from '@mui/material/TableContainer'
-import TableCell from '@mui/material/TableCell'
-import Typography from '@mui/material/Typography'
-import TableRow from '@mui/material/TableRow'
-import TableHead from '@mui/material/TableHead'
-import TableBody from '@mui/material/TableBody'
-import Button from '@mui/material/Button'
+import { Alert, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
 import { useAuth } from '../../context/AuthContext'
 import { puede } from '../../permisos'
 import { getCircuitos, deleteCircuito } from '../../services/circuitoService'
 import type { Circuito } from '../../types'
 import CircuitoFormDialog from './CircuitoFormDialog'
+import FilaVacia from '../../components/FilaVacia'
+import { useConfirmar } from '../../components/useConfirmar'
 
 function CircuitosPage() {
     const { persona } = useAuth()
+    const { confirmar, dialogo } = useConfirmar()
     const [circuitos, setCircuitos] = useState<Circuito[]>([])
     const [cargando, setCargando] = useState(true)
     const [error, setError] = useState('')
@@ -24,6 +19,7 @@ function CircuitosPage() {
     const puedeCrear = puede(persona?.rol.nombre, 'circuitos.crear')
     const puedeEditar = puede(persona?.rol.nombre, 'circuitos.editar')
     const puedeEliminar = puede(persona?.rol.nombre, 'circuitos.eliminar')
+    const conAcciones = puedeEditar || puedeEliminar
 
     function cargarCircuitos() {
         setCargando(true)
@@ -57,44 +53,36 @@ function CircuitosPage() {
     }
 
     async function handleEliminar(id: number) {
-        const confirmar = window.confirm('¿Seguro que querés eliminar este circuito?')
-        if (!confirmar) return
+        if (!(await confirmar('¿Eliminar este circuito?', 'Eliminar'))) return
 
         try {
             await deleteCircuito(id)
             cargarCircuitos()
-        } catch (error) {
-            alert(error instanceof Error ? error.message : 'No se pudo eliminar el circuito')
-            console.error(error)
+        } catch (motivo) {
+            setError(motivo instanceof Error ? motivo.message : 'No se pudo eliminar el circuito')
         }
     }
 
-    if (cargando) {
-        return <Typography sx={{ p: 3 }}>Cargando...</Typography>
-    }
-
     return (
-        <div style={{ padding: 24 }}>
-            <Typography variant="h4" gutterBottom>
-                Circuitos
-            </Typography>
-            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-
-            {puedeCrear && (
-                <Button variant="contained" onClick={handleNuevo} sx={{ mb: 2 }}>
-                    Nuevo Circuito
-                </Button>
-            )}
+        <div className="page">
+            <div className="page-head">
+                <div>
+                    <p className="eyebrow">Pista</p>
+                    <h1>Circuitos</h1>
+                </div>
+                {puedeCrear && <button className="btn" type="button" onClick={handleNuevo}>Nuevo circuito</button>}
+            </div>
+            {error && <Alert severity="error">{error}</Alert>}
 
             <TableContainer>
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>ID</TableCell>
+                            <TableCell>Circuito</TableCell>
                             <TableCell>Distancia (m)</TableCell>
                             <TableCell>Dificultad</TableCell>
-                            <TableCell>Capacidad Maxima</TableCell>
-                            {(puedeEditar || puedeEliminar) && <TableCell>Acciones</TableCell>}
+                            <TableCell>Capacidad máxima</TableCell>
+                            {conAcciones && <TableCell>Acciones</TableCell>}
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -104,8 +92,8 @@ function CircuitosPage() {
                                 <TableCell>{circuito.distancia}</TableCell>
                                 <TableCell>{circuito.dificultad}</TableCell>
                                 <TableCell>{circuito.maximo}</TableCell>
-                                {(puedeEditar || puedeEliminar) && (
-                                    <TableCell>
+                                {conAcciones && (
+                                    <TableCell sx={{ whiteSpace: 'nowrap' }}>
                                         {puedeEditar && (
                                             <Button size="small" onClick={() => handleEditar(circuito)}>
                                                 Editar
@@ -120,6 +108,9 @@ function CircuitosPage() {
                                 )}
                             </TableRow>
                         ))}
+                        {circuitos.length === 0 && !error && (
+                            <FilaVacia columnas={conAcciones ? 5 : 4} cargando={cargando} texto="No hay circuitos cargados." />
+                        )}
                     </TableBody>
                 </Table>
             </TableContainer>
@@ -130,6 +121,7 @@ function CircuitosPage() {
                 onCerrar={() => setAbierto(false)}
                 onGuardado={handleGuardado}
             />
+            {dialogo}
         </div>
     )
 }

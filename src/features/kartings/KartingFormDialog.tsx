@@ -141,7 +141,7 @@ function KartingFormDialog({ abierto, karting, onCerrar, onGuardado }: Props) {
             </DialogContent>
             <DialogActions>
                 <Button onClick={onCerrar}>Cancelar</Button>
-                <Button variant="contained" onClick={handleGuardar} disabled={guardando || !puedeGuardar}>Guardar</Button>
+                <Button variant="contained" onClick={handleGuardar} disabled={guardando}>{guardando ? 'Guardando...' : 'Guardar'}</Button>
             </DialogActions>
         </Dialog>
     )

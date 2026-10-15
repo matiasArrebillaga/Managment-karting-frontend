@@ -13,6 +13,8 @@ import { getTiposLicencia } from '../../services/tipoLicenciaService'
 import type { ITorneos, TipoLicencia } from '../../types'
 import TorneoFormDialog from './TorneoFormDialog'
 import { puede } from '../../permisos'
+import { useConfirmar } from '../../components/useConfirmar'
+import { fecha } from '../../utils/formato'
 
 export function estadoTorneo (torneo: ITorneos) {
     const hoy = new Date()
@@ -27,6 +29,9 @@ export function estadoTorneo (torneo: ITorneos) {
     return 'En curso'
 }
 
+// color de cada estado: el mismo en la lista, el detalle y el historial
+export const CLASE_ESTADO_TORNEO: Record<string, string> = { 'Próximo': 'ok', 'En curso': 'info', 'Terminado': '' }
+
 // etiqueta que ve el usuario -> valor que espera GET /api/torneos?estado=
 const ESTADOS = [
     { valor: 'proximo', etiqueta: 'Próximo' },
@@ -36,6 +41,7 @@ const ESTADOS = [
 
 function TorneosPage () {
     const { persona } = useAuth()
+    const { confirmar, dialogo } = useConfirmar()
     const [torneos, setTorneos] = useState<ITorneos[]>([])
     const [torneosAnotados, setTorneosAnotados] = useState<number[]>([])
     const [inscriptosPorTorneo, setInscriptosPorTorneo] = useState<Record<number, number>>({})
@@ -104,15 +110,14 @@ function TorneosPage () {
         cargarTorneos()
     }
 
-    async function handleEliminar (id: number) {
-        if (!window.confirm('¿Seguro que querés eliminar este torneo?')) return
+    async function handleEliminar (torneo: ITorneos) {
+        if (!(await confirmar(`¿Eliminar el torneo ${torneo.nombre}?`, 'Eliminar'))) return
 
         try {
-            await deleteTorneo(id)
+            await deleteTorneo(torneo.idTorneos)
             cargarTorneos()
-        } catch (error) {
-            alert(error instanceof Error ? error.message : 'No se pudo eliminar el torneo')
-            console.error(error)
+        } catch (motivo) {
+            setError(motivo instanceof Error ? motivo.message : 'No se pudo eliminar el torneo')
         }
     }
 
@@ -136,8 +141,9 @@ function TorneosPage () {
     }
 
     async function handleDesanotarse (idTorneo: number) {
-        if (!persona || !window.confirm('¿Seguro que querés desanotarte de este torneo?')) return
+        if (!persona || !(await confirmar('¿Desanotarte de este torneo?', 'Desanotarme'))) return
 
+        setError('')
         try {
             await desanotarseDeTorneo(idTorneo, persona.idPersona)
             setTorneosAnotados((actuales) => actuales.filter((id) => id !== idTorneo))
@@ -145,9 +151,8 @@ function TorneosPage () {
                 ...actuales,
                 [idTorneo]: Math.max(0, (actuales[idTorneo] ?? 0) - 1),
             }))
-        } catch (error) {
-            alert(error instanceof Error ? error.message : 'No se pudo cancelar la inscripción')
-            console.error(error)
+        } catch (motivo) {
+            setError(motivo instanceof Error ? motivo.message : 'No se pudo cancelar la inscripción')
         }
     }
 
@@ -242,10 +247,10 @@ function TorneosPage () {
                             <article className="panel" key={torneo.idTorneos ?? torneo.nombre}>
                                 <div className="card-fila">
                                     <h2><Link to={`/torneos/${torneo.idTorneos}`}>{torneo.nombre}</Link></h2>
-                                    <span className={`tag ${estado === 'En curso' ? 'info' : estado === 'Próximo' ? 'ok' : ''}`}>{estado}</span>
+                                    <span className={`tag ${CLASE_ESTADO_TORNEO[estado]}`}>{estado}</span>
                                 </div>
                                 <p className="small">
-                                    Del {torneo.fechaInicio.toLocaleDateString('es-AR')} al {torneo.fechaFin.toLocaleDateString('es-AR')}
+                                    Del {fecha(torneo.fechaInicio)} al {fecha(torneo.fechaFin)}
                                     {/* el cliente no puede leer el catálogo de licencias: si no hay nombre, no se muestra */}
                                     {nombreLicencia(torneo.TiposLicencias_idTipoLicencia) !== '-' && ` · Licencia ${nombreLicencia(torneo.TiposLicencias_idTipoLicencia)}`}
                                 </p>
@@ -267,7 +272,7 @@ function TorneosPage () {
                                                 <button className="link" type="button" onClick={() => handleEditar(torneo)}>Editar</button>
                                             )}
                                             {puedeGestionar && puedeEliminar && (
-                                                <button className="link danger" type="button" onClick={() => handleEliminar(torneo.idTorneos)}>Eliminar</button>
+                                                <button className="link danger" type="button" onClick={() => handleEliminar(torneo)}>Eliminar</button>
                                             )}
                                         </div>
                                         {accion}
@@ -287,6 +292,7 @@ function TorneosPage () {
                     onGuardado={handleGuardado}
                 />
             )}
+            {dialogo}
         </div>
     )
 }

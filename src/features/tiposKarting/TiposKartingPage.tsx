@@ -21,10 +21,9 @@ function TiposKartingPage() {
     const [tipoEditando, setTipoEditando] = useState<TipoKarting | null>(null)
 
     function cargarTiposKarting() {
-        setCargando(true)
-        setError('')
         Promise.all([getTiposKarting(), getTiposLicencia()])
             .then(([datosTipos, datosLicencia]) => {
+                setError('')
                 setTiposKarting(datosTipos)
                 setTiposLicencia(datosLicencia)
             })
@@ -117,12 +116,13 @@ function TiposKartingPage() {
                 </Table>
             </TableContainer>
 
-            <TipoKartingFormDialog
-                abierto={abierto}
-                tipoKarting={tipoEditando}
-                onCerrar={() => setAbierto(false)}
-                onGuardado={handleGuardado}
-            />
+            {abierto && (
+                <TipoKartingFormDialog
+                    tipoKarting={tipoEditando}
+                    onCerrar={() => setAbierto(false)}
+                    onGuardado={handleGuardado}
+                />
+            )}
             {dialogo}
         </div>
     )

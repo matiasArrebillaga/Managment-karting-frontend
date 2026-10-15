@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Alert, MenuItem, TextField } from '@mui/material'
 import { useAuth } from '../../context/AuthContext'
@@ -44,9 +44,8 @@ function TorneosPage () {
     const puedeAnotarse = puede(persona?.rol.nombre, 'inscripciones.anotarse')
     const puedeEliminar = puede(persona?.rol.nombre, 'torneos.eliminar')
 
-    function cargarTorneos () {
-        setCargando(true)
-        setError('')
+    // se recrea cuando cambian los filtros o la persona, y eso dispara el efecto de recarga
+    const cargarTorneos = useCallback(() => {
         Promise.all([
             getTorneos({
                 estado: filtroEstado || undefined,
@@ -60,16 +59,17 @@ function TorneosPage () {
                 setTorneos(datosTorneos)
                 setTorneosAnotados(resumen.torneosAnotados)
                 setInscriptosPorTorneo(resumen.inscriptosPorTorneo)
+                setError('')
             })
             .catch((motivo: unknown) => {
                 setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los torneos')
             })
             .finally(() => setCargando(false))
-    }
+    }, [filtroEstado, filtroLicencia, persona, puedeVerInscriptos])
 
     useEffect(() => {
         cargarTorneos()
-    }, [filtroEstado, filtroLicencia])
+    }, [cargarTorneos])
 
     useEffect(() => {
         getTiposLicencia().then(setTiposLicencia).catch(console.error)
@@ -269,9 +269,8 @@ function TorneosPage () {
                 </div>
             )}
 
-            {puedeGestionar && (
+            {puedeGestionar && abierto && (
                 <TorneoFormDialog
-                    abierto={abierto}
                     torneo={torneoEditando}
                     onCerrar={() => setAbierto(false)}
                     onGuardado={handleGuardado}

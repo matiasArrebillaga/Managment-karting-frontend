@@ -23,10 +23,9 @@ function LicenciasPage() {
     const [licenciaEditando, setLicenciaEditando] = useState<Licencia | null>(null)
 
     function cargarLicencias() {
-        setCargando(true)
-        setError('')
         Promise.all([getLicencias(), getTiposLicencia(), getPersonas()])
             .then(([datosLicencias, datosTipos, datosPersonas]) => {
+                setError('')
                 setLicencias(datosLicencias)
                 setTiposLicencia(datosTipos)
                 setPersonas(datosPersonas)
@@ -125,12 +124,13 @@ function LicenciasPage() {
                 </Table>
             </TableContainer>
 
-            <LicenciaFormDialog
-                abierto={abierto}
-                licencia={licenciaEditando}
-                onCerrar={() => setAbierto(false)}
-                onGuardado={handleGuardado}
-            />
+            {abierto && (
+                <LicenciaFormDialog
+                    licencia={licenciaEditando}
+                    onCerrar={() => setAbierto(false)}
+                    onGuardado={handleGuardado}
+                />
+            )}
             {dialogo}
         </div>
     )

@@ -10,12 +10,7 @@ type Props = {
 }
 
 function RutaProtegida({ children, permiso }: Props) {
-    const { persona, cargando } = useAuth()
-
-    // mientras se valida la sesión se muestra un aviso en vez de una pantalla vacía
-    if (cargando) {
-        return <div className="page"><p className="empty">Cargando...</p></div>
-    }
+    const { persona } = useAuth()
 
     if (!persona) {
         return <Navigate to="/login" replace />

@@ -18,10 +18,11 @@ function TiposLicenciaPage() {
     const [tipoEditando, setTipoEditando] = useState<TipoLicencia | null>(null)
 
     function cargarTiposLicencia() {
-        setCargando(true)
-        setError('')
         getTiposLicencia()
-            .then((datos) => setTiposLicencia(datos))
+            .then((datos) => {
+                setTiposLicencia(datos)
+                setError('')
+            })
             .catch((motivo: unknown) => {
                 setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los tipos de licencia')
             })
@@ -105,12 +106,13 @@ function TiposLicenciaPage() {
                 </Table>
             </TableContainer>
 
-            <TipoLicenciaFormDialog
-                abierto={abierto}
-                tipoLicencia={tipoEditando}
-                onCerrar={() => setAbierto(false)}
-                onGuardado={handleGuardado}
-            />
+            {abierto && (
+                <TipoLicenciaFormDialog
+                    tipoLicencia={tipoEditando}
+                    onCerrar={() => setAbierto(false)}
+                    onGuardado={handleGuardado}
+                />
+            )}
             {dialogo}
         </div>
     )

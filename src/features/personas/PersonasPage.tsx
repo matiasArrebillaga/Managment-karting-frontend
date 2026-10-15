@@ -25,19 +25,18 @@ function PersonasPage() {
     const [errorRol, setErrorRol] = useState('')
     const [guardandoRol, setGuardandoRol] = useState(false)
 
-    async function cargarPersonas() {
-        setCargando(true)
-        setError('')
-        try {
-            const [datosPersonas, datosRoles, datosLocalidades] = await Promise.all([getPersonas(), getRoles(), getLocalidades()])
-            setPersonas(datosPersonas)
-            setRoles(datosRoles)
-            setLocalidades(datosLocalidades)
-        } catch (motivo) {
-            setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar las personas')
-        } finally {
-            setCargando(false)
-        }
+    function cargarPersonas() {
+        Promise.all([getPersonas(), getRoles(), getLocalidades()])
+            .then(([datosPersonas, datosRoles, datosLocalidades]) => {
+                setPersonas(datosPersonas)
+                setRoles(datosRoles)
+                setLocalidades(datosLocalidades)
+                setError('')
+            })
+            .catch((motivo: unknown) => {
+                setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar las personas')
+            })
+            .finally(() => setCargando(false))
     }
 
     useEffect(() => {
@@ -142,12 +141,13 @@ function PersonasPage() {
                 </Table>
             </TableContainer>
 
-            <PersonaFormDialog
-                abierto={abierto}
-                persona={personaEditando}
-                onCerrar={() => setAbierto(false)}
-                onGuardado={handleGuardado}
-            />
+            {abierto && (
+                <PersonaFormDialog
+                    persona={personaEditando}
+                    onCerrar={() => setAbierto(false)}
+                    onGuardado={handleGuardado}
+                />
+            )}
 
             <Dialog open={personaRol !== null} onClose={() => setPersonaRol(null)} fullWidth maxWidth="xs">
                 <DialogTitle>Cambiar rol</DialogTitle>

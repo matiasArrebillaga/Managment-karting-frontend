@@ -1,36 +1,22 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { createTipoLicencia, updateTipoLicencia } from "../../services/tipoLicenciaService"
 import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, TextField } from "@mui/material"
 import type { TipoLicencia } from "../../types"
 
 type Props = {
-    abierto: boolean
     tipoLicencia?: TipoLicencia | null
     onCerrar: () => void
     onGuardado: () => void
 }
 
-function TipoLicenciaFormDialog({ abierto, tipoLicencia, onCerrar, onGuardado }: Props) {
-    const [nombre, setNombre] = useState('')
-    const [descripcion, setDescripcion] = useState('')
-    const [nivel, setNivel] = useState('')
+function TipoLicenciaFormDialog({ tipoLicencia, onCerrar, onGuardado }: Props) {
+    const [nombre, setNombre] = useState(tipoLicencia?.nombre ?? '')
+    const [descripcion, setDescripcion] = useState(tipoLicencia?.descripcion ?? '')
+    const [nivel, setNivel] = useState(tipoLicencia ? String(tipoLicencia.nivel) : '')
     const [guardando, setGuardando] = useState(false)
     const [error, setError] = useState('')
 
     const editando = Boolean(tipoLicencia)
-
-    useEffect(() => {
-        if (tipoLicencia) {
-            setNombre(tipoLicencia.nombre)
-            setDescripcion(tipoLicencia.descripcion)
-            setNivel(String(tipoLicencia.nivel))
-        } else {
-            setNombre('')
-            setDescripcion('')
-            setNivel('')
-        }
-        setError('')
-    }, [tipoLicencia, abierto])
 
     async function handleGuardar() {
         setGuardando(true)
@@ -55,7 +41,7 @@ function TipoLicenciaFormDialog({ abierto, tipoLicencia, onCerrar, onGuardado }:
     }
 
     return (
-        <Dialog open={abierto} onClose={onCerrar}>
+        <Dialog open onClose={onCerrar}>
             <DialogTitle>{editando ? 'Editar Tipo de Licencia' : 'Nuevo Tipo de Licencia'}</DialogTitle>
             <DialogContent>
                 <Stack spacing={2} sx={{ mt: 1 }}>

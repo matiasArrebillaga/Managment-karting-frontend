@@ -5,7 +5,6 @@ import { getLocalidades } from "../../services/localidadService"
 import type { Localidad, Persona } from "../../types"
 
 type Props = {
-    abierto: boolean
     persona?: Persona | null
     onCerrar: () => void
     onGuardado: () => void
@@ -13,8 +12,17 @@ type Props = {
 
 const vacio = { nombre: '', apellido: '', dni: '', fechaNacimiento: '', mail: '', telefono: '', contraseña: '', localidadId: '' }
 
-function PersonaFormDialog({ abierto, persona, onCerrar, onGuardado }: Props) {
-    const [form, setForm] = useState(vacio)
+function PersonaFormDialog({ persona, onCerrar, onGuardado }: Props) {
+    const [form, setForm] = useState(persona ? {
+        nombre: persona.nombre,
+        apellido: persona.apellido,
+        dni: persona.dni,
+        fechaNacimiento: persona.fechaNacimiento.slice(0, 10),
+        mail: persona.mail,
+        telefono: persona.telefono,
+        contraseña: '',
+        localidadId: String(persona.Localidades_idLocalidades),
+    } : vacio)
     const [tipo, setTipo] = useState<'CLIENTE' | 'EMPLEADO'>('CLIENTE')
     const [localidades, setLocalidades] = useState<Localidad[]>([])
     const [guardando, setGuardando] = useState(false)
@@ -23,23 +31,10 @@ function PersonaFormDialog({ abierto, persona, onCerrar, onGuardado }: Props) {
     const editando = Boolean(persona)
 
     useEffect(() => {
-        if (!abierto) return
-        setForm(persona ? {
-            nombre: persona.nombre,
-            apellido: persona.apellido,
-            dni: persona.dni,
-            fechaNacimiento: persona.fechaNacimiento.slice(0, 10),
-            mail: persona.mail,
-            telefono: persona.telefono,
-            contraseña: '',
-            localidadId: String(persona.Localidades_idLocalidades),
-        } : vacio)
-        setTipo('CLIENTE')
-        setError('')
         getLocalidades().then(setLocalidades).catch((motivo) => {
             setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar las localidades')
         })
-    }, [persona, abierto])
+    }, [])
 
     function campo(nombre: keyof typeof vacio) {
         return {
@@ -75,7 +70,7 @@ function PersonaFormDialog({ abierto, persona, onCerrar, onGuardado }: Props) {
     }
 
     return (
-        <Dialog open={abierto} onClose={onCerrar} fullWidth maxWidth="sm">
+        <Dialog open onClose={onCerrar} fullWidth maxWidth="sm">
             <DialogTitle>{editando ? 'Editar persona' : 'Nueva persona'}</DialogTitle>
             <DialogContent>
                 <Stack spacing={2} sx={{ mt: 1 }}>

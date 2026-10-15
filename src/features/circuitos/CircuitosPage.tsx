@@ -22,10 +22,11 @@ function CircuitosPage() {
     const conAcciones = puedeEditar || puedeEliminar
 
     function cargarCircuitos() {
-        setCargando(true)
-        setError('')
         getCircuitos()
-            .then((datos) => setCircuitos(datos))
+            .then((datos) => {
+                setCircuitos(datos)
+                setError('')
+            })
             .catch((motivo: unknown) => {
                 setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los circuitos')
             })
@@ -115,12 +116,13 @@ function CircuitosPage() {
                 </Table>
             </TableContainer>
 
-            <CircuitoFormDialog
-                abierto={abierto}
-                circuito={circuitoEditando}
-                onCerrar={() => setAbierto(false)}
-                onGuardado={handleGuardado}
-            />
+            {abierto && (
+                <CircuitoFormDialog
+                    circuito={circuitoEditando}
+                    onCerrar={() => setAbierto(false)}
+                    onGuardado={handleGuardado}
+                />
+            )}
             {dialogo}
         </div>
     )

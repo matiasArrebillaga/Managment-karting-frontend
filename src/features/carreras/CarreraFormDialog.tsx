@@ -10,19 +10,20 @@ import { fechaLocal, fechaTexto, horaTexto } from '../../utils/fechas'
 import type { Circuito, CreateCarrera, ICarrera, ITorneos, Karting, TipoKarting } from '../../types'
 
 type Props = {
-    abierto: boolean
     carrera?: ICarrera | null
     onCerrar: () => void
     onGuardado: () => void
 }
 
-function CarreraFormDialog ({ abierto, carrera, onCerrar, onGuardado }: Props) {
-    const [fechaCarrera, setFechaCarrera] = useState('')
-    const [horaInicio, setHoraInicio] = useState('')
-    const [horaFin, setHoraFin] = useState('')
-    const [torneoId, setTorneoId] = useState('')
-    const [circuitoId, setCircuitoId] = useState('')
-    const [kartingIds, setKartingIds] = useState<string[]>([])
+function CarreraFormDialog ({ carrera, onCerrar, onGuardado }: Props) {
+    const [fechaCarrera, setFechaCarrera] = useState(carrera ? fechaTexto(carrera.fechaCarrera) : '')
+    const [horaInicio, setHoraInicio] = useState(carrera ? horaTexto(carrera.horaInicio) : '')
+    const [horaFin, setHoraFin] = useState(carrera ? horaTexto(carrera.horaFin) : '')
+    const [torneoId, setTorneoId] = useState(carrera ? String(carrera.Torneos_idTorneos) : '')
+    const [circuitoId, setCircuitoId] = useState(carrera ? String(carrera.Circuitos_idCircuitos) : '')
+    const [kartingIds, setKartingIds] = useState<string[]>(
+        (carrera?.kartings ?? (carrera?.Kartings_idKartings === undefined ? [] : [carrera.Kartings_idKartings])).map(String),
+    )
     const [circuitos, setCircuitos] = useState<Circuito[]>([])
     const [torneos, setTorneos] = useState<ITorneos[]>([])
     const [kartings, setKartings] = useState<Karting[]>([])
@@ -41,39 +42,17 @@ function CarreraFormDialog ({ abierto, carrera, onCerrar, onGuardado }: Props) {
         : []
 
     useEffect(() => {
-        if (abierto) {
-            Promise.all([getCircuitos(), getTorneos(), getKartings(), getTiposKarting()])
-                .then(([datosCircuitos, datosTorneos, datosKartings, datosTiposKarting]) => {
-                    setCircuitos(datosCircuitos)
-                    setTorneos(datosTorneos)
-                    setKartings(datosKartings)
-                    setTiposKarting(datosTiposKarting)
-                })
-                .catch((motivo: unknown) => {
-                    setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los datos de la carrera')
-                })
-        }
-    }, [abierto])
-
-    useEffect(() => {
-        if (carrera) {
-            setFechaCarrera(fechaTexto(carrera.fechaCarrera))
-            setHoraInicio(horaTexto(carrera.horaInicio))
-            setHoraFin(horaTexto(carrera.horaFin))
-            setTorneoId(String(carrera.Torneos_idTorneos))
-            setCircuitoId(String(carrera.Circuitos_idCircuitos))
-            const ids = carrera.kartings ?? (carrera.Kartings_idKartings === undefined ? [] : [carrera.Kartings_idKartings])
-            setKartingIds(ids.map(String))
-        } else {
-            setFechaCarrera('')
-            setHoraInicio('')
-            setHoraFin('')
-            setTorneoId('')
-            setCircuitoId('')
-            setKartingIds([])
-        }
-        setError('')
-    }, [carrera, abierto])
+        Promise.all([getCircuitos(), getTorneos(), getKartings(), getTiposKarting()])
+            .then(([datosCircuitos, datosTorneos, datosKartings, datosTiposKarting]) => {
+                setCircuitos(datosCircuitos)
+                setTorneos(datosTorneos)
+                setKartings(datosKartings)
+                setTiposKarting(datosTiposKarting)
+            })
+            .catch((motivo: unknown) => {
+                setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los datos de la carrera')
+            })
+    }, [])
 
     async function handleGuardar () {
         if (!fechaCarrera || !horaInicio || !horaFin || !torneoId || !circuitoId || kartingIds.length === 0) {
@@ -110,7 +89,7 @@ function CarreraFormDialog ({ abierto, carrera, onCerrar, onGuardado }: Props) {
     }
 
     return (
-        <Dialog open={abierto} onClose={onCerrar}>
+        <Dialog open onClose={onCerrar}>
             <DialogTitle>{editando ? 'Editar Carrera' : 'Nueva Carrera'}</DialogTitle>
             <DialogContent>
                 <Stack spacing={2} sx={{ mt: 1 }}>

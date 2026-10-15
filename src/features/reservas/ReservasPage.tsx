@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Alert, Button, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField } from '@mui/material'
 import { useAuth } from '../../context/AuthContext'
@@ -14,6 +14,18 @@ import FilaVacia from '../../components/FilaVacia'
 import { useConfirmar } from '../../components/useConfirmar'
 import { fecha, hora, pesos } from '../../utils/formato'
 import { fechaLocal } from '../../utils/fechas'
+
+type Rango = { desde: string; hasta: string }
+
+// /reservas/fechas es solo para ADMIN y EMPLEADO: al cliente se le filtran sus propias reservas
+async function buscarReservas (puedeGestionar: boolean, idPersona: number | undefined, rango: Rango | null) {
+    if (puedeGestionar) return rango ? getReservasPorFechas(rango.desde, rango.hasta) : getReservas()
+    const propias = await getMisReservas(idPersona)
+    if (!rango) return propias
+    const inicio = fechaLocal(rango.desde)
+    const fin = fechaLocal(rango.hasta)
+    return propias.filter((reserva) => reserva.fechaReserva >= inicio && reserva.fechaReserva <= fin)
+}
 
 // soloPropias: historial de la persona logueada (Mi cuenta), aunque sea staff
 function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
@@ -31,28 +43,18 @@ function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
     const [reservaDetalle, setReservaDetalle] = useState<IReserva | null>(null)
     const [desde, setDesde] = useState('')
     const [hasta, setHasta] = useState('')
-    const [filtro, setFiltro] = useState<{ desde: string; hasta: string } | null>(null)
+    const [filtro, setFiltro] = useState<Rango | null>(null)
     const [errorFiltro, setErrorFiltro] = useState('')
-    const puedeGestionar = !soloPropias && puede(persona?.rol.nombre, 'reservas.verTodas')
+    // el !! no cambia el valor: le asegura al React Compiler (que no lee tipos) que es un booleano y no un objeto mutable
+    const puedeGestionar = !soloPropias && !!puede(persona?.rol.nombre, 'reservas.verTodas')
     const reservasVisibles = reservas.filter((reserva) => (
         puedeGestionar || reserva.Personas_idPersona === persona?.idPersona
     ))
 
-    // /reservas/fechas es solo para ADMIN y EMPLEADO: al cliente se le filtran sus propias reservas
-    async function buscarReservas (rango: typeof filtro) {
-        if (puedeGestionar) return rango ? getReservasPorFechas(rango.desde, rango.hasta) : getReservas()
-        const propias = await getMisReservas(persona?.idPersona)
-        if (!rango) return propias
-        const inicio = fechaLocal(rango.desde)
-        const fin = fechaLocal(rango.hasta)
-        return propias.filter((reserva) => reserva.fechaReserva >= inicio && reserva.fechaReserva <= fin)
-    }
-
-    function cargarReservas (rango = filtro) {
-        setCargando(true)
-        setError('')
+    // se recrea cuando cambian el filtro, la persona o el permiso: el efecto de abajo recarga en esos casos
+    const cargarReservas = useCallback(() => {
         Promise.all([
-            buscarReservas(rango),
+            buscarReservas(puedeGestionar, persona?.idPersona, filtro),
             getCircuitos(),
             getKartings(),
             puedeGestionar ? getPersonas() : Promise.resolve([]),
@@ -62,17 +64,17 @@ function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
                 setCircuitos(datosCircuitos)
                 setKartings(datosKartings)
                 setPersonas(datosPersonas)
+                setError('')
             })
             .catch((motivo: unknown) => {
                 setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar las reservas')
             })
             .finally(() => setCargando(false))
-    }
+    }, [filtro, persona, puedeGestionar])
 
     useEffect(() => {
-        if (!persona) return
-        cargarReservas()
-    }, [persona?.idPersona, puedeGestionar])
+        if (persona) cargarReservas()
+    }, [persona, cargarReservas])
 
     function nombrePersona (id: number) {
         const titular = personas.find((item) => item.idPersona === id)
@@ -102,7 +104,6 @@ function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
         }
         setErrorFiltro('')
         setFiltro({ desde, hasta })
-        cargarReservas({ desde, hasta })
     }
 
     function handleLimpiarFiltro () {
@@ -110,7 +111,6 @@ function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
         setHasta('')
         setErrorFiltro('')
         setFiltro(null)
-        cargarReservas(null)
     }
 
     function personaDe (id: number) {

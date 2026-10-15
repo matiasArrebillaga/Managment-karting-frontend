@@ -14,16 +14,16 @@ function LocalidadesPage() {
     const [abierto, setAbierto] = useState(false)
     const [localidadEditando, setLocalidadEditando] = useState<Localidad | null>(null)
 
-    async function cargarLocalidades() {
-        setCargando(true)
-        setError('')
-        try {
-            setLocalidades(await getLocalidades())
-        } catch (motivo) {
-            setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar las localidades')
-        } finally {
-            setCargando(false)
-        }
+    function cargarLocalidades() {
+        getLocalidades()
+            .then((datos) => {
+                setLocalidades(datos)
+                setError('')
+            })
+            .catch((motivo: unknown) => {
+                setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar las localidades')
+            })
+            .finally(() => setCargando(false))
     }
 
     useEffect(() => {
@@ -97,12 +97,13 @@ function LocalidadesPage() {
                 </Table>
             </TableContainer>
 
-            <LocalidadFormDialog
-                abierto={abierto}
-                localidad={localidadEditando}
-                onCerrar={() => setAbierto(false)}
-                onGuardado={handleGuardado}
-            />
+            {abierto && (
+                <LocalidadFormDialog
+                    localidad={localidadEditando}
+                    onCerrar={() => setAbierto(false)}
+                    onGuardado={handleGuardado}
+                />
+            )}
             {dialogo}
         </div>
     )

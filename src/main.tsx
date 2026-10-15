@@ -24,7 +24,7 @@ import ReservasPage from './features/reservas/ReservasPage.tsx'
 import ReservarPage from './features/reservas/ReservarPage.tsx'
 import PersonasPage from './features/personas/PersonasPage.tsx'
 import ParticipacionesPage from './features/participaciones/ParticipacionesPage.tsx'
-import { AuthProvider } from './context/AuthContext.tsx'
+import { AuthProvider } from './context/AuthProvider.tsx'
 import RutaProtegida from './components/RutaProtegida.tsx'
 
 // Misma paleta que los tokens de App.css (oscuro fijo).

@@ -24,13 +24,12 @@ function KartingsPage() {
     const conAcciones = puedeGestionar || puedeEliminar
 
     function cargarKartings() {
-        setCargando(true)
-        setError('')
         Promise.all([
             getKartings(),
             getTiposKarting(),
         ])
             .then(([datosKartings, datosTipos]) => {
+                setError('')
                 setKartings(datosKartings)
                 setTiposKarting(datosTipos)
             })
@@ -131,12 +130,13 @@ function KartingsPage() {
                 </Table>
             </TableContainer>
 
-            <KartingFormDialog
-                abierto={abierto}
-                karting={kartingEditando}
-                onCerrar={() => setAbierto(false)}
-                onGuardado={handleGuardado}
-            />
+            {abierto && (
+                <KartingFormDialog
+                    karting={kartingEditando}
+                    onCerrar={() => setAbierto(false)}
+                    onGuardado={handleGuardado}
+                />
+            )}
             {dialogo}
         </div>
     )

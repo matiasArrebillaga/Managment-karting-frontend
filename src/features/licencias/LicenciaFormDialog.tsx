@@ -6,17 +6,16 @@ import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuI
 import type { Licencia, TipoLicencia, Persona } from "../../types"
 
 type Props = {
-    abierto: boolean
     licencia?: Licencia | null
     onCerrar: () => void
     onGuardado: () => void
 }
 
-function LicenciaFormDialog({ abierto, licencia, onCerrar, onGuardado }: Props) {
-    const [fechaEmision, setFechaEmision] = useState('')
-    const [fechaVencimiento, setFechaVencimiento] = useState('')
-    const [personaId, setPersonaId] = useState('')
-    const [tipoLicenciaId, setTipoLicenciaId] = useState('')
+function LicenciaFormDialog({ licencia, onCerrar, onGuardado }: Props) {
+    const [fechaEmision, setFechaEmision] = useState(licencia?.fechaEmision ?? '')
+    const [fechaVencimiento, setFechaVencimiento] = useState(licencia?.fechaVencimiento ?? '')
+    const [personaId, setPersonaId] = useState(licencia ? String(licencia.Personas_idPersona) : '')
+    const [tipoLicenciaId, setTipoLicenciaId] = useState(licencia ? String(licencia.TiposLicencias_idTipoLicencia) : '')
     const [personas, setPersonas] = useState<Persona[]>([])
     const [tiposLicencia, setTiposLicencia] = useState<TipoLicencia[]>([])
     const [guardando, setGuardando] = useState(false)
@@ -25,28 +24,11 @@ function LicenciaFormDialog({ abierto, licencia, onCerrar, onGuardado }: Props) 
     const editando = Boolean(licencia)
 
     useEffect(() => {
-        if (abierto) {
-            Promise.all([getPersonas(), getTiposLicencia()]).then(([datosPersonas, datosTipos]) => {
-                setPersonas(datosPersonas)
-                setTiposLicencia(datosTipos)
-            }).catch((motivo) => setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los titulares y tipos de licencia'))
-        }
-    }, [abierto])
-
-    useEffect(() => {
-        if (licencia) {
-            setFechaEmision(licencia.fechaEmision)
-            setFechaVencimiento(licencia.fechaVencimiento)
-            setPersonaId(String(licencia.Personas_idPersona))
-            setTipoLicenciaId(String(licencia.TiposLicencias_idTipoLicencia))
-        } else {
-            setFechaEmision('')
-            setFechaVencimiento('')
-            setPersonaId('')
-            setTipoLicenciaId('')
-        }
-        setError('')
-    }, [licencia, abierto])
+        Promise.all([getPersonas(), getTiposLicencia()]).then(([datosPersonas, datosTipos]) => {
+            setPersonas(datosPersonas)
+            setTiposLicencia(datosTipos)
+        }).catch((motivo) => setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los titulares y tipos de licencia'))
+    }, [])
 
     async function handleGuardar() {
         setGuardando(true)
@@ -72,7 +54,7 @@ function LicenciaFormDialog({ abierto, licencia, onCerrar, onGuardado }: Props) 
     }
 
     return (
-        <Dialog open={abierto} onClose={onCerrar}>
+        <Dialog open onClose={onCerrar}>
             <DialogTitle>{editando ? 'Editar Licencia' : 'Nueva Licencia'}</DialogTitle>
             <DialogContent>
                 <Stack spacing={2} sx={{ mt: 1 }}>

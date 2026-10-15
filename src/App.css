@@ -1,48 +1,34 @@
-/* Estilo minimalista: paleta neutra con modo claro/oscuro según el sistema.
+/* Estilo "Management-Karting Rosario": oscuro fijo, ciruela (identidad) + rojo (acción).
    Mobile-first: lo de arriba es celular. Cortes iguales a MUI: sm 600, md 900. */
 
 :root {
-    --bg: #fbfbfa;
-    --surface: #ffffff;
-    --fg: #2f3437;
-    --muted: #787774;
-    --line: #eaeaea;
-    --btn: #111111;
-    --btn-fg: #ffffff;
-    --btn-hover: #333333;
-    --ok-bg: #edf3ec;
-    --ok-fg: #346538;
-    --warn-bg: #fbf3db;
-    --warn-fg: #956400;
-    --info-bg: #e1f3fe;
-    --info-fg: #1f6c9f;
-    --bad-bg: #fdebec;
-    --bad-fg: #9f2f2d;
+    --ciruela: #46164A;
+    --rojo: #9E0505;
+    --ciruela-claro: #C99ACD;   /* misma ciruela, aclarada para texto sobre fondo oscuro */
+    --rojo-claro: #F0857E;      /* mismo rojo, aclarado para texto sobre fondo oscuro */
+
+    --bg: #0E0B0F;
+    --surface: #161218;
+    --surface-2: #1D171F;
+    --fg: #EEE9EC;
+    --muted: #9C929A;
+    --line: rgba(255, 255, 255, 0.08);
+    --line-fuerte: rgba(255, 255, 255, 0.14);
+
+    --btn: var(--rojo);
+    --btn-fg: #fff;
+    --btn-hover: #B30808;
+
+    --ok-bg: rgba(120, 190, 130, 0.12);   --ok-fg: #9FD0A3;
+    --warn-bg: rgba(227, 194, 122, 0.12); --warn-fg: #E3C27A;
+    --info-bg: rgba(201, 154, 205, 0.14); --info-fg: var(--ciruela-claro);
+    --bad-bg: rgba(240, 133, 126, 0.12);  --bad-fg: var(--rojo-claro);
+
     --sans: 'Geist', 'Helvetica Neue', Arial, sans-serif;
     --mono: 'Geist Mono', 'SF Mono', Consolas, monospace;
-    --topbar-h: 56px;
-}
-
-@media (prefers-color-scheme: dark) {
-    :root {
-        --bg: #191919;
-        --surface: #202020;
-        --fg: #e6e6e4;
-        --muted: #9b9a97;
-        --line: #2f2f2f;
-        --btn: #e6e6e4;
-        --btn-fg: #191919;
-        --btn-hover: #cfcfcc;
-        --ok-bg: #243326;
-        --ok-fg: #9fd0a3;
-        --warn-bg: #3a3120;
-        --warn-fg: #e3c27a;
-        --info-bg: #1f3140;
-        --info-fg: #8cc4ec;
-        --bad-bg: #3d2425;
-        --bad-fg: #f0a19f;
-        color-scheme: dark;
-    }
+    --serif: 'Instrument Serif', Georgia, serif;
+    --topbar-h: 64px;
+    color-scheme: dark;
 }
 
 * {
@@ -1034,4 +1020,273 @@ a {
     .feature-body .btn {
         justify-self: start;
     }
+}
+
+/* ================= Identidad visual ================= */
+
+/* Fondo: casi plano, apenas más claro arriba + grano muy leve encima de todo */
+body {
+    background: linear-gradient(180deg, #151017 0%, var(--bg) 70vh) fixed var(--bg);
+}
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    pointer-events: none;
+    opacity: 0.05;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* ---- Header: vidrio oscuro + hilo ciruela→rojo ---- */
+.topbar {
+    background: rgba(14, 11, 15, 0.72);
+    backdrop-filter: blur(14px) saturate(140%);
+    border-bottom: 1px solid var(--line);
+}
+.topbar::after {
+    content: "";
+    position: absolute;
+    right: 0; bottom: -1px; left: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--ciruela) 25%, var(--rojo) 75%, transparent);
+}
+.brand { gap: 10px; font-size: 15px; }
+.brand svg { width: 26px; height: 26px; }
+.brand svg > rect { fill: var(--ciruela); stroke: rgba(255,255,255,.18); }
+.brand svg g { fill: #fff; }
+.brand .ciudad { color: var(--muted); font-family: var(--serif); font-style: italic; font-size: 17px; font-weight: 400; }
+
+/* ---- Botones de la top bar ---- */
+.main-nav a.active { color: var(--fg); }
+.nav-indicador { display: none; }
+
+/* Botón "Gestión": cuadrado en celular, pastilla con texto en escritorio */
+.icon-btn.gestion {
+    color: var(--muted);
+    background: rgba(255,255,255,.03);
+    border: 1px solid var(--line-fuerte);
+    border-radius: 10px;
+    transition: color .15s, border-color .15s, background .15s;
+}
+.icon-btn.gestion svg { width: 16px; height: 16px; }
+.icon-btn.gestion span { display: none; }
+.icon-btn.gestion:hover { color: var(--fg); border-color: rgba(255,255,255,.24); }
+.icon-btn.gestion[aria-expanded="true"] { color: var(--fg); background: rgba(70,22,74,.45); border-color: rgba(201,154,205,.3); }
+
+/* Cuenta: avatar + nombre/rol + flecha, dentro de una pastilla */
+.account-btn {
+    gap: 10px;
+    padding: 3px;
+    border: 1px solid var(--line-fuerte);
+    background: rgba(255,255,255,.03);
+    transition: border-color .15s, background .15s;
+}
+.account-btn:hover { border-color: rgba(255,255,255,.24); background: rgba(255,255,255,.06); }
+.account-btn .label { line-height: 1.15; text-align: left; }
+.account-btn .label small { display: block; color: var(--muted); font-family: var(--mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+.account-btn .chevron { display: none; margin-right: 8px; color: var(--muted); transition: transform .2s; }
+.account-btn[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+.avatar {
+    position: relative;
+    color: #fff;
+    background: linear-gradient(140deg, #5E2163, var(--ciruela));
+    border-color: rgba(255,255,255,.14);
+}
+.avatar::after {   /* punto rojo = sesión activa */
+    content: ""; position: absolute; right: -1px; bottom: -1px;
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--rojo); box-shadow: 0 0 0 2px var(--bg);
+}
+
+@media (min-width: 900px) {
+    .icon-btn.gestion { width: auto; height: 36px; display: inline-flex; gap: 8px; padding: 0 12px; font-size: 13px; }
+    .icon-btn.gestion span { display: inline; }
+
+    /* Navegación: control segmentado con indicador que se desliza */
+    .main-nav {
+        position: relative;
+        gap: 2px;
+        padding: 4px;
+        background: rgba(255,255,255,.03);
+        border: 1px solid var(--line-fuerte);
+        border-radius: 999px;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,.4);
+    }
+    .main-nav a {
+        position: relative;
+        z-index: 1;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 16px;
+        border-radius: 999px;
+        transition: color .2s;
+    }
+    .main-nav a svg { display: block; width: 16px; height: 16px; opacity: .7; transition: opacity .2s; }
+    .main-nav a:hover svg, .main-nav a.active svg { opacity: 1; }
+    .main-nav a + a::before { content: none; }
+    .main-nav a.active span { padding: 0; background: none; }
+    .nav-indicador {
+        position: absolute;
+        top: 4px; bottom: 4px; left: 0;
+        display: block;
+        border-radius: 999px;
+        background: linear-gradient(180deg, #57205C, var(--ciruela));
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 6px 16px -6px rgba(70,22,74,.9);
+        transition: transform .35s cubic-bezier(.3,.7,.2,1), width .35s cubic-bezier(.3,.7,.2,1);
+    }
+    .nav-indicador::after {   /* rayita roja abajo del activo */
+        content: ""; position: absolute; left: 50%; bottom: -5px;
+        width: 14px; height: 2px; margin-left: -7px;
+        border-radius: 2px; background: var(--rojo);
+    }
+
+    .account-btn { padding: 3px 3px 3px 3px; }
+    .account-btn .label { display: block; font-size: 13px; font-weight: 500; }
+    .account-btn .chevron { display: block; }
+}
+
+/* ---- Aside ---- */
+/* en celular el aside es un panel encima del contenido: fondo sólido; translúcido solo en escritorio */
+.aside { border-right-color: var(--line); }
+@media (min-width: 900px) {
+    .aside { background: rgba(22, 18, 24, 0.6); }
+}
+.aside a.active { background: linear-gradient(90deg, rgba(70,22,74,.9), rgba(70,22,74,.25)); box-shadow: inset 2px 0 var(--rojo); }
+.aside a:hover { background: var(--surface-2); }
+
+/* ---- Tipografía: títulos en serif ---- */
+.page h1, .auth h1 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 34px;
+    letter-spacing: -0.01em;
+    line-height: 1.05;
+}
+.intro-texto h1 { font-size: clamp(34px, 9vw, 72px); }
+.page h2 { font-size: 16px; letter-spacing: -0.01em; }
+.eyebrow { color: var(--rojo-claro); letter-spacing: 0.14em; }
+
+/* ---- Superficies ---- */
+.panel {
+    background: linear-gradient(180deg, var(--surface-2), var(--surface));
+    border-color: var(--line);
+    border-radius: 14px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 20px 40px -24px rgba(0,0,0,.8);
+}
+.photo { border-color: var(--line); border-radius: 14px; }
+.photo img { filter: saturate(0.8) contrast(1.05) brightness(.9); }
+.photo.ancha { position: relative; }
+.photo.ancha::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(200deg, transparent 40%, rgba(70,22,74,.55));
+}
+.datos { background: transparent; border: 0; border-top: 1px solid var(--line-fuerte); border-radius: 0; }
+.datos div { padding: 16px 0 0; }
+.datos div + div { border-left: 0; padding-left: 20px; }
+.datos b { font-family: var(--serif); font-size: 40px; font-weight: 400; line-height: 1; }
+.row { border-top-color: var(--line); padding-block: 14px; }
+
+/* ---- Botones ---- */
+.btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 12px 22px;
+    font-size: 14px; letter-spacing: 0.01em;
+    background: linear-gradient(180deg, #B40A0A, var(--rojo));
+    border-radius: 999px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 10px 28px -10px rgba(158,5,5,.75);
+    transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.btn::after { content: "→"; transition: transform .15s ease; }
+/* Los efectos de hover solo donde hay mouse: en el celular el "hover" queda pegado después del toque */
+@media (hover: hover) {
+    .btn:hover {
+        background: linear-gradient(180deg, #C40D0D, #A80606);
+        transform: translateY(-1px);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 14px 32px -10px rgba(158,5,5,.9);
+    }
+    .btn:hover::after { transform: translateX(3px); }
+    .btn.con-icono:hover .btn-icono { transform: rotate(-8deg) scale(1.06); }
+    .panel-head .link:hover { color: var(--fg); border-color: rgba(201,154,205,.35); background: rgba(70,22,74,.25); }
+    .panel-head .link:hover i { transform: rotate(-45deg); background: var(--rojo); }
+}
+.btn-ghost, .btn.secundario {
+    padding: 12px 22px;
+    color: var(--fg);
+    background: rgba(255,255,255,.03);
+    border: 1px solid var(--line-fuerte);
+    border-radius: 999px;
+    box-shadow: none;
+}
+.btn.secundario::after { content: none; }
+.btn.secundario:hover { background: rgba(255,255,255,.07); transform: none; box-shadow: none; }
+.link { letter-spacing: .01em; }
+.link:hover { color: var(--rojo-claro); }
+
+/* Botón principal con ícono: el ícono va en un círculo oscuro adentro del botón */
+.btn.con-icono { padding: 6px 20px 6px 6px; }
+.btn.con-icono::after { content: none; }
+.btn-icono {
+    display: grid; place-items: center;
+    width: 32px; height: 32px;
+    background: rgba(0,0,0,.28);
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.12);
+    transition: transform .2s ease;
+}
+
+/* "Ver todas" / "Administrar": pastilla chica con la flecha en un círculo */
+.panel-head .link {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 4px 4px 4px 12px;
+    color: var(--muted);
+    font-size: 12px;
+    background: rgba(255,255,255,.03);
+    border: 1px solid var(--line-fuerte);
+    border-radius: 999px;
+    transition: color .15s, border-color .15s, background .15s;
+}
+.panel-head .link i {
+    display: grid; place-items: center;
+    width: 22px; height: 22px;
+    font-style: normal;
+    color: var(--fg);
+    background: var(--ciruela);
+    border-radius: 50%;
+    transition: transform .2s ease, background .2s ease;
+}
+
+/* ---- Tags: pastilla con punto ---- */
+.tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 10px;
+    background: transparent;
+    border: 1px solid var(--line-fuerte);
+    letter-spacing: .08em;
+}
+.tag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.tag.ok, .tag.warn, .tag.info, .tag.bad { border-color: transparent; }
+
+/* ---- Formularios ---- */
+.tabs { border-bottom-color: var(--line); }
+.tabs a.active { border-bottom-color: var(--rojo); }
+.campo input, .campo select {
+    padding: 11px 14px;
+    background: rgba(255,255,255,.03);
+    border-color: var(--line-fuerte);
+    border-radius: 10px;
+}
+.campo input:focus { outline: 0; border-color: var(--ciruela-claro); box-shadow: 0 0 0 4px rgba(70,22,74,.6); }
+:is(button, a, input, select, summary):focus-visible { outline-color: var(--ciruela-claro); }
+/* Login: en celular ocupa todo el ancho sin tarjeta; desde sm se vuelve tarjeta */
+@media (min-width: 600px) {
+    .auth { max-width: 440px; padding: 32px; margin-top: 48px; background: linear-gradient(180deg, var(--surface-2), var(--surface)); border: 1px solid var(--line); border-radius: 18px; }
+}
+
+/* ---- Más aire en desktop ---- */
+@media (min-width: 900px) {
+    .page { gap: 40px; padding: 56px 32px 96px; max-width: 1120px; }
+    .intro { gap: 56px; }
+    .panel { padding: 28px; }
 }

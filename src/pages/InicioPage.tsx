@@ -41,7 +41,7 @@ function InicioPage () {
                 </figure>
                 <div className="intro-texto">
                     <p className="eyebrow">Karting en Rosario</p>
-                    <h1>Kart Control</h1>
+                    <h1>Management-Karting <em>Rosario</em></h1>
                     <p>
                         Somos un centro de karting con circuitos propios y una flota de kartings para todas las edades.
                         Podés venir a correr un rato con amigos, practicar para mejorar tus tiempos o competir en nuestros torneos.

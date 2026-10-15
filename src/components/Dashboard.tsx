@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
+import { CalendarDays } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { puede } from "../permisos";
 import { getCarreras } from "../services/carreraService";
@@ -62,14 +63,17 @@ function Dashboard () {
                     <p className="sub">Esto está pasando hoy en la pista.</p>
                     {error && <p className="error">No se pudieron cargar los datos: {error}</p>}
                 </div>
-                <Link className="btn" to="/reservas">Ver reservas</Link>
+                <Link className="btn con-icono" to="/reservas">
+                    <span className="btn-icono"><CalendarDays size={16} aria-hidden="true" /></span>
+                    Ver reservas
+                </Link>
             </div>
 
             <div className="grid2">
                 <section className="panel">
                     <div className="panel-head">
                         <h2>Carreras de hoy</h2>
-                        <Link className="link" to="/carreras">Carreras y resultados →</Link>
+                        <Link className="link" to="/carreras">Carreras y resultados <i aria-hidden="true">→</i></Link>
                     </div>
                     <div className="rows">
                         {carreras.length === 0 && <p className="empty">No hay carreras hoy.</p>}
@@ -91,7 +95,7 @@ function Dashboard () {
                 <section className="panel">
                     <div className="panel-head">
                         <h2>Reservas del día</h2>
-                        <Link className="link" to="/reservas">Ver todas →</Link>
+                        <Link className="link" to="/reservas">Ver todas <i aria-hidden="true">→</i></Link>
                     </div>
                     <div className="rows">
                         {reservas.length === 0 && <p className="empty">No hay reservas para hoy.</p>}
@@ -112,7 +116,7 @@ function Dashboard () {
             <section className="panel">
                 <div className="panel-head">
                     <h2>Estado de la flota</h2>
-                    <Link className="link" to="/kartings">Administrar →</Link>
+                    <Link className="link" to="/kartings">Administrar <i aria-hidden="true">→</i></Link>
                 </div>
                 <div className="rows">
                     {kartings.length === 0 && <p className="empty">No hay kartings cargados.</p>}

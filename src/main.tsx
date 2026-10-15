@@ -27,48 +27,50 @@ import ParticipacionesPage from './features/participaciones/ParticipacionesPage.
 import { AuthProvider } from './context/AuthContext.tsx'
 import RutaProtegida from './components/RutaProtegida.tsx'
 
-const paletaClara = {
-  primary: { main: '#111111', contrastText: '#ffffff' },
-  error: { main: '#9f2f2d' },
-  success: { main: '#346538' },
-  warning: { main: '#956400' },
-  info: { main: '#1f6c9f' },
-  background: { default: '#fbfbfa', paper: '#ffffff' },
-  text: { primary: '#2f3437', secondary: '#787774' },
-  divider: '#eaeaea',
+// Misma paleta que los tokens de App.css (oscuro fijo).
+// primary = rojo para rellenos (botón contained); para texto sobre fondo oscuro se usan las versiones claras.
+// secondary = ciruela clara: es el color de foco de los inputs, igual que en el CSS.
+const ROJO_CLARO = '#F0857E'
+
+const paleta = {
+  mode: 'dark' as const,
+  primary: { main: '#9E0505', light: ROJO_CLARO, contrastText: '#ffffff' },
+  secondary: { main: '#C99ACD', contrastText: '#0E0B0F' },
+  error: { main: ROJO_CLARO },
+  success: { main: '#9FD0A3' },
+  warning: { main: '#E3C27A' },
+  info: { main: '#C99ACD' },
+  background: { default: '#0E0B0F', paper: '#161218' },
+  text: { primary: '#EEE9EC', secondary: '#9C929A' },
+  divider: 'rgba(255, 255, 255, 0.08)',
 }
 
-const paletaOscura = {
-  primary: { main: '#e6e6e4', contrastText: '#191919' },
-  error: { main: '#f0a19f' },
-  success: { main: '#9fd0a3' },
-  warning: { main: '#e3c27a' },
-  info: { main: '#8cc4ec' },
-  background: { default: '#191919', paper: '#202020' },
-  text: { primary: '#e6e6e4', secondary: '#9b9a97' },
-  divider: '#2f2f2f',
-}
-
-// Misma paleta que los tokens de App.css. El modo claro/oscuro sigue al sistema
-// (prefers-color-scheme), igual que el CSS. En xs (< 600px) los Dialog van a pantalla completa.
+// En xs (< 600px) los Dialog van a pantalla completa.
 const theme = createTheme({
-  cssVariables: { colorSchemeSelector: 'media' },
-  colorSchemes: {
-    light: { palette: paletaClara },
-    dark: { palette: paletaOscura },
-  },
+  cssVariables: true,
+  palette: paleta,
   typography: {
     fontFamily: "'Geist', 'Helvetica Neue', Arial, sans-serif",
     // CssBaseline aplica body1 al <body> después de App.css: tiene que coincidir con el 14px/1.6 del diseño
     body1: { fontSize: 14, lineHeight: 1.6 },
-    h4: { fontSize: 26, fontWeight: 600, letterSpacing: '-0.02em' },
+    // títulos de página en serif, igual que .page h1 en App.css
+    h4: { fontFamily: "'Instrument Serif', Georgia, serif", fontSize: 34, fontWeight: 400, letterSpacing: '-0.01em', lineHeight: 1.05 },
     h5: { fontSize: 18, fontWeight: 600 },
     h6: { fontSize: 15, fontWeight: 600 },
     button: { textTransform: 'none', fontWeight: 500 },
   },
   shape: { borderRadius: 6 },
   components: {
-    MuiButton: { defaultProps: { disableElevation: true } },
+    MuiButton: {
+      defaultProps: { disableElevation: true },
+      styleOverrides: { root: { borderRadius: 999 } },
+      // el rojo #9E0505 como texto sobre fondo oscuro no se lee: los botones sin relleno usan el rojo claro
+      variants: [
+        { props: { variant: 'text', color: 'primary' }, style: { color: ROJO_CLARO } },
+        { props: { variant: 'outlined', color: 'primary' }, style: { color: ROJO_CLARO, borderColor: 'rgba(240, 133, 126, 0.5)' } },
+      ],
+    },
+    MuiTextField: { defaultProps: { color: 'secondary' } },
     MuiPaper: {
       defaultProps: { elevation: 0 },
       styleOverrides: { root: ({ theme }) => ({ border: `1px solid ${theme.vars.palette.divider}`, backgroundImage: 'none' }) },

@@ -74,7 +74,7 @@ function AuthPage ({ mode }: { mode: 'login' | 'register' }) {
     return (
         <div className="auth">
             <div>
-                <h1>Bienvenido a Kart Control</h1>
+                <h1>Bienvenido a Management-Karting Rosario</h1>
                 <p className="sub">Ingresá para reservar un karting o anotarte a un torneo.</p>
             </div>
             <nav className="tabs" aria-label="Cuenta">

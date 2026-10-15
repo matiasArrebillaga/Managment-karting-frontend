@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
-import { CalendarPlus, House, Menu, Trophy, X } from "lucide-react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { CalendarPlus, ChevronDown, House, PanelLeft, Trophy, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { puede } from "../permisos";
 
@@ -19,8 +19,57 @@ function Logo () {
                     <rect x="13" y="13" width="4" height="4" />
                 </g>
             </svg>
-            Kart Control
+            <span>Management-Karting <span className="ciudad">Rosario</span></span>
         </Link>
+    );
+}
+
+// En escritorio una píldora (.nav-indicador) se desliza bajo el link activo y sigue al mouse.
+// En celular el CSS la oculta y queda la barra de abajo.
+function NavPrincipal () {
+    const { pathname } = useLocation();
+    const navRef = useRef<HTMLElement>(null);
+    const indicadorRef = useRef<HTMLSpanElement>(null);
+
+    function moverA (link: HTMLElement | null | undefined) {
+        const indicador = indicadorRef.current;
+        if (!indicador) return;
+        // sin link activo (por ejemplo en /dashboard) el indicador se esconde
+        indicador.style.opacity = link ? "1" : "0";
+        if (!link) return;
+        indicador.style.width = `${link.offsetWidth}px`;
+        indicador.style.transform = `translateX(${link.offsetLeft}px)`;
+    }
+
+    function volverAlActivo () {
+        moverA(navRef.current?.querySelector<HTMLElement>("a.active"));
+    }
+
+    // useLayoutEffect: mide después de que NavLink marcó el .active y antes de pintar, así no se ve el salto
+    useLayoutEffect(() => {
+        volverAlActivo();
+        // con la fuente de reemplazo los links miden distinto: se vuelve a medir cuando carga Geist
+        document.fonts.ready.then(volverAlActivo);
+        window.addEventListener("resize", volverAlActivo);
+        return () => window.removeEventListener("resize", volverAlActivo);
+    }, [pathname]);
+
+    return (
+        <nav
+            className="main-nav"
+            aria-label="Principal"
+            ref={navRef}
+            onMouseOver={(evento) => {
+                const link = (evento.target as HTMLElement).closest("a");
+                if (link) moverA(link);
+            }}
+            onMouseLeave={volverAlActivo}
+        >
+            <span className="nav-indicador" ref={indicadorRef} aria-hidden="true" />
+            <NavLink to="/" end><House size={22} strokeWidth={1.6} /><span>Inicio</span></NavLink>
+            <NavLink to="/reservar"><CalendarPlus size={22} strokeWidth={1.6} /><span>Reservar</span></NavLink>
+            <NavLink to="/torneos" end><Trophy size={22} strokeWidth={1.6} /><span>Torneos</span></NavLink>
+        </nav>
     );
 }
 
@@ -57,8 +106,12 @@ function MenuCuenta () {
                 aria-expanded={abierto}
                 onClick={() => setAbierto(!abierto)}
             >
-                <span className="label">Mi cuenta</span>
                 <span className="avatar">{persona.nombre[0]}{persona.apellido[0]}</span>
+                <span className="label">
+                    {persona.nombre} {persona.apellido}
+                    <small>{persona.rol.nombre}</small>
+                </span>
+                <ChevronDown className="chevron" size={16} aria-hidden="true" />
             </button>
             {abierto && (
                 <div className="account-menu" role="menu" onClick={() => setAbierto(false)}>
@@ -113,25 +166,20 @@ function Layout () {
                     <div className="topbar-left">
                         {esStaff && (
                             <button
-                                className="icon-btn"
+                                className="icon-btn gestion"
                                 type="button"
                                 aria-label={asideAbierto ? "Ocultar menú de administración" : "Mostrar menú de administración"}
                                 aria-expanded={asideAbierto}
                                 aria-controls="menu-admin"
                                 onClick={() => setAsideAbierto(!asideAbierto)}
                             >
-                                <Menu size={16} />
+                                <PanelLeft size={16} aria-hidden="true" />
+                                <span>Gestión</span>
                             </button>
                         )}
                         <Logo />
                     </div>
-                    {persona && (
-                        <nav className="main-nav" aria-label="Principal">
-                            <NavLink to="/" end><House size={22} strokeWidth={1.6} /><span>Inicio</span></NavLink>
-                            <NavLink to="/reservar"><CalendarPlus size={22} strokeWidth={1.6} /><span>Reservar</span></NavLink>
-                            <NavLink to="/torneos" end><Trophy size={22} strokeWidth={1.6} /><span>Torneos</span></NavLink>
-                        </nav>
-                    )}
+                    {persona && <NavPrincipal />}
                     <div className="topbar-right">
                         {persona ? (
                             <MenuCuenta />

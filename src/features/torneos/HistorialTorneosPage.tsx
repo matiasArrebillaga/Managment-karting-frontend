@@ -6,7 +6,8 @@ import { getCarrerasTorneo } from '../../services/carreraService'
 import { getTablaGeneral } from '../../services/participacionService'
 import { getMisTorneos } from '../../services/torneoService'
 import type { FilaTablaGeneral, ITorneos } from '../../types'
-import { estadoTorneo } from './TorneosPage'
+import { CLASE_ESTADO_TORNEO, estadoTorneo } from './TorneosPage'
+import { fecha } from '../../utils/formato'
 
 type FilaHistorial = {
     torneo: ITorneos
@@ -68,10 +69,10 @@ function HistorialTorneosPage () {
                                     <TableRow key={torneo.idTorneos}>
                                         <TableCell><Link to={`/torneos/${torneo.idTorneos}`}>{torneo.nombre}</Link></TableCell>
                                         <TableCell>
-                                            {torneo.fechaInicio.toLocaleDateString('es-AR')} al {torneo.fechaFin.toLocaleDateString('es-AR')}
+                                            {fecha(torneo.fechaInicio)} al {fecha(torneo.fechaFin)}
                                         </TableCell>
                                         <TableCell>
-                                            <span className={`tag ${estado === 'En curso' ? 'info' : estado === 'Próximo' ? 'ok' : ''}`}>{estado}</span>
+                                            <span className={`tag ${CLASE_ESTADO_TORNEO[estado]}`}>{estado}</span>
                                         </TableCell>
                                         <TableCell>{carreras}</TableCell>
                                         <TableCell>{fila ? `${fila.posicion}°` : 'Sin resultados'}</TableCell>

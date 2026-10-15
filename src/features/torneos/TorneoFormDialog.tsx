@@ -61,7 +61,12 @@ function TorneoFormDialog ({ abierto, torneo, onCerrar, onGuardado }: Props) {
     }, [torneo, abierto])
 
     async function handleGuardar () {
-        if (!puedeGuardar) return
+        if (!puedeGuardar) {
+            setError(fechaFin !== '' && fechaInicio !== '' && fechaFin < fechaInicio
+                ? 'La fecha de fin debe ser posterior al inicio'
+                : 'Completá nombre, cupo (mayor a 0), tipo de licencia y las dos fechas')
+            return
+        }
 
         setGuardando(true)
         setError('')
@@ -91,7 +96,7 @@ function TorneoFormDialog ({ abierto, torneo, onCerrar, onGuardado }: Props) {
         <Dialog open={abierto} onClose={onCerrar}>
             <DialogTitle>{editando ? 'Editar Torneo' : 'Nuevo Torneo'}</DialogTitle>
             <DialogContent>
-                <Stack spacing={2} sx={{ mt: 1, minWidth: 320 }}>
+                <Stack spacing={2} sx={{ mt: 1 }}>
                     <TextField
                         label="Nombre"
                         value={nombre}
@@ -156,8 +161,8 @@ function TorneoFormDialog ({ abierto, torneo, onCerrar, onGuardado }: Props) {
             </DialogContent>
             <DialogActions>
                 <Button onClick={onCerrar}>Cancelar</Button>
-                <Button variant="contained" onClick={handleGuardar} disabled={guardando || !puedeGuardar}>
-                    Guardar
+                <Button variant="contained" onClick={handleGuardar} disabled={guardando}>
+                    {guardando ? 'Guardando...' : 'Guardar'}
                 </Button>
             </DialogActions>
         </Dialog>

@@ -3,9 +3,23 @@ import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Table
 import { cargarResultadosCarrera, deleteParticipacion, getClasificacionCarrera, updateParticipacion } from '../../services/participacionService'
 import { getInscriptosTorneo } from '../../services/torneoService'
 import type { ICarrera } from '../../types'
+import { useConfirmar } from '../../components/useConfirmar'
 
 // Una fila sirve para los dos modos: cargar (inscriptos vacíos) o corregir (clasificación guardada)
 type Fila = { idPersona: number; piloto: string; posicion: string; tiempo: string; puntos?: number }
+
+const TIEMPO = /^\d{2}:\d{2}:\d{2}$/
+
+// Lo que el backend rechazaría igual, avisado antes de mandar: devuelve '' si está todo bien
+function validarFilas (filas: Fila[]): string {
+    if (filas.some((fila) => !Number.isInteger(Number(fila.posicion)) || Number(fila.posicion) < 1)) {
+        return 'Las posiciones tienen que ser números enteros desde 1'
+    }
+    const posiciones = filas.map((fila) => fila.posicion)
+    if (new Set(posiciones).size !== posiciones.length) return 'Hay dos pilotos con la misma posición'
+    if (filas.some((fila) => !TIEMPO.test(fila.tiempo))) return 'Los tiempos van en formato HH:MM:SS (por ejemplo 00:12:34)'
+    return ''
+}
 
 type Props = {
     carrera: ICarrera | null
@@ -18,6 +32,8 @@ function ResultadosCarreraDialog ({ carrera, puedeBorrar, onCerrar }: Props) {
     const [yaCargada, setYaCargada] = useState(false)
     const [cargando, setCargando] = useState(false)
     const [error, setError] = useState('')
+    const [guardando, setGuardando] = useState(false)
+    const { confirmar, dialogo } = useConfirmar()
 
     async function cargar (carreraActual: ICarrera) {
         setCargando(true)
@@ -63,30 +79,43 @@ function ResultadosCarreraDialog ({ carrera, puedeBorrar, onCerrar }: Props) {
     async function ejecutar (accion: (carreraActual: ICarrera) => Promise<void>) {
         if (!carrera) return
         setError('')
+        setGuardando(true)
         try {
             await accion(carrera)
             await cargar(carrera)
         } catch (motivo) {
             setError(motivo instanceof Error ? motivo.message : 'No se pudo guardar')
+        } finally {
+            setGuardando(false)
         }
     }
 
     // Los pilotos sin posición no corrieron: no se mandan
     function handleCargar () {
-        ejecutar((carreraActual) => cargarResultadosCarrera(carreraActual, filas
-            .filter((fila) => fila.posicion !== '')
+        const corrieron = filas.filter((fila) => fila.posicion !== '')
+        const problema = corrieron.length === 0 ? 'Cargá la posición de al menos un piloto' : validarFilas(corrieron)
+        if (problema) {
+            setError(problema)
+            return
+        }
+        ejecutar((carreraActual) => cargarResultadosCarrera(carreraActual, corrieron
             .map((fila) => ({ Personas_idPersona: fila.idPersona, posicion_final: Number(fila.posicion), tiempo: fila.tiempo }))))
     }
 
     function handleGuardarFila (fila: Fila) {
+        const problema = validarFilas(filas)
+        if (problema) {
+            setError(problema)
+            return
+        }
         ejecutar((carreraActual) => updateParticipacion(carreraActual, fila.idPersona, {
             posicion_final: Number(fila.posicion),
             tiempo: fila.tiempo,
         }))
     }
 
-    function handleBorrarFila (fila: Fila) {
-        if (!window.confirm(`¿Borrar el resultado de ${fila.piloto}?`)) return
+    async function handleBorrarFila (fila: Fila) {
+        if (!(await confirmar(`¿Borrar el resultado de ${fila.piloto}?`, 'Borrar'))) return
         ejecutar((carreraActual) => deleteParticipacion(carreraActual, fila.idPersona))
     }
 
@@ -119,6 +148,7 @@ function ResultadosCarreraDialog ({ carrera, puedeBorrar, onCerrar }: Props) {
                                             <TextField
                                                 size="small"
                                                 type="number"
+                                                slotProps={{ htmlInput: { min: 1, step: 1, 'aria-label': `Posición de ${fila.piloto}` } }}
                                                 value={fila.posicion}
                                                 onChange={(event) => cambiar(fila.idPersona, 'posicion', event.target.value)}
                                             />
@@ -127,6 +157,7 @@ function ResultadosCarreraDialog ({ carrera, puedeBorrar, onCerrar }: Props) {
                                             <TextField
                                                 size="small"
                                                 placeholder="00:12:34"
+                                                slotProps={{ htmlInput: { 'aria-label': `Tiempo de ${fila.piloto}` } }}
                                                 value={fila.tiempo}
                                                 onChange={(event) => cambiar(fila.idPersona, 'tiempo', event.target.value)}
                                             />
@@ -134,9 +165,9 @@ function ResultadosCarreraDialog ({ carrera, puedeBorrar, onCerrar }: Props) {
                                         {yaCargada && <TableCell>{fila.puntos}</TableCell>}
                                         {yaCargada && (
                                             <TableCell>
-                                                <Button size="small" onClick={() => handleGuardarFila(fila)}>Guardar</Button>
+                                                <Button size="small" onClick={() => handleGuardarFila(fila)} disabled={guardando}>Guardar</Button>
                                                 {puedeBorrar && (
-                                                    <Button size="small" color="error" onClick={() => handleBorrarFila(fila)}>Borrar</Button>
+                                                    <Button size="small" color="error" onClick={() => handleBorrarFila(fila)} disabled={guardando}>Borrar</Button>
                                                 )}
                                             </TableCell>
                                         )}
@@ -150,9 +181,12 @@ function ResultadosCarreraDialog ({ carrera, puedeBorrar, onCerrar }: Props) {
             <DialogActions>
                 <Button onClick={onCerrar}>Cerrar</Button>
                 {!yaCargada && filas.length > 0 && (
-                    <Button variant="contained" onClick={handleCargar} disabled={cargando}>Guardar resultados</Button>
+                    <Button variant="contained" onClick={handleCargar} disabled={cargando || guardando}>
+                        {guardando ? 'Guardando...' : 'Guardar resultados'}
+                    </Button>
                 )}
             </DialogActions>
+            {dialogo}
         </Dialog>
     )
 }

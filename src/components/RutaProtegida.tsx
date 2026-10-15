@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import { Navigate } from "react-router-dom"
+import { Link, Navigate } from "react-router-dom"
 import { useAuth } from "../context/AuthContext"
 import { puede, type Permiso } from "../permisos"
 
@@ -12,8 +12,9 @@ type Props = {
 function RutaProtegida({ children, permiso }: Props) {
     const { persona, cargando } = useAuth()
 
+    // mientras se valida la sesión se muestra un aviso en vez de una pantalla vacía
     if (cargando) {
-        return null
+        return <div className="page"><p className="empty">Cargando...</p></div>
     }
 
     if (!persona) {
@@ -22,9 +23,15 @@ function RutaProtegida({ children, permiso }: Props) {
 
     if (permiso && !puede(persona.rol.nombre, permiso)) {
         return (
-            <div style={{ padding: 24 }}>
-                <h2>Acceso denegado</h2>
-                <p>Tu rol ({persona.rol.nombre}) no tiene permiso para ver esta sección.</p>
+            <div className="page">
+                <div className="page-head">
+                    <div>
+                        <p className="eyebrow">Acceso denegado</p>
+                        <h1>No podés ver esta sección</h1>
+                        <p className="sub">Tu rol ({persona.rol.nombre}) no tiene permiso para entrar acá.</p>
+                    </div>
+                    <Link className="btn" to="/">Volver al inicio</Link>
+                </div>
             </div>
         )
     }

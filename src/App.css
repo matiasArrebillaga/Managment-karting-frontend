@@ -146,7 +146,7 @@ a {
     gap: 2px;
     padding: 4px;
     color: var(--muted);
-    font-size: 11px;
+    font-size: 12px;
     text-decoration: none;
     border-radius: 6px;
 }
@@ -296,7 +296,7 @@ a {
     padding: 0 10px 4px;
     color: var(--muted);
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 0.05em;
     text-transform: uppercase;
 }
@@ -388,7 +388,7 @@ a {
     margin: 0 0 4px;
     color: var(--muted);
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 0.05em;
     text-transform: uppercase;
 }
@@ -528,7 +528,7 @@ a {
 .tag {
     padding: 2px 8px;
     color: var(--muted);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
     letter-spacing: 0.05em;
     text-transform: uppercase;
@@ -1040,9 +1040,17 @@ body::before {
 
 /* ---- Header: vidrio oscuro + hilo ciruela→rojo ---- */
 .topbar {
-    background: rgba(14, 11, 15, 0.72);
-    backdrop-filter: blur(14px) saturate(140%);
+    background: var(--bg);
     border-bottom: 1px solid var(--line);
+}
+/* El desenfoque solo en escritorio: backdrop-filter convierte al header en el "contenedor" de sus hijos
+   position: fixed, y en celular la barra de navegación (.main-nav, que vive adentro del header)
+   quedaría pegada al header en vez de abajo de la pantalla. */
+@media (min-width: 900px) {
+    .topbar {
+        background: rgba(14, 11, 15, 0.72);
+        backdrop-filter: blur(14px) saturate(140%);
+    }
 }
 .topbar::after {
     content: "";
@@ -1084,7 +1092,7 @@ body::before {
 }
 .account-btn:hover { border-color: rgba(255,255,255,.24); background: rgba(255,255,255,.06); }
 .account-btn .label { line-height: 1.15; text-align: left; }
-.account-btn .label small { display: block; color: var(--muted); font-family: var(--mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+.account-btn .label small { display: block; color: var(--muted); font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
 .account-btn .chevron { display: none; margin-right: 8px; color: var(--muted); transition: transform .2s; }
 .account-btn[aria-expanded="true"] .chevron { transform: rotate(180deg); }
 .avatar {
@@ -1198,7 +1206,8 @@ body::before {
     box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 10px 28px -10px rgba(158,5,5,.75);
     transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
 }
-.btn::after { content: "→"; transition: transform .15s ease; }
+/* la flecha indica navegación: solo en links (<a class="btn">), no en botones de acción */
+a.btn::after { content: "→"; transition: transform .15s ease; }
 /* Los efectos de hover solo donde hay mouse: en el celular el "hover" queda pegado después del toque */
 @media (hover: hover) {
     .btn:hover {
@@ -1277,7 +1286,7 @@ body::before {
     border-color: var(--line-fuerte);
     border-radius: 10px;
 }
-.campo input:focus { outline: 0; border-color: var(--ciruela-claro); box-shadow: 0 0 0 4px rgba(70,22,74,.6); }
+.campo :is(input, select):focus { outline: 0; border-color: var(--ciruela-claro); box-shadow: 0 0 0 4px rgba(70,22,74,.6); }
 :is(button, a, input, select, summary):focus-visible { outline-color: var(--ciruela-claro); }
 /* Login: en celular ocupa todo el ancho sin tarjeta; desde sm se vuelve tarjeta */
 @media (min-width: 600px) {
@@ -1289,4 +1298,13 @@ body::before {
     .page { gap: 40px; padding: 56px 32px 96px; max-width: 1120px; }
     .intro { gap: 56px; }
     .panel { padding: 28px; }
+}
+
+/* Quien pidió menos movimiento en el sistema operativo no ve transiciones ni el salto del hover */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+    .btn:hover { transform: none; }
 }

@@ -1,12 +1,5 @@
 import { useEffect, useState } from 'react'
-import Table from '@mui/material/Table'
-import TableContainer from '@mui/material/TableContainer'
-import TableCell from '@mui/material/TableCell'
-import Typography from '@mui/material/Typography'
-import TableRow from '@mui/material/TableRow'
-import TableHead from '@mui/material/TableHead'
-import TableBody from '@mui/material/TableBody'
-import Button from '@mui/material/Button'
+import { Alert, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
 import { getLicencias, deleteLicencia } from '../../services/licenciaService'
 import { getTiposLicencia } from '../../services/tipoLicenciaService'
 import { getPersonas } from '../../services/personaService'
@@ -14,23 +7,32 @@ import type { Licencia, TipoLicencia, Persona } from '../../types'
 import LicenciaFormDialog from './LicenciaFormDialog'
 import { useAuth } from '../../context/AuthContext'
 import { puede } from '../../permisos'
+import FilaVacia from '../../components/FilaVacia'
+import { useConfirmar } from '../../components/useConfirmar'
+import { fecha } from '../../utils/formato'
 
 function LicenciasPage() {
     const { persona } = useAuth()
+    const { confirmar, dialogo } = useConfirmar()
     const [licencias, setLicencias] = useState<Licencia[]>([])
     const [tiposLicencia, setTiposLicencia] = useState<TipoLicencia[]>([])
     const [personas, setPersonas] = useState<Persona[]>([])
     const [cargando, setCargando] = useState(true)
+    const [error, setError] = useState('')
     const [abierto, setAbierto] = useState(false)
     const [licenciaEditando, setLicenciaEditando] = useState<Licencia | null>(null)
 
     function cargarLicencias() {
         setCargando(true)
+        setError('')
         Promise.all([getLicencias(), getTiposLicencia(), getPersonas()])
             .then(([datosLicencias, datosTipos, datosPersonas]) => {
                 setLicencias(datosLicencias)
                 setTiposLicencia(datosTipos)
                 setPersonas(datosPersonas)
+            })
+            .catch((motivo: unknown) => {
+                setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar las licencias')
             })
             .finally(() => setCargando(false))
     }
@@ -40,8 +42,8 @@ function LicenciasPage() {
     }
 
     function nombreTitular(id: number) {
-        const persona = personas.find((p) => p.idPersona === id)
-        return persona ? `${persona.nombre} ${persona.apellido}` : '-'
+        const titular = personas.find((p) => p.idPersona === id)
+        return titular ? `${titular.nombre} ${titular.apellido}` : '-'
     }
 
     useEffect(() => {
@@ -64,41 +66,36 @@ function LicenciasPage() {
         cargarLicencias()
     }
 
-    async function handleEliminar(id: number) {
-        const confirmar = window.confirm('¿Seguro que querés eliminar esta licencia?')
-        if (!confirmar) return
+    async function handleEliminar(licencia: Licencia) {
+        if (!(await confirmar(`¿Eliminar la licencia de ${nombreTitular(licencia.Personas_idPersona)}?`, 'Eliminar'))) return
 
         try {
-            await deleteLicencia(id)
+            await deleteLicencia(licencia.idLicencias)
             cargarLicencias()
-        } catch (error) {
-            alert(error instanceof Error ? error.message : 'No se pudo eliminar la licencia')
-            console.error(error)
+        } catch (motivo) {
+            setError(motivo instanceof Error ? motivo.message : 'No se pudo eliminar la licencia')
         }
     }
 
-    if (cargando) {
-        return <Typography sx={{ p: 3 }}>Cargando...</Typography>
-    }
-
     return (
-        <div style={{ padding: 24 }}>
-            <Typography variant="h4" gutterBottom>
-                Licencias
-            </Typography>
-
-            <Button variant="contained" onClick={handleNueva} sx={{ mb: 2 }}>
-                Nueva Licencia
-            </Button>
+        <div className="page">
+            <div className="page-head">
+                <div>
+                    <p className="eyebrow">Catálogos</p>
+                    <h1>Licencias</h1>
+                </div>
+                <button className="btn" type="button" onClick={handleNueva}>Nueva licencia</button>
+            </div>
+            {error && <Alert severity="error">{error}</Alert>}
 
             <TableContainer>
                 <Table>
                     <TableHead>
                         <TableRow>
                             <TableCell>Titular</TableCell>
-                            <TableCell>Tipo de Licencia</TableCell>
-                            <TableCell>Fecha Emision</TableCell>
-                            <TableCell>Fecha Vencimiento</TableCell>
+                            <TableCell>Tipo de licencia</TableCell>
+                            <TableCell>Emisión</TableCell>
+                            <TableCell>Vencimiento</TableCell>
                             <TableCell>Acciones</TableCell>
                         </TableRow>
                     </TableHead>
@@ -107,20 +104,23 @@ function LicenciasPage() {
                             <TableRow key={licencia.idLicencias}>
                                 <TableCell>{nombreTitular(licencia.Personas_idPersona)}</TableCell>
                                 <TableCell>{nombreTipoLicencia(licencia.TiposLicencias_idTipoLicencia)}</TableCell>
-                                <TableCell>{licencia.fechaEmision}</TableCell>
-                                <TableCell>{licencia.fechaVencimiento}</TableCell>
-                                <TableCell>
+                                <TableCell>{fecha(licencia.fechaEmision)}</TableCell>
+                                <TableCell>{fecha(licencia.fechaVencimiento)}</TableCell>
+                                <TableCell sx={{ whiteSpace: 'nowrap' }}>
                                     <Button size="small" onClick={() => handleEditar(licencia)}>
                                         Editar
                                     </Button>
                                     {puede(persona?.rol.nombre, 'catalogos.eliminar') && (
-                                        <Button size="small" color="error" onClick={() => handleEliminar(licencia.idLicencias)}>
+                                        <Button size="small" color="error" onClick={() => handleEliminar(licencia)}>
                                             Eliminar
                                         </Button>
                                     )}
                                 </TableCell>
                             </TableRow>
                         ))}
+                        {licencias.length === 0 && !error && (
+                            <FilaVacia columnas={5} cargando={cargando} texto="No hay licencias cargadas." />
+                        )}
                     </TableBody>
                 </Table>
             </TableContainer>
@@ -131,6 +131,7 @@ function LicenciasPage() {
                 onCerrar={() => setAbierto(false)}
                 onGuardado={handleGuardado}
             />
+            {dialogo}
         </div>
     )
 }

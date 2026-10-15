@@ -1,22 +1,18 @@
 import { useEffect, useState } from 'react'
-import Table from '@mui/material/Table'
-import TableContainer from '@mui/material/TableContainer'
-import TableCell from '@mui/material/TableCell'
-import Typography from '@mui/material/Typography'
-import TableRow from '@mui/material/TableRow'
-import TableHead from '@mui/material/TableHead'
-import TableBody from '@mui/material/TableBody'
-import Button from '@mui/material/Button'
-import Alert from '@mui/material/Alert'
+import { Alert, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
 import { useAuth } from '../../context/AuthContext'
 import { puede } from '../../permisos'
 import { getKartings, deleteKarting } from '../../services/kartingService'
 import { getTiposKarting } from '../../services/tipoKartingService'
 import type { Karting, TipoKarting } from '../../types'
 import KartingFormDialog from './KartingFormDialog'
+import FilaVacia from '../../components/FilaVacia'
+import { useConfirmar } from '../../components/useConfirmar'
+import { fecha } from '../../utils/formato'
 
 function KartingsPage() {
     const { persona } = useAuth()
+    const { confirmar, dialogo } = useConfirmar()
     const [kartings, setKartings] = useState<Karting[]>([])
     const [tiposKarting, setTiposKarting] = useState<TipoKarting[]>([])
     const [cargando, setCargando] = useState(true)
@@ -25,6 +21,7 @@ function KartingsPage() {
     const [kartingEditando, setKartingEditando] = useState<Karting | null>(null)
     const puedeGestionar = puede(persona?.rol.nombre, 'kartings.gestionar')
     const puedeEliminar = puede(persona?.rol.nombre, 'kartings.eliminar')
+    const conAcciones = puedeGestionar || puedeEliminar
 
     function cargarKartings() {
         setCargando(true)
@@ -67,46 +64,38 @@ function KartingsPage() {
         cargarKartings()
     }
 
-    async function handleEliminar(id: number) {
-        const confirmar = window.confirm('¿Seguro que querés eliminar este karting?')
-        if (!confirmar) return
+    async function handleEliminar(karting: Karting) {
+        if (!(await confirmar(`¿Eliminar el karting ${karting.modelo}?`, 'Eliminar'))) return
 
         try {
-            await deleteKarting(id)
+            await deleteKarting(karting.idKartings)
             cargarKartings()
-        } catch (error) {
-            alert(error instanceof Error ? error.message : 'No se pudo eliminar el karting')
-            console.error(error)
+        } catch (motivo) {
+            setError(motivo instanceof Error ? motivo.message : 'No se pudo eliminar el karting')
         }
     }
 
-    if (cargando) {
-        return <Typography sx={{ p: 3 }}>Cargando...</Typography>
-    }
-
     return (
-        <div style={{ padding: 24 }}>
-            <Typography variant="h4" gutterBottom>
-                Kartings
-            </Typography>
-            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-
-            {puedeGestionar && (
-                <Button variant="contained" onClick={handleNuevo} sx={{ mb: 2 }}>
-                    Nuevo Karting
-                </Button>
-            )}
+        <div className="page">
+            <div className="page-head">
+                <div>
+                    <p className="eyebrow">Pista</p>
+                    <h1>Kartings</h1>
+                </div>
+                {puedeGestionar && <button className="btn" type="button" onClick={handleNuevo}>Nuevo karting</button>}
+            </div>
+            {error && <Alert severity="error">{error}</Alert>}
 
             <TableContainer>
                 <Table>
                     <TableHead>
                         <TableRow>
                             <TableCell>Modelo</TableCell>
-                            <TableCell>Categoria</TableCell>
-                            <TableCell>Tipo de Karting</TableCell>
+                            <TableCell>Categoría</TableCell>
+                            <TableCell>Tipo de karting</TableCell>
                             <TableCell>Estado</TableCell>
-                            <TableCell>Fecha Adquisicion</TableCell>
-                            {(puedeGestionar || puedeEliminar) && <TableCell>Acciones</TableCell>}
+                            <TableCell>Fecha de adquisición</TableCell>
+                            {conAcciones && <TableCell>Acciones</TableCell>}
                         </TableRow>
                     </TableHead>
                     <TableBody>
@@ -115,17 +104,19 @@ function KartingsPage() {
                                 <TableCell>{karting.modelo}</TableCell>
                                 <TableCell>{karting.categoria}</TableCell>
                                 <TableCell>{nombreTipoKarting(karting.TiposKarting_idTiposKarting)}</TableCell>
-                                <TableCell>{karting.estado}</TableCell>
-                                <TableCell>{karting.fechaAdquisicion}</TableCell>
-                                {(puedeGestionar || puedeEliminar) && (
-                                    <TableCell>
+                                <TableCell>
+                                    <span className={`tag ${karting.estado.toLowerCase() === 'disponible' ? 'ok' : 'warn'}`}>{karting.estado}</span>
+                                </TableCell>
+                                <TableCell>{fecha(karting.fechaAdquisicion)}</TableCell>
+                                {conAcciones && (
+                                    <TableCell sx={{ whiteSpace: 'nowrap' }}>
                                         {puedeGestionar && (
                                             <Button size="small" onClick={() => handleEditar(karting)}>
                                                 Editar
                                             </Button>
                                         )}
                                         {puedeEliminar && (
-                                            <Button size="small" color="error" onClick={() => handleEliminar(karting.idKartings)}>
+                                            <Button size="small" color="error" onClick={() => handleEliminar(karting)}>
                                                 Eliminar
                                             </Button>
                                         )}
@@ -133,6 +124,9 @@ function KartingsPage() {
                                 )}
                             </TableRow>
                         ))}
+                        {kartings.length === 0 && !error && (
+                            <FilaVacia columnas={conAcciones ? 6 : 5} cargando={cargando} texto="No hay kartings cargados." />
+                        )}
                     </TableBody>
                 </Table>
             </TableContainer>
@@ -143,6 +137,7 @@ function KartingsPage() {
                 onCerrar={() => setAbierto(false)}
                 onGuardado={handleGuardado}
             />
+            {dialogo}
         </div>
     )
 }

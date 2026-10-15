@@ -125,7 +125,7 @@ function CarreraFormDialog ({ abierto, carrera, onCerrar, onGuardado }: Props) {
         <Dialog open={abierto} onClose={onCerrar}>
             <DialogTitle>{editando ? 'Editar Carrera' : 'Nueva Carrera'}</DialogTitle>
             <DialogContent>
-                <Stack spacing={2} sx={{ mt: 1, minWidth: 320 }}>
+                <Stack spacing={2} sx={{ mt: 1 }}>
                     <TextField
                         label="Fecha de la carrera"
                         type="date"

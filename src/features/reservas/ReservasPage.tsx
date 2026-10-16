@@ -13,7 +13,7 @@ import { puede } from '../../permisos'
 import FilaVacia from '../../components/FilaVacia'
 import { useConfirmar } from '../../components/useConfirmar'
 import { useAviso } from '../../context/AvisoContext'
-import { fecha, hora, pesos } from '../../utils/formato'
+import { fecha, hora, nombreCircuito, pesos } from '../../utils/formato'
 import { fechaLocal } from '../../utils/fechas'
 
 type Rango = { desde: string; hasta: string }
@@ -83,11 +83,6 @@ function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
         if (titular) return `${titular.nombre} ${titular.apellido}`
         if (persona?.idPersona === id) return `${persona.nombre} ${persona.apellido}`
         return `#${id}`
-    }
-
-    function nombreCircuito (id: number) {
-        const circuito = circuitos.find((item) => item.idCircuitos === id)
-        return circuito ? `Circuito ${id} (${circuito.distancia} m)` : `#${id}`
     }
 
     function nombreKarting (id: number) {
@@ -216,7 +211,7 @@ function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
                                     <TableCell>{hora(reserva.horaInicio)}</TableCell>
                                     <TableCell>{hora(reserva.horaFin)}</TableCell>
                                     {!soloPropias && <TableCell>{nombrePersona(reserva.Personas_idPersona)}</TableCell>}
-                                    <TableCell>{nombreCircuito(reserva.Circuitos_idCircuitos)}</TableCell>
+                                    <TableCell>{nombreCircuito(circuitos, reserva.Circuitos_idCircuitos)}</TableCell>
                                     <TableCell>{nombreKarting(reserva.Kartings_idKartings)}</TableCell>
                                     <TableCell>{reserva.monto !== undefined ? pesos(reserva.monto) : '—'}</TableCell>
                                     <TableCell sx={{ whiteSpace: 'nowrap' }} onClick={(e) => e.stopPropagation()}>

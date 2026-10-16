@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext'
 import FilaVacia from '../../components/FilaVacia'
 import { useConfirmar } from '../../components/useConfirmar'
 import { useAviso } from '../../context/AvisoContext'
-import { fecha, hora } from '../../utils/formato'
+import { fecha, hora, nombreCircuito } from '../../utils/formato'
 import { getCarreras, deleteCarrera, getInscripcionesCarreras, desanotarseDeCarrera } from '../../services/carreraService'
 import { fechaTexto } from '../../utils/fechas'
 import { getCircuitos } from '../../services/circuitoService'
@@ -90,11 +90,6 @@ function CarrerasPage () {
         avisar('Carrera guardada')
     }
 
-    function nombreCircuito (id: number) {
-        const circuito = circuitos.find((item) => item.idCircuitos === id)
-        return circuito ? `Circuito ${id} (${circuito.distancia} m)` : `#${id}`
-    }
-
     function nombreTorneo (id: number) {
         return torneos.find((torneo) => torneo.idTorneos === id)?.nombre ?? `#${id}`
     }
@@ -174,7 +169,7 @@ function CarrerasPage () {
                                 <TableCell>{hora(carrera.horaInicio)}</TableCell>
                                 <TableCell>{hora(carrera.horaFin)}</TableCell>
                                 <TableCell>{nombreTorneo(carrera.Torneos_idTorneos)}</TableCell>
-                                <TableCell>{nombreCircuito(carrera.Circuitos_idCircuitos)}</TableCell>
+                                <TableCell>{nombreCircuito(circuitos, carrera.Circuitos_idCircuitos)}</TableCell>
                                 <TableCell>{(carrera.kartings ?? (carrera.Kartings_idKartings === undefined ? [] : [carrera.Kartings_idKartings])).map(nombreKarting).join(', ') || '—'}</TableCell>
                                 <TableCell sx={{ whiteSpace: 'nowrap' }}>
                                     {puedeGestionar && (

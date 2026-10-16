@@ -7,6 +7,7 @@ import { getKartings } from '../../services/kartingService'
 import { getTiposKarting } from '../../services/tipoKartingService'
 import { usaMocks } from '../../services/httpClient'
 import { fechaLocal, fechaTexto, horaTexto } from '../../utils/fechas'
+import { nombreCircuito } from '../../utils/formato'
 import type { Circuito, CreateCarrera, ICarrera, ITorneos, Karting, TipoKarting } from '../../types'
 
 type Props = {
@@ -173,7 +174,7 @@ function CarreraFormDialog ({ carrera, onCerrar, onGuardado }: Props) {
                     >
                         {circuitos.map((circuito) => (
                             <MenuItem key={circuito.idCircuitos} value={String(circuito.idCircuitos)}>
-                                Circuito {circuito.idCircuitos} ({circuito.distancia} m)
+                                {nombreCircuito(circuitos, circuito.idCircuitos)}
                             </MenuItem>
                         ))}
                     </TextField>

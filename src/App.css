@@ -1061,7 +1061,10 @@ body::before {
 }
 .brand { gap: 12px; font-size: 17px; }
 .brand img { width: 58px; height: 58px; }
-.brand .ciudad { color: var(--muted); font-family: var(--serif); font-style: italic; font-size: 20px; font-weight: 400; }
+.brand .ciudad { color: var(--muted); font-weight: 400; }
+/* En celular el nombre no entra al lado de "Ingresar / Crear cuenta": queda solo el logo */
+@media (max-width: 599px) { .brand > span { display: none; } }
+.intro-texto h1 em { font-family: var(--sans); font-style: normal; }
 
 /* ---- Botones de la top bar ---- */
 .main-nav a.active { color: var(--fg); }

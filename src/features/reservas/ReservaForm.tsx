@@ -95,6 +95,15 @@ function ReservaForm ({ reserva, idPersonaActual, nombrePersonaActual, puedeGest
         }
     }, [puedeGestionar, reserva])
 
+    // al corregir un campo se borra su error; cambiar el inicio también borra el de fin (ahí va el de duración)
+    function limpiarError (...campos: Campo[]) {
+        setErrores((actuales) => {
+            const siguientes = { ...actuales }
+            campos.forEach((campo) => delete siguientes[campo])
+            return siguientes
+        })
+    }
+
     async function handleGuardar () {
         const nuevosErrores = validar(fechaReserva, horaInicio, horaFin, circuitoId, kartingId)
         setErrores(nuevosErrores)
@@ -153,7 +162,7 @@ function ReservaForm ({ reserva, idPersonaActual, nombrePersonaActual, puedeGest
                 type="date"
                 slotProps={{ htmlInput: { min: fechaTexto(new Date()) }, inputLabel: { shrink: true } }}
                 value={fechaReserva}
-                onChange={(event) => setFechaReserva(event.target.value)}
+                onChange={(event) => { setFechaReserva(event.target.value); limpiarError('fecha') }}
                 error={Boolean(errores.fecha)}
                 helperText={errores.fecha}
                 required
@@ -165,7 +174,7 @@ function ReservaForm ({ reserva, idPersonaActual, nombrePersonaActual, puedeGest
                     type="time"
                     slotProps={{ htmlInput: { step: 3600 }, inputLabel: { shrink: true } }}
                     value={horaInicio}
-                    onChange={(event) => setHoraInicio(event.target.value)}
+                    onChange={(event) => { setHoraInicio(event.target.value); limpiarError('horaInicio', 'horaFin') }}
                     error={Boolean(errores.horaInicio)}
                     helperText={errores.horaInicio}
                     required
@@ -176,7 +185,7 @@ function ReservaForm ({ reserva, idPersonaActual, nombrePersonaActual, puedeGest
                     type="time"
                     slotProps={{ htmlInput: { step: 3600 }, inputLabel: { shrink: true } }}
                     value={horaFin}
-                    onChange={(event) => setHoraFin(event.target.value)}
+                    onChange={(event) => { setHoraFin(event.target.value); limpiarError('horaFin') }}
                     error={Boolean(errores.horaFin)}
                     helperText={errores.horaFin}
                     required
@@ -191,7 +200,7 @@ function ReservaForm ({ reserva, idPersonaActual, nombrePersonaActual, puedeGest
                         select
                         label="Circuito"
                         value={circuitoId}
-                        onChange={(event) => setCircuitoId(event.target.value)}
+                        onChange={(event) => { setCircuitoId(event.target.value); limpiarError('circuito') }}
                         error={Boolean(errores.circuito)}
                         helperText={errores.circuito ?? (circuitos.length === 0 ? 'No hay circuitos disponibles' : undefined)}
                         required
@@ -208,7 +217,7 @@ function ReservaForm ({ reserva, idPersonaActual, nombrePersonaActual, puedeGest
                         select
                         label="Karting"
                         value={kartingId}
-                        onChange={(event) => setKartingId(event.target.value)}
+                        onChange={(event) => { setKartingId(event.target.value); limpiarError('karting') }}
                         error={Boolean(errores.karting)}
                         helperText={errores.karting ?? (kartings.length === 0 ? 'No hay kartings disponibles' : undefined)}
                         required

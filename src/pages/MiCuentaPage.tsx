@@ -118,7 +118,7 @@ function MiCuentaPage () {
                     <Link className="link" to="/mi-cuenta/torneos">Ver historial →</Link>
                 </div>
                 <div className="rows">
-                    {torneos.length === 0 && <p className="empty">No estás anotado en ningún torneo.</p>}
+                    {torneos.length === 0 && <p className="empty">No estás anotado en ningún torneo próximo ni en curso.</p>}
                     {torneos.map((torneo) => (
                         <div className="row" key={torneo.idTorneos}>
                             <time>{fechaCorta(torneo.fechaInicio).slice(0, -5)}</time>

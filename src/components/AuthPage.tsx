@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react"
 import { Navigate, NavLink } from "react-router-dom"
+import { Eye, EyeOff } from "lucide-react"
 import { useAuth } from "../context/AuthContext"
 import { puede } from "../permisos"
 import { getLocalidadesParaRegistro } from "../services/localidadService"
@@ -22,6 +23,19 @@ function AuthPage ({ mode }: { mode: 'login' | 'register' }) {
     const [confirmarContraseña, setConfirmarContraseña] = useState('')
     const [error, setError] = useState('')
     const [enviando, setEnviando] = useState(false)
+    // un solo interruptor para los dos campos: si ves una, ves las dos y podés comparar
+    const [verContraseña, setVerContraseña] = useState(false)
+    const botonOjo = (
+        <button
+            type="button"
+            className="ojo"
+            onClick={() => setVerContraseña((actual) => !actual)}
+            aria-label={verContraseña ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            aria-pressed={verContraseña}
+        >
+            {verContraseña ? <EyeOff size={18} /> : <Eye size={18} />}
+        </button>
+    )
 
     useEffect(() => {
         if (isLogin) return
@@ -133,20 +147,26 @@ function AuthPage ({ mode }: { mode: 'login' | 'register' }) {
                     </>}
                     <div className="campo" style={isLogin ? { gridColumn: '1 / -1' } : undefined}>
                         <label htmlFor="contrasena">Contraseña</label>
-                        <input
-                            id="contrasena"
-                            type="password"
-                            autoComplete={isLogin ? 'current-password' : 'new-password'}
-                            minLength={isLogin ? undefined : 8}
-                            value={contraseña}
-                            onChange={(e) => setContraseña(e.target.value)}
-                            required
-                        />
+                        <div className="con-ojo">
+                            <input
+                                id="contrasena"
+                                type={verContraseña ? 'text' : 'password'}
+                                autoComplete={isLogin ? 'current-password' : 'new-password'}
+                                minLength={isLogin ? undefined : 8}
+                                value={contraseña}
+                                onChange={(e) => setContraseña(e.target.value)}
+                                required
+                            />
+                            {botonOjo}
+                        </div>
                     </div>
                     {!isLogin && (
                         <div className="campo">
                             <label htmlFor="confirmar">Confirmar contraseña</label>
-                            <input id="confirmar" type="password" autoComplete="new-password" value={confirmarContraseña} onChange={(e) => setConfirmarContraseña(e.target.value)} required />
+                            <div className="con-ojo">
+                                <input id="confirmar" type={verContraseña ? 'text' : 'password'} autoComplete="new-password" value={confirmarContraseña} onChange={(e) => setConfirmarContraseña(e.target.value)} required />
+                                {botonOjo}
+                            </div>
                         </div>
                     )}
                 </div>

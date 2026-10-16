@@ -1289,6 +1289,26 @@ a.btn::after { content: "→"; transition: transform .15s ease; }
     border-radius: 10px;
 }
 .campo :is(input, select):focus { outline: 0; border-color: var(--ciruela-claro); box-shadow: 0 0 0 4px rgba(70,22,74,.6); }
+/* contraseña con botón de ojo adentro del input, a la derecha */
+.con-ojo { position: relative; }
+.campo .con-ojo input { padding-right: 44px; }
+.ojo {
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    transform: translateY(-50%);
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--muted, currentColor);
+    cursor: pointer;
+}
+.ojo:hover { color: inherit; background: rgba(255,255,255,.06); }
 :is(button, a, input, select, summary):focus-visible { outline-color: var(--ciruela-claro); }
 /* Login: en celular ocupa todo el ancho sin tarjeta; desde sm se vuelve tarjeta */
 @media (min-width: 600px) {

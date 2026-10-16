@@ -35,6 +35,8 @@ function TorneosPage () {
     const [cargando, setCargando] = useState(true)
     const [error, setError] = useState('')
     const [inscripcionPendiente, setInscripcionPendiente] = useState<number | null>(null)
+    // el cliente no puede contar inscriptos: se entera de que no hay cupo cuando el backend rechaza la inscripción
+    const [torneosSinCupo, setTorneosSinCupo] = useState<number[]>([])
     const [abierto, setAbierto] = useState(false)
     const [torneoEditando, setTorneoEditando] = useState<ITorneos | null>(null)
     const [tiposLicencia, setTiposLicencia] = useState<TipoLicencia[]>([])
@@ -123,7 +125,9 @@ function TorneosPage () {
             }))
             avisar('Te anotaste en el torneo')
         } catch (motivo) {
-            avisar(motivo instanceof Error ? motivo.message : 'No se pudo completar la inscripción', 'error')
+            const mensaje = motivo instanceof Error ? motivo.message : 'No se pudo completar la inscripción'
+            if (mensaje.toLowerCase().includes('cupo')) setTorneosSinCupo((actuales) => [...actuales, idTorneo])
+            avisar(mensaje, 'error')
         } finally {
             setInscripcionPendiente(null)
         }
@@ -156,7 +160,10 @@ function TorneosPage () {
         if (anotado) return <span className="tag ok">Inscripto</span>
         // ADMIN no tiene inscripciones.anotarse en el backend: no se le ofrece
         if (estado !== 'Próximo' || !puedeAnotarse) return null
-        if (puedeVerInscriptos && (inscriptosPorTorneo[torneo.idTorneos] ?? 0) >= torneo.cupoMaximo) {
+        const lleno = puedeVerInscriptos
+            ? (inscriptosPorTorneo[torneo.idTorneos] ?? 0) >= torneo.cupoMaximo
+            : torneosSinCupo.includes(torneo.idTorneos)
+        if (lleno) {
             return <span className="tag bad">Cupo completo</span>
         }
         return (

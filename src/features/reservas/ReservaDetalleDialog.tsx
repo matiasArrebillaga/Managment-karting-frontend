@@ -1,6 +1,6 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Stack, Typography } from "@mui/material"
 import type { Circuito, IReserva, Karting, Persona } from "../../types"
-import { fecha, hora, pesos } from "../../utils/formato"
+import { fecha, hora, nombreCircuito, pesos } from "../../utils/formato"
 
 type Props = {
     reserva: IReserva | null
@@ -31,7 +31,7 @@ function ReservaDetalleDialog({ reserva, persona, karting, circuito, onCerrar }:
                         <Dato etiqueta="Monto" valor={reserva.monto !== undefined ? pesos(reserva.monto) : undefined} />
                         <Dato
                             etiqueta="Circuito"
-                            valor={circuito ? `#${circuito.idCircuitos} · ${circuito.distancia} m · ${circuito.dificultad}` : `#${reserva.Circuitos_idCircuitos}`}
+                            valor={nombreCircuito(circuito ? [circuito] : [], reserva.Circuitos_idCircuitos)}
                         />
 
                         <Divider />

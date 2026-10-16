@@ -1,10 +1,6 @@
 import type { Karting } from "../types"
-import { kartings as seed } from "../data/mockData"
-import { apiFetch, demora, esObjeto, usaMocks } from "./httpClient"
+import { apiFetch, esObjeto } from "./httpClient"
 import { fechaLocal } from '../utils/fechas'
-
-let kartings: Karting[] = [...seed]
-let siguienteId = kartings.length + 1
 
 function normalizarKarting(valor: unknown): Karting {
     if (
@@ -54,74 +50,36 @@ function validarDatos(datos: Omit<Karting, 'idKartings'>): void {
 }
 
 export async function getKartings(): Promise<Karting[]> {
-    if (!usaMocks) {
-        const response = await apiFetch('/kartings')
-        return normalizarLista(await response.json())
-    }
-    await demora()
-    return kartings
+    const response = await apiFetch('/kartings')
+    return normalizarLista(await response.json())
 }
 
 export async function getKarting(id: number): Promise<Karting> {
-    if (!usaMocks) {
-        const response = await apiFetch(`/kartings/${id}`)
-        return normalizarKarting(await response.json())
-    }
-    await demora()
-    const karting = kartings.find((k) => k.idKartings === id)
-    if (!karting) {
-        throw new Error(`No existe un karting con id ${id}`)
-    }
-    return karting
+    const response = await apiFetch(`/kartings/${id}`)
+    return normalizarKarting(await response.json())
 }
 
 export async function createKarting(datos: Omit<Karting, 'idKartings'>): Promise<Karting> {
     validarDatos(datos)
-    if (!usaMocks) {
-        const response = await apiFetch('/kartings', {
-            method: 'POST',
-            body: JSON.stringify(datos),
-        })
-        return normalizarKarting(await response.json())
-    }
-    await demora()
-    const nuevo: Karting = { idKartings: siguienteId, ...datos }
-    siguienteId++
-    kartings.push(nuevo)
-    return nuevo
+    const response = await apiFetch('/kartings', {
+        method: 'POST',
+        body: JSON.stringify(datos),
+    })
+    return normalizarKarting(await response.json())
 }
 
 export async function updateKarting(id: number, datos: Omit<Karting, 'idKartings'>): Promise<Karting> {
     validarDatos(datos)
-    if (!usaMocks) {
-        const response = await apiFetch(`/kartings/${id}`, {
-            method: 'PATCH',
-            body: JSON.stringify({
-                ...datos,
-                fechaAdquisicion: new Date(`${datos.fechaAdquisicion}T00:00:00.000Z`).toISOString(),
-            }),
-        })
-        return normalizarKarting(await response.json())
-    }
-    await demora()
-    const indice = kartings.findIndex((k) => k.idKartings === id)
-    if (indice === -1) {
-        throw new Error(`No existe un karting con id ${id}`)
-    }
-    const actualizado: Karting = { idKartings: id, ...datos }
-    kartings[indice] = actualizado
-    return actualizado
+    const response = await apiFetch(`/kartings/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+            ...datos,
+            fechaAdquisicion: new Date(`${datos.fechaAdquisicion}T00:00:00.000Z`).toISOString(),
+        }),
+    })
+    return normalizarKarting(await response.json())
 }
 
 export async function deleteKarting(id: number): Promise<void> {
-    if (!usaMocks) {
-        await apiFetch(`/kartings/${id}`, { method: 'DELETE' })
-        return
-    }
-    await demora()
-    const indice = kartings.findIndex((k) => k.idKartings === id)
-    if (indice === -1) {
-        throw new Error(`No existe un karting con id ${id}`)
-    }
-    kartings.splice(indice, 1)
+    await apiFetch(`/kartings/${id}`, { method: 'DELETE' })
 }

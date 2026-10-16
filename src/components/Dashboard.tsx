@@ -10,7 +10,7 @@ import { getPersonas } from "../services/personaService";
 import { getReservasDelDia } from "../services/reservaService";
 import { getTorneos } from "../services/torneoService";
 import type { Circuito, ICarrera, IReserva, ITorneos, Karting, Persona } from "../types";
-import { hora } from "../utils/formato";
+import { hora, nombreCircuito } from "../utils/formato";
 
 function inicioDelDia (fecha: Date): Date {
     return new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
@@ -62,11 +62,6 @@ function Dashboard () {
         return torneos.find((torneo) => torneo.idTorneos === id)?.nombre ?? `Torneo #${id}`;
     }
 
-    function nombreCircuito (id: number) {
-        const circuito = circuitos.find((item) => item.idCircuitos === id);
-        return circuito ? `Circuito ${id} (${circuito.distancia} m)` : `Circuito #${id}`;
-    }
-
     function nombreKarting (id: number) {
         return kartings.find((karting) => karting.idKartings === id)?.modelo ?? `Kart #${id}`;
     }
@@ -108,7 +103,7 @@ function Dashboard () {
                                     <time>{hora(carrera.horaInicio)}</time>
                                     <div>
                                         {nombreTorneo(carrera.Torneos_idTorneos)}
-                                        <small>{nombreCircuito(carrera.Circuitos_idCircuitos)} · {carrera.kartings?.length ?? 0} kartings</small>
+                                        <small>{nombreCircuito(circuitos, carrera.Circuitos_idCircuitos)} · {carrera.kartings.length} kartings</small>
                                     </div>
                                     <span className={`tag ${CLASE_ESTADO[estado]}`}>{estado}</span>
                                 </div>
@@ -128,7 +123,7 @@ function Dashboard () {
                                 <time>{hora(reserva.horaInicio)}</time>
                                 <div>
                                     {nombrePersona(reserva.Personas_idPersona)}
-                                    <small>{nombreKarting(reserva.Kartings_idKartings)} · {nombreCircuito(reserva.Circuitos_idCircuitos)} · hasta {hora(reserva.horaFin)}</small>
+                                    <small>{nombreKarting(reserva.Kartings_idKartings)} · {nombreCircuito(circuitos, reserva.Circuitos_idCircuitos)} · hasta {hora(reserva.horaFin)}</small>
                                 </div>
                                 <span />
                             </div>

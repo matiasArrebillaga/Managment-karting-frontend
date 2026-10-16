@@ -1,27 +1,7 @@
-import type { CreatePersonaTorneo, CreateTorneos, IInscripcion, ITorneos, Persona, UpdateTorneos } from '../types'
-import { torneos as seed } from '../data/mockData'
-import { getCarreras } from './carreraService'
-import { apiFetch, demora, esObjeto, usaMocks } from './httpClient'
+import type { CreateTorneos, IInscripcion, ITorneos, Persona, UpdateTorneos } from '../types'
+import { apiFetch, esObjeto } from './httpClient'
 import { fechaLocal, fechaTexto } from '../utils/fechas'
 import { getPersonas } from './personaService'
-
-let torneos: ITorneos[] = [...seed]
-let siguienteId = Math.max(0, ...torneos.map((torneo) => torneo.idTorneos ?? 0)) + 1
-const CLAVE_INSCRIPCIONES = 'karting_inscripciones_torneos'
-
-type InscripcionGuardada = {
-    Torneos_idTorneos?: number
-    Personas_idPersona?: number
-    idTorneo?: number
-    idPersona?: number
-    fecha_inscripcion?: Date | string
-    hora_inscripcion?: Date | string
-}
-
-function comoFecha(valor?: Date | string): Date {
-    if (!valor) return new Date()
-    return valor instanceof Date ? valor : new Date(valor)
-}
 
 function normalizarTorneo(valor: unknown): ITorneos {
     if (
@@ -90,127 +70,51 @@ function datosTorneoApi(datos: CreateTorneos): Record<string, string | number> {
     }
 }
 
-function obtenerInscripciones(): IInscripcion[] {
-    try {
-        const guardadas: unknown = JSON.parse(localStorage.getItem(CLAVE_INSCRIPCIONES) ?? '[]')
-        if (!Array.isArray(guardadas)) return []
-
-        return guardadas.flatMap((valor): IInscripcion[] => {
-            if (typeof valor !== 'object' || valor === null) return []
-            const inscripcion = valor as InscripcionGuardada
-            const idTorneo = inscripcion.Torneos_idTorneos ?? inscripcion.idTorneo
-            const idPersona = inscripcion.Personas_idPersona ?? inscripcion.idPersona
-            if (idTorneo === undefined || idPersona === undefined) return []
-
-            return [{
-                Torneos_idTorneos: idTorneo,
-                Personas_idPersona: idPersona,
-                fecha_inscripcion: comoFecha(inscripcion.fecha_inscripcion),
-                hora_inscripcion: comoFecha(inscripcion.hora_inscripcion),
-            }]
-        })
-    } catch {
-        return []
-    }
-}
-
-function crearInscripcion(datos: CreatePersonaTorneo): IInscripcion {
-    const ahora = new Date()
-    return {
-        ...datos,
-        fecha_inscripcion: new Date(ahora.getTime()),
-        hora_inscripcion: new Date(ahora.getTime()),
-    }
-}
-
 // estado usa los valores de la API: proximo | en_curso | finalizado
 export type FiltrosTorneos = { estado?: string, idTipoLicencia?: number }
 
 export async function getTorneos(filtros: FiltrosTorneos = {}): Promise<ITorneos[]> {
-    if (!usaMocks) {
-        const params = new URLSearchParams()
-        if (filtros.estado) params.set('estado', filtros.estado)
-        if (filtros.idTipoLicencia !== undefined) params.set('idTipoLicencia', String(filtros.idTipoLicencia))
-        const query = params.toString()
-        const response = await apiFetch(`/torneos${query ? `?${query}` : ''}`)
-        const data: unknown = await response.json()
-        if (!Array.isArray(data)) throw new Error('La API devolvió una lista de torneos inválida')
-        return data.map(normalizarTorneo)
-    }
-    await demora()
-    return torneos.filter((torneo) => filtros.idTipoLicencia === undefined || torneo.TiposLicencias_idTipoLicencia === filtros.idTipoLicencia)
+    const params = new URLSearchParams()
+    if (filtros.estado) params.set('estado', filtros.estado)
+    if (filtros.idTipoLicencia !== undefined) params.set('idTipoLicencia', String(filtros.idTipoLicencia))
+    const query = params.toString()
+    const response = await apiFetch(`/torneos${query ? `?${query}` : ''}`)
+    const data: unknown = await response.json()
+    if (!Array.isArray(data)) throw new Error('La API devolvió una lista de torneos inválida')
+    return data.map(normalizarTorneo)
 }
 
 export async function createTorneo(datos: CreateTorneos): Promise<ITorneos> {
-    if (!usaMocks) {
-        const response = await apiFetch('/torneos', {
-            method: 'POST',
-            body: JSON.stringify(datosTorneoApi(datos)),
-        })
-        return normalizarTorneo(await response.json())
-    }
-    await demora()
-    const nuevo: ITorneos = { idTorneos: siguienteId, ...datos }
-    siguienteId++
-    torneos.push(nuevo)
-    return nuevo
+    const response = await apiFetch('/torneos', {
+        method: 'POST',
+        body: JSON.stringify(datosTorneoApi(datos)),
+    })
+    return normalizarTorneo(await response.json())
 }
 
 export async function updateTorneo(id: number, datos: UpdateTorneos): Promise<ITorneos> {
-    if (!usaMocks) {
-        const response = await apiFetch(`/torneos/${id}`, {
-            method: 'PATCH',
-            body: JSON.stringify({
-                ...datos,
-                ...(datos.fechaInicio ? { fechaInicio: fechaTexto(datos.fechaInicio) } : {}),
-                ...(datos.fechaFin ? { fechaFin: fechaTexto(datos.fechaFin) } : {}),
-            }),
-        })
-        return normalizarTorneo(await response.json())
-    }
-    await demora()
-    const indice = torneos.findIndex((torneo) => torneo.idTorneos === id)
-    if (indice === -1) throw new Error(`No existe un torneo con id ${id}`)
-
-    const actualizado: ITorneos = { ...torneos[indice], ...datos, idTorneos: id }
-    torneos[indice] = actualizado
-    return actualizado
+    const response = await apiFetch(`/torneos/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+            ...datos,
+            ...(datos.fechaInicio ? { fechaInicio: fechaTexto(datos.fechaInicio) } : {}),
+            ...(datos.fechaFin ? { fechaFin: fechaTexto(datos.fechaFin) } : {}),
+        }),
+    })
+    return normalizarTorneo(await response.json())
 }
 
 export async function deleteTorneo(id: number): Promise<void> {
-    if (!usaMocks) {
-        await apiFetch(`/torneos/${id}`, { method: 'DELETE' })
-        return
-    }
-    await demora()
-    const indice = torneos.findIndex((torneo) => torneo.idTorneos === id)
-    if (indice === -1) throw new Error(`No existe un torneo con id ${id}`)
-
-    const carreras = await getCarreras()
-    if (carreras.some((carrera) => carrera.Torneos_idTorneos === id)) {
-        throw new Error('No se puede eliminar: hay carreras asociadas a este torneo')
-    }
-    if (obtenerInscripciones().some((inscripcion) => inscripcion.Torneos_idTorneos === id)) {
-        throw new Error('No se puede eliminar: hay personas anotadas a este torneo')
-    }
-    torneos.splice(indice, 1)
+    await apiFetch(`/torneos/${id}`, { method: 'DELETE' })
 }
 
 // verTodas: solo ADMIN/EMPLEADO pueden pedir GET /inscripciones (sirve para contar inscriptos por torneo)
-export async function getResumenInscripcionesTorneos(idPersona: number, verTodas: boolean): Promise<{
+export async function getResumenInscripcionesTorneos(verTodas: boolean): Promise<{
     torneosAnotados: number[]
     inscriptosPorTorneo: Record<number, number>
 }> {
-    let mias: IInscripcion[]
-    let todas: IInscripcion[]
-    if (!usaMocks) {
-        mias = normalizarInscripciones(await (await apiFetch('/inscripciones/mias')).json())
-        todas = verTodas ? normalizarInscripciones(await (await apiFetch('/inscripciones')).json()) : []
-    } else {
-        await demora()
-        todas = obtenerInscripciones()
-        mias = todas.filter((inscripcion) => inscripcion.Personas_idPersona === idPersona)
-    }
+    const mias = normalizarInscripciones(await (await apiFetch('/inscripciones/mias')).json())
+    const todas = verTodas ? normalizarInscripciones(await (await apiFetch('/inscripciones')).json()) : []
 
     return {
         torneosAnotados: mias.map((inscripcion) => inscripcion.Torneos_idTorneos),
@@ -222,55 +126,17 @@ export async function getResumenInscripcionesTorneos(idPersona: number, verTodas
 }
 
 export async function inscribirseATorneo(idTorneo: number, idPersona: number): Promise<void> {
-    if (!usaMocks) {
-        await apiFetch('/inscripciones', {
-            method: 'POST',
-            body: JSON.stringify({
-                Torneos_idTorneos: idTorneo,
-                Personas_idPersona: idPersona,
-            }),
-        })
-        return
-    }
-    await demora()
-    const torneo = torneos.find((item) => item.idTorneos === idTorneo)
-    if (!torneo) throw new Error('El torneo ya no está disponible')
-
-    const hoy = new Date()
-    hoy.setHours(0, 0, 0, 0)
-    const fechaFin = new Date(torneo.fechaFin)
-    fechaFin.setHours(0, 0, 0, 0)
-    if (fechaFin < hoy) throw new Error('No es posible anotarse a un torneo terminado')
-
-    const inscripciones = obtenerInscripciones()
-    if (inscripciones.some((inscripcion) => inscripcion.Torneos_idTorneos === idTorneo && inscripcion.Personas_idPersona === idPersona)) {
-        throw new Error('Ya estás anotado en este torneo')
-    }
-
-    const cantidad = inscripciones.filter((inscripcion) => inscripcion.Torneos_idTorneos === idTorneo).length
-    if (cantidad >= torneo.cupoMaximo) throw new Error('El torneo alcanzó su cupo máximo')
-
-    inscripciones.push(crearInscripcion({
-        Torneos_idTorneos: idTorneo,
-        Personas_idPersona: idPersona,
-    }))
-    localStorage.setItem(CLAVE_INSCRIPCIONES, JSON.stringify(inscripciones))
+    await apiFetch('/inscripciones', {
+        method: 'POST',
+        body: JSON.stringify({
+            Torneos_idTorneos: idTorneo,
+            Personas_idPersona: idPersona,
+        }),
+    })
 }
 
 export async function desanotarseDeTorneo(idTorneo: number, idPersona: number): Promise<void> {
-    if (!usaMocks) {
-        await apiFetch(`/inscripciones/${idTorneo}/${idPersona}`, { method: 'DELETE' })
-        return
-    }
-    await demora()
-    const inscripciones = obtenerInscripciones()
-    const indice = inscripciones.findIndex((inscripcion) => (
-        inscripcion.Torneos_idTorneos === idTorneo && inscripcion.Personas_idPersona === idPersona
-    ))
-    if (indice === -1) throw new Error('No existe una inscripción para este torneo')
-
-    inscripciones.splice(indice, 1)
-    localStorage.setItem(CLAVE_INSCRIPCIONES, JSON.stringify(inscripciones))
+    await apiFetch(`/inscripciones/${idTorneo}/${idPersona}`, { method: 'DELETE' })
 }
 
 // Inscriptos de un torneo con su nombre (solo ADMIN/EMPLEADO: /inscripciones y /personas son del personal)

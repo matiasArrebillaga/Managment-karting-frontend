@@ -6,7 +6,7 @@ import { getKartings } from '../../services/kartingService'
 import { getTiposKarting } from '../../services/tipoKartingService'
 import { getPersonas } from '../../services/personaService'
 import type { Circuito, CreateReservaInput, IReserva, Karting, Persona, TipoKarting } from '../../types'
-import { pesos } from '../../utils/formato'
+import { nombreCircuito, pesos } from '../../utils/formato'
 import { fechaTexto, horaTexto } from '../../utils/fechas'
 
 export type ReservaFormProps = {
@@ -200,7 +200,7 @@ function ReservaForm ({ reserva, idPersonaActual, nombrePersonaActual, puedeGest
                         <MenuItem value="" disabled>Seleccioná un circuito</MenuItem>
                         {circuitos.map((circuito) => (
                             <MenuItem key={circuito.idCircuitos} value={String(circuito.idCircuitos)}>
-                                Circuito {circuito.idCircuitos} ({circuito.distancia} m)
+                                {nombreCircuito(circuitos, circuito.idCircuitos)}
                             </MenuItem>
                         ))}
                     </TextField>

@@ -6,7 +6,7 @@ import { getTorneos } from '../../services/torneoService'
 import { getCircuitos } from '../../services/circuitoService'
 import type { Circuito, IParticipacion, ITorneos, Persona } from '../../types'
 import FilaVacia from '../../components/FilaVacia'
-import { fecha } from '../../utils/formato'
+import { fecha, nombreCircuito } from '../../utils/formato'
 
 function ParticipacionesPage () {
     const [participaciones, setParticipaciones] = useState<IParticipacion[]>([])
@@ -37,11 +37,6 @@ function ParticipacionesPage () {
 
     function nombreTorneo (id: number) {
         return torneos.find((item) => item.idTorneos === id)?.nombre ?? `#${id}`
-    }
-
-    function nombreCircuito (id: number) {
-        const circuito = circuitos.find((item) => item.idCircuitos === id)
-        return circuito ? `Circuito ${id} (${circuito.distancia} m)` : `#${id}`
     }
 
     const ordenadas = [...participaciones].sort((a, b) => a.posicion_final - b.posicion_final)
@@ -77,7 +72,7 @@ function ParticipacionesPage () {
                             >
                                 <TableCell>{fecha(participacion.Carrera_fecha)}</TableCell>
                                 <TableCell>{nombreTorneo(participacion.Carrera_Torneos_idTorneos)}</TableCell>
-                                <TableCell>{nombreCircuito(participacion.Carrera_Circuitos_idCircuitos)}</TableCell>
+                                <TableCell>{nombreCircuito(circuitos, participacion.Carrera_Circuitos_idCircuitos)}</TableCell>
                                 <TableCell>{nombrePersona(participacion.Personas_idPersona)}</TableCell>
                                 <TableCell>{participacion.tiempo}</TableCell>
                                 <TableCell>{participacion.puntos}</TableCell>

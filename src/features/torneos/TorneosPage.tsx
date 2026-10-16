@@ -54,7 +54,7 @@ function TorneosPage () {
                 idTipoLicencia: filtroLicencia ? Number(filtroLicencia) : undefined,
             }),
             persona
-                ? getResumenInscripcionesTorneos(persona.idPersona, puedeVerInscriptos)
+                ? getResumenInscripcionesTorneos(puedeVerInscriptos)
                 : Promise.resolve({ torneosAnotados: [], inscriptosPorTorneo: {} }),
         ])
             .then(([datosTorneos, resumen]) => {

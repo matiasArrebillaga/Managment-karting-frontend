@@ -1,6 +1,5 @@
 import type { FilaClasificacion, FilaTablaGeneral, ICarrera, IParticipacion, ResultadoCarrera } from '../types'
-import { participaciones as seed } from '../data/mockData'
-import { apiFetch, demora, esObjeto, usaMocks } from './httpClient'
+import { apiFetch, esObjeto } from './httpClient'
 import { fechaLocal, fechaTexto } from '../utils/fechas'
 
 function normalizarParticipacionesApi(valor: unknown): IParticipacion[] {
@@ -38,12 +37,8 @@ function normalizarParticipacionesApi(valor: unknown): IParticipacion[] {
 }
 
 export async function getParticipaciones(): Promise<IParticipacion[]> {
-    if (!usaMocks) {
-        const response = await apiFetch('/participaciones')
-        return normalizarParticipacionesApi(await response.json())
-    }
-    await demora()
-    return seed
+    const response = await apiFetch('/participaciones')
+    return normalizarParticipacionesApi(await response.json())
 }
 
 // La clave de la carrera va en la URL: fecha (YYYY-MM-DD) / torneo / circuito

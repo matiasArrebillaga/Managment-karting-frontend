@@ -8,6 +8,7 @@ import { getMisTorneos } from '../../services/torneoService'
 import type { FilaTablaGeneral, ITorneos } from '../../types'
 import { CLASE_ESTADO_TORNEO, estadoTorneo } from './estadoTorneo'
 import { fecha } from '../../utils/formato'
+import FilaVacia from '../../components/FilaVacia'
 
 type FilaHistorial = {
     torneo: ITorneos
@@ -45,45 +46,42 @@ function HistorialTorneosPage () {
                 <Link className="btn" to="/torneos">Ver torneos</Link>
             </div>
             {error && <Alert severity="error">{error}</Alert>}
-            {cargando ? (
-                <p className="empty">Cargando...</p>
-            ) : filas.length === 0 ? (
-                <p className="empty">Todavía no te anotaste en ningún torneo.</p>
-            ) : (
-                <TableContainer>
-                    <Table>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>Torneo</TableCell>
-                                <TableCell>Fechas</TableCell>
-                                <TableCell>Estado</TableCell>
-                                <TableCell>Carreras</TableCell>
-                                <TableCell>Posición</TableCell>
-                                <TableCell>Puntos</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {filas.map(({ torneo, carreras, fila }) => {
-                                const estado = estadoTorneo(torneo)
-                                return (
-                                    <TableRow key={torneo.idTorneos}>
-                                        <TableCell><Link to={`/torneos/${torneo.idTorneos}`}>{torneo.nombre}</Link></TableCell>
-                                        <TableCell>
-                                            {fecha(torneo.fechaInicio)} al {fecha(torneo.fechaFin)}
-                                        </TableCell>
-                                        <TableCell>
-                                            <span className={`tag ${CLASE_ESTADO_TORNEO[estado]}`}>{estado}</span>
-                                        </TableCell>
-                                        <TableCell>{carreras}</TableCell>
-                                        <TableCell>{fila ? `${fila.posicion}°` : 'Sin resultados'}</TableCell>
-                                        <TableCell>{fila ? fila.puntosTotales : '-'}</TableCell>
-                                    </TableRow>
-                                )
-                            })}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            )}
+            <TableContainer>
+                <Table>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Torneo</TableCell>
+                            <TableCell>Fechas</TableCell>
+                            <TableCell>Estado</TableCell>
+                            <TableCell>Carreras</TableCell>
+                            <TableCell>Posición</TableCell>
+                            <TableCell>Puntos</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {filas.map(({ torneo, carreras, fila }) => {
+                            const estado = estadoTorneo(torneo)
+                            return (
+                                <TableRow key={torneo.idTorneos}>
+                                    <TableCell><Link to={`/torneos/${torneo.idTorneos}`}>{torneo.nombre}</Link></TableCell>
+                                    <TableCell>
+                                        {fecha(torneo.fechaInicio)} al {fecha(torneo.fechaFin)}
+                                    </TableCell>
+                                    <TableCell>
+                                        <span className={`tag ${CLASE_ESTADO_TORNEO[estado]}`}>{estado}</span>
+                                    </TableCell>
+                                    <TableCell>{carreras}</TableCell>
+                                    <TableCell>{fila ? `${fila.posicion}°` : 'Sin resultados'}</TableCell>
+                                    <TableCell>{fila ? fila.puntosTotales : '-'}</TableCell>
+                                </TableRow>
+                            )
+                        })}
+                        {filas.length === 0 && !error && (
+                            <FilaVacia columnas={6} cargando={cargando} texto="Todavía no te anotaste en ningún torneo." />
+                        )}
+                    </TableBody>
+                </Table>
+            </TableContainer>
         </div>
     )
 }

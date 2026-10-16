@@ -8,7 +8,7 @@ import { getMisLicencias, type MiLicencia } from "../services/licenciaService";
 import { getMisReservas } from "../services/reservaService";
 import { getMisTorneos } from "../services/torneoService";
 import type { Circuito, ICarrera, IReserva, ITorneos, Karting } from "../types";
-import { fecha as fechaCorta, hora, pesos } from "../utils/formato";
+import { fecha as fechaCorta, hora, nombreCircuito, pesos } from "../utils/formato";
 import { fechaLocal } from "../utils/fechas";
 
 function inicioDelDia (fecha: Date): Date {
@@ -27,7 +27,7 @@ function MiCuentaPage () {
 
     useEffect(() => {
         const hoy = inicioDelDia(new Date());
-        Promise.all([getMisReservas(persona?.idPersona), getMisTorneos(), getMisLicencias()])
+        Promise.all([getMisReservas(), getMisTorneos(), getMisLicencias()])
             .then(([datosReservas, datosTorneos, datosLicencias]) => {
                 setReservas(datosReservas
                     .filter((reserva) => reserva.fechaReserva >= hoy)
@@ -52,11 +52,6 @@ function MiCuentaPage () {
         getCircuitos().then(setCircuitos).catch(() => setCircuitos([]));
         getKartings().then(setKartings).catch(() => setKartings([]));
     }, []);
-
-    function nombreCircuito (id: number) {
-        const circuito = circuitos.find((item) => item.idCircuitos === id);
-        return circuito ? `Circuito ${id} (${circuito.distancia} m)` : `Circuito #${id}`;
-    }
 
     function nombreKarting (id: number) {
         return kartings.find((karting) => karting.idKartings === id)?.modelo ?? `Kart #${id}`;
@@ -90,7 +85,7 @@ function MiCuentaPage () {
                                 <time>{hora(reserva.horaInicio)}</time>
                                 <div>
                                     {fechaCorta(reserva.fechaReserva)}
-                                    <small>{nombreKarting(reserva.Kartings_idKartings)} · {nombreCircuito(reserva.Circuitos_idCircuitos)} · hasta {hora(reserva.horaFin)}</small>
+                                    <small>{nombreKarting(reserva.Kartings_idKartings)} · {nombreCircuito(circuitos, reserva.Circuitos_idCircuitos)} · hasta {hora(reserva.horaFin)}</small>
                                 </div>
                                 <span className="mono">{reserva.monto !== undefined ? pesos(reserva.monto) : ""}</span>
                             </div>
@@ -146,7 +141,7 @@ function MiCuentaPage () {
                             <time>{fechaCorta(carrera.fechaCarrera).slice(0, -5)}</time>
                             <div>
                                 {torneos.find((torneo) => torneo.idTorneos === carrera.Torneos_idTorneos)?.nombre}
-                                <small>{hora(carrera.horaInicio)} a {hora(carrera.horaFin)} · {nombreCircuito(carrera.Circuitos_idCircuitos)}</small>
+                                <small>{hora(carrera.horaInicio)} a {hora(carrera.horaFin)} · {nombreCircuito(circuitos, carrera.Circuitos_idCircuitos)}</small>
                             </div>
                             <span />
                         </div>

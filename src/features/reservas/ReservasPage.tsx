@@ -193,7 +193,9 @@ function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
                     </TableHead>
                     <TableBody>
                         {reservasVisibles.map((reserva) => {
-                            const puedeModificar = puedeGestionar || persona?.idPersona === reserva.Personas_idPersona
+                            // el cliente no puede tocar reservas de días que ya pasaron; el personal sí (para corregir)
+                            const yaPaso = reserva.fechaReserva < fechaLocal(new Date())
+                            const puedeModificar = puedeGestionar || (persona?.idPersona === reserva.Personas_idPersona && !yaPaso)
                             return (
                                 <TableRow
                                     key={reserva.idReservas}

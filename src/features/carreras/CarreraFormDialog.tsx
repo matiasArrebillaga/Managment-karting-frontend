@@ -5,7 +5,6 @@ import { getCircuitos } from '../../services/circuitoService'
 import { getTorneos } from '../../services/torneoService'
 import { getKartings } from '../../services/kartingService'
 import { getTiposKarting } from '../../services/tipoKartingService'
-import { usaMocks } from '../../services/httpClient'
 import { fechaLocal, fechaTexto, horaTexto } from '../../utils/fechas'
 import { nombreCircuito } from '../../utils/formato'
 import type { Circuito, CreateCarrera, ICarrera, ITorneos, Karting, TipoKarting } from '../../types'
@@ -22,9 +21,7 @@ function CarreraFormDialog ({ carrera, onCerrar, onGuardado }: Props) {
     const [horaFin, setHoraFin] = useState(carrera ? horaTexto(carrera.horaFin) : '')
     const [torneoId, setTorneoId] = useState(carrera ? String(carrera.Torneos_idTorneos) : '')
     const [circuitoId, setCircuitoId] = useState(carrera ? String(carrera.Circuitos_idCircuitos) : '')
-    const [kartingIds, setKartingIds] = useState<string[]>(
-        (carrera?.kartings ?? (carrera?.Kartings_idKartings === undefined ? [] : [carrera.Kartings_idKartings])).map(String),
-    )
+    const [kartingIds, setKartingIds] = useState<string[]>(carrera ? carrera.kartings.map(String) : [])
     const [circuitos, setCircuitos] = useState<Circuito[]>([])
     const [torneos, setTorneos] = useState<ITorneos[]>([])
     const [kartings, setKartings] = useState<Karting[]>([])
@@ -100,7 +97,7 @@ function CarreraFormDialog ({ carrera, onCerrar, onGuardado }: Props) {
                         value={fechaCarrera}
                         onChange={(event) => setFechaCarrera(event.target.value)}
                         slotProps={{ inputLabel: { shrink: true } }}
-                        disabled={editando && !usaMocks}
+                        disabled={editando}
                         required
                         fullWidth
                     />
@@ -131,7 +128,7 @@ function CarreraFormDialog ({ carrera, onCerrar, onGuardado }: Props) {
                             setTorneoId(event.target.value)
                             setKartingIds([])
                         }}
-                        disabled={editando && !usaMocks}
+                        disabled={editando}
                         required
                         fullWidth
                     >
@@ -168,7 +165,7 @@ function CarreraFormDialog ({ carrera, onCerrar, onGuardado }: Props) {
                         label="Circuito"
                         value={circuitoId}
                         onChange={(event) => setCircuitoId(event.target.value)}
-                        disabled={editando && !usaMocks}
+                        disabled={editando}
                         required
                         fullWidth
                     >

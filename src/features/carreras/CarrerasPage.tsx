@@ -6,15 +6,13 @@ import FilaVacia from '../../components/FilaVacia'
 import { useConfirmar } from '../../components/useConfirmar'
 import { useAviso } from '../../context/AvisoContext'
 import { fecha, hora, nombreCircuito } from '../../utils/formato'
-import { getCarreras, deleteCarrera, getInscripcionesCarreras, desanotarseDeCarrera } from '../../services/carreraService'
+import { getCarreras, deleteCarrera } from '../../services/carreraService'
 import { fechaTexto } from '../../utils/fechas'
 import { getCircuitos } from '../../services/circuitoService'
 import { getTorneos } from '../../services/torneoService'
 import { getKartings } from '../../services/kartingService'
 import type { Circuito, ICarrera, ITorneos, Karting } from '../../types'
 import CarreraFormDialog from './CarreraFormDialog'
-import CarreraInscripcionDialog from './CarreraInscripcionDialog'
-import { usaMocks } from '../../services/httpClient'
 import { getParticipaciones } from '../../services/participacionService'
 import ResultadosCarreraDialog from './ResultadosCarreraDialog'
 import { puede } from '../../permisos'
@@ -29,7 +27,6 @@ function CarrerasPage () {
     const { confirmar, dialogo } = useConfirmar()
     const avisar = useAviso()
     const [carreras, setCarreras] = useState<ICarrera[]>([])
-    const [inscripciones, setInscripciones] = useState<number[]>([])
     const [circuitos, setCircuitos] = useState<Circuito[]>([])
     const [torneos, setTorneos] = useState<ITorneos[]>([])
     const [kartings, setKartings] = useState<Karting[]>([])
@@ -37,29 +34,26 @@ function CarrerasPage () {
     const [error, setError] = useState('')
     const [abierto, setAbierto] = useState(false)
     const [carreraEditando, setCarreraEditando] = useState<ICarrera | null>(null)
-    const [carreraInscribiendo, setCarreraInscribiendo] = useState<ICarrera | null>(null)
     const [conResultados, setConResultados] = useState<string[]>([])
     const [carreraResultados, setCarreraResultados] = useState<ICarrera | null>(null)
     const puedeGestionar = puede(persona?.rol.nombre, 'carreras.gestionar')
     const puedeEliminar = puede(persona?.rol.nombre, 'carreras.eliminar')
 
-    // useCallback: la función cambia solo si cambian persona o permisos, y el efecto de abajo
-    // la usa como dependencia para recargar exactamente en esos casos
+    // useCallback: la función cambia solo si cambian los permisos, y el efecto de abajo
+    // la usa como dependencia para recargar exactamente en ese caso
     const cargarCarreras = useCallback(() => {
         Promise.all([
             getCarreras(),
             getCircuitos(),
             getTorneos(),
-            persona && usaMocks ? getInscripcionesCarreras(persona.idPersona) : Promise.resolve([]),
             puedeGestionar ? getParticipaciones() : Promise.resolve([]),
             getKartings(),
         ])
-            .then(([datosCarreras, datosCircuitos, datosTorneos, datosInscripciones, datosParticipaciones, datosKartings]) => {
+            .then(([datosCarreras, datosCircuitos, datosTorneos, datosParticipaciones, datosKartings]) => {
                 setCarreras(datosCarreras)
                 setCircuitos(datosCircuitos)
                 setTorneos(datosTorneos)
                 setKartings(datosKartings)
-                setInscripciones(datosInscripciones)
                 setConResultados(datosParticipaciones.map((p) => claveCarrera(p.Carrera_fecha, p.Carrera_Torneos_idTorneos, p.Carrera_Circuitos_idCircuitos)))
                 setError('')
             })
@@ -67,7 +61,7 @@ function CarrerasPage () {
                 setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar las carreras')
             })
             .finally(() => setCargando(false))
-    }, [persona, puedeGestionar])
+    }, [puedeGestionar])
 
     useEffect(() => {
         cargarCarreras()
@@ -111,39 +105,13 @@ function CarrerasPage () {
         }
     }
 
-    function handleAnotarse (carrera: ICarrera) {
-        setCarreraInscribiendo(carrera)
-    }
-
-    function handleInscripto () {
-        const idCarrera = carreraInscribiendo?.idCarreras
-        if (idCarrera !== undefined) setInscripciones((actuales) => [...actuales, idCarrera])
-        setCarreraInscribiendo(null)
-        avisar('Te inscribiste en la carrera')
-    }
-
-    async function handleDesanotarse (idCarrera?: number) {
-        if (!persona || idCarrera === undefined) return
-        if (!(await confirmar('¿Desanotarte de esta carrera?', 'Desanotarme'))) return
-
-        try {
-            await desanotarseDeCarrera(idCarrera, persona.idPersona)
-            setInscripciones((actuales) => actuales.filter((id) => id !== idCarrera))
-            avisar('Te desanotaste de la carrera')
-        } catch (motivo) {
-            avisar(motivo instanceof Error ? motivo.message : 'No se pudo cancelar la inscripción', 'error')
-        }
-    }
-
     return (
         <div className="page">
             <div className="page-head">
                 <div>
                     <p className="eyebrow">Competencia</p>
                     <h1>Carreras y resultados</h1>
-                    {!usaMocks && (
-                        <p className="sub">Para correr una carrera, anotate al torneo desde <Link to="/torneos">Torneos</Link>.</p>
-                    )}
+                    <p className="sub">Para correr una carrera, anotate al torneo desde <Link to="/torneos">Torneos</Link>.</p>
                 </div>
                 {puedeGestionar && <button className="btn" type="button" onClick={handleNueva}>Nueva carrera</button>}
             </div>
@@ -170,7 +138,7 @@ function CarrerasPage () {
                                 <TableCell>{hora(carrera.horaFin)}</TableCell>
                                 <TableCell>{nombreTorneo(carrera.Torneos_idTorneos)}</TableCell>
                                 <TableCell>{nombreCircuito(circuitos, carrera.Circuitos_idCircuitos)}</TableCell>
-                                <TableCell>{(carrera.kartings ?? (carrera.Kartings_idKartings === undefined ? [] : [carrera.Kartings_idKartings])).map(nombreKarting).join(', ') || '—'}</TableCell>
+                                <TableCell>{carrera.kartings.map(nombreKarting).join(', ') || '—'}</TableCell>
                                 <TableCell sx={{ whiteSpace: 'nowrap' }}>
                                     {puedeGestionar && (
                                         <>
@@ -189,15 +157,6 @@ function CarrerasPage () {
                                             )}
                                         </>
                                     )}
-                                    {usaMocks && carrera.idCarreras !== undefined && inscripciones.includes(carrera.idCarreras) ? (
-                                        <Button size="small" onClick={() => handleDesanotarse(carrera.idCarreras)}>
-                                            Desanotarme
-                                        </Button>
-                                    ) : usaMocks ? (
-                                        <Button size="small" variant="contained" onClick={() => handleAnotarse(carrera)}>
-                                            Anotarme
-                                        </Button>
-                                    ) : null}
                                 </TableCell>
                             </TableRow>
                         ))}
@@ -213,14 +172,6 @@ function CarrerasPage () {
                     carrera={carreraEditando}
                     onCerrar={() => setAbierto(false)}
                     onGuardado={handleGuardado}
-                />
-            )}
-            {persona && carreraInscribiendo && (
-                <CarreraInscripcionDialog
-                    carrera={carreraInscribiendo}
-                    idPersona={persona.idPersona}
-                    onCerrar={() => setCarreraInscribiendo(null)}
-                    onInscripto={handleInscripto}
                 />
             )}
             {carreraResultados && (

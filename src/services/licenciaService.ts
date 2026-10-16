@@ -1,9 +1,5 @@
 import type { Licencia } from "../types"
-import { licencias as seed } from "../data/mockData"
-import { apiFetch, demora, esObjeto, usaMocks } from "./httpClient"
-
-let licencias: Licencia[] = [...seed]
-let siguienteId = licencias.length + 1
+import { apiFetch, esObjeto } from "./httpClient"
 
 function normalizarLicencia(valor: unknown): Licencia {
     if (
@@ -34,77 +30,39 @@ function validarDatos(datos: Omit<Licencia, 'idLicencias'>): void {
 }
 
 export async function getLicencias(): Promise<Licencia[]> {
-    if (!usaMocks) {
-        const response = await apiFetch('/licencias')
-        const valor: unknown = await response.json()
-        if (!Array.isArray(valor)) {
-            throw new Error('La API devolvió una lista de licencias inválida')
-        }
-        return valor.map(normalizarLicencia)
+    const response = await apiFetch('/licencias')
+    const valor: unknown = await response.json()
+    if (!Array.isArray(valor)) {
+        throw new Error('La API devolvió una lista de licencias inválida')
     }
-    await demora()
-    return licencias
+    return valor.map(normalizarLicencia)
 }
 
 export async function getLicencia(id: number): Promise<Licencia> {
-    if (!usaMocks) {
-        const response = await apiFetch(`/licencias/${id}`)
-        return normalizarLicencia(await response.json())
-    }
-    await demora()
-    const licencia = licencias.find((l) => l.idLicencias === id)
-    if (!licencia) {
-        throw new Error(`No existe una licencia con id ${id}`)
-    }
-    return licencia
+    const response = await apiFetch(`/licencias/${id}`)
+    return normalizarLicencia(await response.json())
 }
 
 export async function createLicencia(datos: Omit<Licencia, 'idLicencias'>): Promise<Licencia> {
     validarDatos(datos)
-    if (!usaMocks) {
-        const response = await apiFetch('/licencias', {
-            method: 'POST',
-            body: JSON.stringify(datos),
-        })
-        return normalizarLicencia(await response.json())
-    }
-    await demora()
-    const nueva: Licencia = { idLicencias: siguienteId, ...datos }
-    siguienteId++
-    licencias.push(nueva)
-    return nueva
+    const response = await apiFetch('/licencias', {
+        method: 'POST',
+        body: JSON.stringify(datos),
+    })
+    return normalizarLicencia(await response.json())
 }
 
 export async function updateLicencia(id: number, datos: Omit<Licencia, 'idLicencias'>): Promise<Licencia> {
     validarDatos(datos)
-    if (!usaMocks) {
-        const response = await apiFetch(`/licencias/${id}`, {
-            method: 'PATCH',
-            body: JSON.stringify(datos),
-        })
-        return normalizarLicencia(await response.json())
-    }
-    await demora()
-    const indice = licencias.findIndex((l) => l.idLicencias === id)
-    if (indice === -1) {
-        throw new Error(`No existe una licencia con id ${id}`)
-    }
-    const actualizada: Licencia = { idLicencias: id, ...datos }
-    licencias[indice] = actualizada
-    return actualizada
+    const response = await apiFetch(`/licencias/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(datos),
+    })
+    return normalizarLicencia(await response.json())
 }
 
 export async function deleteLicencia(id: number): Promise<void> {
-    if (!usaMocks) {
-        await apiFetch(`/licencias/${id}`, { method: 'DELETE' })
-        return
-    }
-    await demora()
-    const indice = licencias.findIndex((l) => l.idLicencias === id)
-    if (indice === -1) {
-        throw new Error(`No existe una licencia con id ${id}`)
-    }
-    licencias.splice(indice, 1)
+    await apiFetch(`/licencias/${id}`, { method: 'DELETE' })
 }
 
 export type MiLicencia = Licencia & { tipo: string }

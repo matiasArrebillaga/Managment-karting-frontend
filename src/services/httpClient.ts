@@ -57,11 +57,6 @@ export async function apiFetch(path: string, init: RequestInit = {}): Promise<Re
     return response
 }
 
-export const usaMocks = import.meta.env.VITE_USE_MOCKS === 'true'
-
-// simula la latencia de red en el modo de datos de prueba
-export const demora = () => new Promise((resolve) => setTimeout(resolve, 300))
-
 // para validar las respuestas de la API antes de leer sus campos
 export function esObjeto (valor: unknown): valor is Record<string, unknown> {
     return typeof valor === 'object' && valor !== null

@@ -1,9 +1,5 @@
 import type { Circuito } from "../types"
-import { circuitos as seed } from "../data/mockData"
-import { apiFetch, demora, esObjeto, usaMocks } from "./httpClient"
-
-let circuitos: Circuito[] = [...seed]
-let siguienteId = circuitos.length + 1
+import { apiFetch, esObjeto } from "./httpClient"
 
 function normalizarCircuito(valor: unknown): Circuito {
     if (
@@ -43,71 +39,33 @@ function validarDatos(datos: Omit<Circuito, 'idCircuitos'>): void {
 }
 
 export async function getCircuitos(): Promise<Circuito[]> {
-    if (!usaMocks) {
-        const response = await apiFetch('/circuitos')
-        return normalizarLista(await response.json())
-    }
-    await demora()
-    return circuitos
+    const response = await apiFetch('/circuitos')
+    return normalizarLista(await response.json())
 }
 
 export async function getCircuito(id: number): Promise<Circuito> {
-    if (!usaMocks) {
-        const response = await apiFetch(`/circuitos/${id}`)
-        return normalizarCircuito(await response.json())
-    }
-    await demora()
-    const circuito = circuitos.find((c) => c.idCircuitos === id)
-    if (!circuito) {
-        throw new Error(`No existe un circuito con id ${id}`)
-    }
-    return circuito
+    const response = await apiFetch(`/circuitos/${id}`)
+    return normalizarCircuito(await response.json())
 }
 
 export async function createCircuito(datos: Omit<Circuito, 'idCircuitos'>): Promise<Circuito> {
     validarDatos(datos)
-    if (!usaMocks) {
-        const response = await apiFetch('/circuitos', {
-            method: 'POST',
-            body: JSON.stringify(datos),
-        })
-        return normalizarCircuito(await response.json())
-    }
-    await demora()
-    const nuevo: Circuito = { idCircuitos: siguienteId, ...datos }
-    siguienteId++
-    circuitos.push(nuevo)
-    return nuevo
+    const response = await apiFetch('/circuitos', {
+        method: 'POST',
+        body: JSON.stringify(datos),
+    })
+    return normalizarCircuito(await response.json())
 }
 
 export async function updateCircuito(id: number, datos: Omit<Circuito, 'idCircuitos'>): Promise<Circuito> {
     validarDatos(datos)
-    if (!usaMocks) {
-        const response = await apiFetch(`/circuitos/${id}`, {
-            method: 'PATCH',
-            body: JSON.stringify(datos),
-        })
-        return normalizarCircuito(await response.json())
-    }
-    await demora()
-    const indice = circuitos.findIndex((c) => c.idCircuitos === id)
-    if (indice === -1) {
-        throw new Error(`No existe un circuito con id ${id}`)
-    }
-    const actualizado: Circuito = { idCircuitos: id, ...datos }
-    circuitos[indice] = actualizado
-    return actualizado
+    const response = await apiFetch(`/circuitos/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(datos),
+    })
+    return normalizarCircuito(await response.json())
 }
 
 export async function deleteCircuito(id: number): Promise<void> {
-    if (!usaMocks) {
-        await apiFetch(`/circuitos/${id}`, { method: 'DELETE' })
-        return
-    }
-    await demora()
-    const indice = circuitos.findIndex((c) => c.idCircuitos === id)
-    if (indice === -1) {
-        throw new Error(`No existe un circuito con id ${id}`)
-    }
-    circuitos.splice(indice, 1)
+    await apiFetch(`/circuitos/${id}`, { method: 'DELETE' })
 }

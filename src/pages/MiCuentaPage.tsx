@@ -27,7 +27,7 @@ function MiCuentaPage () {
 
     useEffect(() => {
         const hoy = inicioDelDia(new Date());
-        Promise.all([getMisReservas(persona?.idPersona), getMisTorneos(), getMisLicencias()])
+        Promise.all([getMisReservas(), getMisTorneos(), getMisLicencias()])
             .then(([datosReservas, datosTorneos, datosLicencias]) => {
                 setReservas(datosReservas
                     .filter((reserva) => reserva.fechaReserva >= hoy)

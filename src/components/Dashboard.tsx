@@ -103,7 +103,7 @@ function Dashboard () {
                                     <time>{hora(carrera.horaInicio)}</time>
                                     <div>
                                         {nombreTorneo(carrera.Torneos_idTorneos)}
-                                        <small>{nombreCircuito(circuitos, carrera.Circuitos_idCircuitos)} · {carrera.kartings?.length ?? 0} kartings</small>
+                                        <small>{nombreCircuito(circuitos, carrera.Circuitos_idCircuitos)} · {carrera.kartings.length} kartings</small>
                                     </div>
                                     <span className={`tag ${CLASE_ESTADO[estado]}`}>{estado}</span>
                                 </div>

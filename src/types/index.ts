@@ -43,26 +43,19 @@ export interface IInscripcion {
 
 export type CreatePersonaTorneo = Pick<IInscripcion, 'Torneos_idTorneos' | 'Personas_idPersona'>
 
+// la carrera no tiene id: se identifica por (fechaCarrera, Torneos_idTorneos, Circuitos_idCircuitos)
 export interface ICarrera {
-    idCarreras?: number
     fechaCarrera: Date
     horaInicio: Date
     horaFin: Date
-    Kartings_idKartings?: number
-    kartings?: number[]
+    kartings: number[]
     Torneos_idTorneos: number
     Circuitos_idCircuitos: number
 }
 
-export type CreateCarrera = Omit<ICarrera, 'idCarreras' | 'horaInicio' | 'horaFin' | 'Kartings_idKartings' | 'kartings'> & {
+export type CreateCarrera = Omit<ICarrera, 'horaInicio' | 'horaFin'> & {
     horaInicio: Date | string
     horaFin: Date | string
-    kartings: number[]
-}
-
-export type UpdateCarrera = Partial<Omit<ICarrera, 'idCarreras'>> & {
-    horaInicio?: Date | string
-    horaFin?: Date | string
 }
 
 export interface IReserva {

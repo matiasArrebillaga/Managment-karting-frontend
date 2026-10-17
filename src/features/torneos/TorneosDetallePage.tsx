@@ -7,7 +7,7 @@ import { useConfirmar } from '../../components/useConfirmar'
 import { puede } from '../../permisos'
 import { getCarrerasTorneo } from '../../services/carreraService'
 import { getClasificacionCarrera, getTablaGeneral } from '../../services/participacionService'
-import { desanotarseDeTorneo, getResumenInscripcionesTorneos, getTorneos, inscribirseATorneo } from '../../services/torneoService'
+import { desanotarseDeTorneo, getListaInscriptos, getResumenInscripcionesTorneos, getTorneos, inscribirseATorneo, type Inscripto } from '../../services/torneoService'
 import type { FilaClasificacion, FilaTablaGeneral, ICarrera, ITorneos } from '../../types'
 import { CLASE_ESTADO_TORNEO, estadoTorneo } from './estadoTorneo'
 import { fecha, hora } from '../../utils/formato'
@@ -24,6 +24,7 @@ function TorneoDetallePage () {
     const [torneo, setTorneo] = useState<ITorneos | null>(null)
     const [carreras, setCarreras] = useState<ICarrera[]>([])
     const [tabla, setTabla] = useState<FilaTablaGeneral[]>([])
+    const [inscriptos, setInscriptos] = useState<Inscripto[]>([])
     const [anotado, setAnotado] = useState(false)
     const [sinCupo, setSinCupo] = useState(false)
     const [anotando, setAnotando] = useState(false)
@@ -38,12 +39,14 @@ function TorneoDetallePage () {
             getTorneos(),
             getCarrerasTorneo(id),
             getTablaGeneral(id),
+            getListaInscriptos(id),
             persona ? getResumenInscripcionesTorneos(false) : Promise.resolve({ torneosAnotados: [] as number[] }),
         ])
-            .then(([torneos, datosCarreras, datosTabla, resumen]) => {
+            .then(([torneos, datosCarreras, datosTabla, datosInscriptos, resumen]) => {
                 setTorneo(torneos.find((item) => item.idTorneos === id) ?? null)
                 setCarreras(datosCarreras)
                 setTabla(datosTabla)
+                setInscriptos(datosInscriptos)
                 setAnotado(resumen.torneosAnotados.includes(id))
             })
             .catch((motivo: unknown) => {
@@ -72,6 +75,7 @@ function TorneoDetallePage () {
         try {
             await inscribirseATorneo(id, persona.idPersona)
             setAnotado(true)
+            getListaInscriptos(id).then(setInscriptos).catch(() => {})
             avisar('Te anotaste en el torneo')
         } catch (motivo) {
             const mensaje = motivo instanceof Error ? motivo.message : 'No se pudo completar la inscripción'
@@ -87,6 +91,7 @@ function TorneoDetallePage () {
         try {
             await desanotarseDeTorneo(id, persona.idPersona)
             setAnotado(false)
+            getListaInscriptos(id).then(setInscriptos).catch(() => {})
             avisar('Te desanotaste del torneo')
         } catch (motivo) {
             avisar(motivo instanceof Error ? motivo.message : 'No se pudo cancelar la inscripción', 'error')
@@ -139,6 +144,32 @@ function TorneoDetallePage () {
                     {accionInscripcion()}
                 </div>
             </div>
+
+            <section className="panel">
+                <div className="panel-head"><h2>Inscriptos ({inscriptos.length}/{torneo.cupoMaximo})</h2></div>
+                {inscriptos.length === 0 ? (
+                    <p className="empty">Todavía no hay inscriptos.</p>
+                ) : (
+                    <TableContainer>
+                        <Table size="small">
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>#</TableCell>
+                                    <TableCell>Piloto</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {inscriptos.map((inscripto, indice) => (
+                                    <TableRow key={inscripto.idPersona}>
+                                        <TableCell>{indice + 1}</TableCell>
+                                        <TableCell>{inscripto.nombre} {inscripto.apellido}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                )}
+            </section>
 
             <section className="panel">
                 <div className="panel-head"><h2>Carreras</h2></div>

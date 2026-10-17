@@ -148,6 +148,20 @@ export async function getInscriptosTorneo(idTorneo: number): Promise<Persona[]> 
     return personas.filter((persona) => ids.includes(persona.idPersona))
 }
 
+export type Inscripto = { idPersona: number, nombre: string, apellido: string }
+
+// lista pública de inscriptos (todos los roles): solo id, nombre y apellido
+export async function getListaInscriptos(idTorneo: number): Promise<Inscripto[]> {
+    const data: unknown = await (await apiFetch(`/inscripciones/torneo/${idTorneo}`)).json()
+    if (!Array.isArray(data)) throw new Error('La API devolvió una lista de inscriptos inválida')
+    return data.map((item: unknown) => {
+        if (!esObjeto(item) || typeof item.idPersona !== 'number' || typeof item.nombre !== 'string' || typeof item.apellido !== 'string') {
+            throw new Error('La API devolvió un inscripto con un formato inválido')
+        }
+        return { idPersona: item.idPersona, nombre: item.nombre, apellido: item.apellido }
+    })
+}
+
 // GET /inscripciones/mias trae cada inscripción con su torneo incluido
 export async function getMisTorneos(): Promise<ITorneos[]> {
     const response = await apiFetch('/inscripciones/mias')

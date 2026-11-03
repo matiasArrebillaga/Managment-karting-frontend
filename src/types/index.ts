@@ -41,7 +41,6 @@ export interface IInscripcion {
     hora_inscripcion: Date
 }
 
-export type CreatePersonaTorneo = Pick<IInscripcion, 'Torneos_idTorneos' | 'Personas_idPersona'>
 
 // la carrera no tiene id: se identifica por (fechaCarrera, Torneos_idTorneos, Circuitos_idCircuitos)
 export interface ICarrera {
@@ -70,7 +69,6 @@ export interface IReserva {
 }
 
 export type CreateReserva = Omit<IReserva, 'idReservas'>
-export type UpdateReserva = Partial<CreateReserva>
 
 export type CreateReservaInput = Omit<CreateReserva, 'fechaReserva' | 'horaInicio' | 'horaFin'> & {
     fechaReserva: Date | string

@@ -442,16 +442,6 @@ a {
     width: 100%;
 }
 
-.btn-ghost {
-    padding: 4px 10px;
-    color: var(--fg);
-    font: inherit;
-    background: none;
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    cursor: pointer;
-}
-
 .link {
     padding: 0;
     color: var(--muted);
@@ -579,14 +569,6 @@ a {
     gap: 12px;
     padding-top: 14px;
     border-top: 1px solid var(--line);
-}
-
-/* ---------- Panel del día (staff) ---------- */
-
-.flota-estado {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
 }
 
 /* ---------- Formularios ---------- */
@@ -1261,16 +1243,16 @@ a.btn::after { content: "→"; transition: transform .15s ease; }
     .panel-head .link:hover { color: var(--fg); border-color: rgba(201,154,205,.35); background: rgba(70,22,74,.25); }
     .panel-head .link:hover i { transform: rotate(-45deg); background: var(--rojo); }
 }
-.btn-ghost, .btn.secundario {
+.btn-ghost {
     padding: 12px 22px;
     color: var(--fg);
+    font: inherit;
+    cursor: pointer;
     background: rgba(255,255,255,.03);
     border: 1px solid var(--line-fuerte);
     border-radius: 999px;
     box-shadow: none;
 }
-.btn.secundario::after { content: none; }
-.btn.secundario:hover { background: rgba(255,255,255,.07); transform: none; box-shadow: none; }
 .link { letter-spacing: .01em; }
 .link:hover { color: var(--rojo-claro); }
 

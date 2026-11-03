@@ -68,7 +68,6 @@ function datosApi(
     if (datos.Personas_idPersona !== undefined) {
         cuerpo.Personas_idPersona = datos.Personas_idPersona
     }
-    if (datos.monto !== undefined) cuerpo.monto = datos.monto
     return cuerpo
 }
 
@@ -81,11 +80,6 @@ export async function getReservas(): Promise<IReserva[]> {
 export async function getMisReservas(): Promise<IReserva[]> {
     const response = await apiFetch('/reservas/mias')
     return normalizarListaReservasApi(await response.json())
-}
-
-export async function getReserva(id: number): Promise<IReserva> {
-    const response = await apiFetch(`/reservas/${id}`)
-    return normalizarReservaApi(await response.json())
 }
 
 export async function createReserva(datos: CreateReservaInput): Promise<IReserva> {

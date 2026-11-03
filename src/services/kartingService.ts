@@ -67,11 +67,6 @@ export async function getKartingsDisponibles(
     return normalizarLista(await response.json())
 }
 
-export async function getKarting(id: number): Promise<Karting> {
-    const response = await apiFetch(`/kartings/${id}`)
-    return normalizarKarting(await response.json())
-}
-
 export async function createKarting(datos: Omit<Karting, 'idKartings'>): Promise<Karting> {
     validarDatos(datos)
     const response = await apiFetch('/kartings', {

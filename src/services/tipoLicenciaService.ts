@@ -37,11 +37,6 @@ export async function getTiposLicencia(): Promise<TipoLicencia[]> {
     return valor.map(normalizarTipo)
 }
 
-export async function getTipoLicencia(id: number): Promise<TipoLicencia> {
-    const response = await apiFetch(`/tiposLicencias/${id}`)
-    return normalizarTipo(await response.json())
-}
-
 export async function createTipoLicencia(datos: Omit<TipoLicencia, 'idTipoLicencia'>) : Promise<TipoLicencia> {
     const limpios = validarDatos(datos)
     const response = await apiFetch('/tiposLicencias', {

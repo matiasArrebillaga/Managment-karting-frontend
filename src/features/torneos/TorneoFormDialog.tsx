@@ -53,7 +53,7 @@ function TorneoFormDialog ({ torneo, onCerrar, onGuardado }: Props) {
                 fechaFin: fechaLocal(fechaFin),
                 TiposLicencias_idTipoLicencia: Number(licenciaId),
             }
-            if (editando && torneo?.idTorneos !== undefined) {
+            if (editando && torneo) {
                 await updateTorneo(torneo.idTorneos, datos)
             } else {
                 await createTorneo(datos)

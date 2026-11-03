@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react"
-import { login as loginService, register as registerService, type DatosRegistro, type Sesion } from "../services/authService"
+import { login as loginService, register as registerService } from "../services/authService"
+import type { DatosRegistro, Sesion } from "../types"
 import { EVENTO_SESION_INVALIDA } from "../services/httpClient"
 import type { PersonaAuth } from "../types"
 import { AuthContext } from "./AuthContext"

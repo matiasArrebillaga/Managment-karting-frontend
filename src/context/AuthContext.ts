@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react"
-import type { DatosRegistro } from "../services/authService"
+import type { DatosRegistro } from "../types"
 import type { PersonaAuth } from "../types"
 
 // El contexto y el hook viven separados del AuthProvider: un archivo .tsx que exporta

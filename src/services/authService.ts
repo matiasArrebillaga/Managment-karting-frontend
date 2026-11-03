@@ -1,8 +1,6 @@
 import type { DatosRegistro, Rol, Sesion } from '../types'
 import { API_URL, esObjeto } from './httpClient'
 
-export type { DatosRegistro, Rol, Sesion }
-
 async function leerError(response: Response, mensajePorDefecto: string): Promise<Error> {
     const cuerpo: unknown = await response.json().catch(() => null)
     if (esObjeto(cuerpo) && typeof cuerpo.message === 'string') {

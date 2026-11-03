@@ -155,7 +155,7 @@ function CarreraFormDialog ({ carrera, onCerrar, onGuardado }: Props) {
                         required
                         fullWidth
                     >
-                        {torneos.map((torneo) => torneo.idTorneos === undefined ? null : (
+                        {torneos.map((torneo) => (
                             <MenuItem key={torneo.idTorneos} value={String(torneo.idTorneos)}>
                                 {torneo.nombre}
                             </MenuItem>

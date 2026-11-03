@@ -246,7 +246,7 @@ function TorneosPage () {
                         const inscriptos = inscriptosPorTorneo[torneo.idTorneos] ?? 0
                         const accion = accionInscripcion(torneo, estado)
                         return (
-                            <article className="panel" key={torneo.idTorneos ?? torneo.nombre}>
+                            <article className="panel" key={torneo.idTorneos}>
                                 <div className="card-fila">
                                     <h2><Link to={`/torneos/${torneo.idTorneos}`}>{torneo.nombre}</Link></h2>
                                     <span className={`tag ${CLASE_ESTADO_TORNEO[estado]}`}>{estado}</span>

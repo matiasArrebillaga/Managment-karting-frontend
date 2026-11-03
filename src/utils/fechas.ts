@@ -4,6 +4,9 @@
 
 const dosDigitos = (n: number) => String(n).padStart(2, '0')
 
+// reservas y carreras son en hora en punto: los selects solo ofrecen 00:00, 01:00 ... 23:00
+export const HORAS = Array.from({ length: 24 }, (_, h) => `${dosDigitos(h)}:00`)
+
 // Date o texto → 'YYYY-MM-DD' (lo que esperan la API y <input type="date">)
 export function fechaTexto (valor: Date | string): string {
     if (typeof valor === 'string') return valor.slice(0, 10)

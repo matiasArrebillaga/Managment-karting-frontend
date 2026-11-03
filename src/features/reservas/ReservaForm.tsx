@@ -7,7 +7,7 @@ import { getTiposKarting } from '../../services/tipoKartingService'
 import { getPersonas } from '../../services/personaService'
 import type { Circuito, CreateReservaInput, IReserva, Karting, Persona, TipoKarting } from '../../types'
 import { nombreCircuito, pesos } from '../../utils/formato'
-import { fechaTexto, horaTexto } from '../../utils/fechas'
+import { HORAS, fechaTexto, horaTexto } from '../../utils/fechas'
 import SelectorKartings from '../../components/SelectorKartings'
 import CampoFecha from '../../components/CampoFecha'
 
@@ -22,9 +22,6 @@ export type ReservaFormProps = {
 
 type Campo = 'fecha' | 'horaInicio' | 'horaFin' | 'circuito' | 'karting'
 type ErroresCampo = Partial<Record<Campo, string>>
-
-// las reservas son de hora en hora: los selects solo ofrecen 00:00, 01:00 ... 23:00
-const HORAS = Array.from({ length: 24 }, (_, h) => `${String(h).padStart(2, '0')}:00`)
 
 function minutosDeHora (hora: string) {
     return Number(hora.slice(0, 2)) * 60 + Number(hora.slice(3, 5))

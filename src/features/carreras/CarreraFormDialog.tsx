@@ -5,7 +5,7 @@ import { getCircuitos } from '../../services/circuitoService'
 import { getTorneos } from '../../services/torneoService'
 import { getKartingsDisponibles } from '../../services/kartingService'
 import { getTiposKarting } from '../../services/tipoKartingService'
-import { fechaLocal, fechaTexto, horaTexto } from '../../utils/fechas'
+import { HORAS, fechaLocal, fechaTexto, horaTexto } from '../../utils/fechas'
 import { nombreCircuito } from '../../utils/formato'
 import SelectorKartings from '../../components/SelectorKartings'
 import type { Circuito, CreateCarrera, ICarrera, ITorneos, Karting, TipoKarting } from '../../types'
@@ -17,10 +17,16 @@ type Props = {
     onGuardado: () => void
 }
 
+function horaEnPunto (valor?: Date | string) {
+    const hora = valor ? horaTexto(valor) : ''
+    return HORAS.includes(hora) ? hora : ''
+}
+
 function CarreraFormDialog ({ carrera, onCerrar, onGuardado }: Props) {
     const [fechaCarrera, setFechaCarrera] = useState(carrera ? fechaTexto(carrera.fechaCarrera) : '')
-    const [horaInicio, setHoraInicio] = useState(carrera ? horaTexto(carrera.horaInicio) : '')
-    const [horaFin, setHoraFin] = useState(carrera ? horaTexto(carrera.horaFin) : '')
+    // una carrera vieja con minutos (16:56) no esta entre las opciones: arranca vacia y hay que elegirla de nuevo
+    const [horaInicio, setHoraInicio] = useState(() => horaEnPunto(carrera?.horaInicio))
+    const [horaFin, setHoraFin] = useState(() => horaEnPunto(carrera?.horaFin))
     const [torneoId, setTorneoId] = useState(carrera ? String(carrera.Torneos_idTorneos) : '')
     const [circuitoId, setCircuitoId] = useState(carrera ? String(carrera.Circuitos_idCircuitos) : '')
     const [kartingIds, setKartingIds] = useState<string[]>(carrera ? carrera.kartings.map(String) : [])
@@ -124,23 +130,30 @@ function CarreraFormDialog ({ carrera, onCerrar, onGuardado }: Props) {
                         fullWidth
                     />
                     <TextField
+                        select
                         label="Hora de inicio"
-                        type="time"
                         value={horaInicio}
-                        onChange={(event) => setHoraInicio(event.target.value)}
-                        slotProps={{ inputLabel: { shrink: true } }}
+                        onChange={(event) => {
+                            const inicio = event.target.value
+                            setHoraInicio(inicio)
+                            // si la hora de fin quedó antes del nuevo inicio, se vacía (ya no está entre las opciones)
+                            setHoraFin((fin) => (fin > inicio ? fin : ''))
+                        }}
                         required
                         fullWidth
-                    />
+                    >
+                        {HORAS.slice(0, -1).map((hora) => <MenuItem key={hora} value={hora}>{hora}</MenuItem>)}
+                    </TextField>
                     <TextField
+                        select
                         label="Hora de fin"
-                        type="time"
                         value={horaFin}
                         onChange={(event) => setHoraFin(event.target.value)}
-                        slotProps={{ inputLabel: { shrink: true } }}
                         required
                         fullWidth
-                    />
+                    >
+                        {HORAS.filter((hora) => !horaInicio || hora > horaInicio).map((hora) => <MenuItem key={hora} value={hora}>{hora}</MenuItem>)}
+                    </TextField>
                     <TextField
                         select
                         label="Torneo"

@@ -4,6 +4,7 @@ import { createPersona, updatePersona } from "../../services/personaService"
 import { getLocalidades } from "../../services/localidadService"
 import type { Localidad, Persona } from "../../types"
 import { fechaTexto } from "../../utils/fechas"
+import CampoFecha from '../../components/CampoFecha'
 
 type Props = {
     persona?: Persona | null
@@ -42,6 +43,8 @@ function PersonaFormDialog({ persona, onCerrar, onGuardado }: Props) {
             value: form[nombre],
             onChange: (e: ChangeEvent<HTMLInputElement>) => setForm({ ...form, [nombre]: e.target.value }),
             fullWidth: true,
+            // el backend limita los textos a 45 caracteres
+            slotProps: { htmlInput: { maxLength: 45 } },
         }
     }
 
@@ -105,12 +108,13 @@ function PersonaFormDialog({ persona, onCerrar, onGuardado }: Props) {
                     <TextField label="Nombre" required {...campo('nombre')} />
                     <TextField label="Apellido" required {...campo('apellido')} />
                     <TextField label="DNI" required {...campo('dni')} />
-                    <TextField
+                    <CampoFecha
                         label="Fecha de nacimiento"
-                        type="date"
+                        value={form.fechaNacimiento}
+                        onChange={(valor) => setForm({ ...form, fechaNacimiento: valor })}
+                        max={fechaTexto(new Date())}
                         required
-                        slotProps={{ inputLabel: { shrink: true } }}
-                        {...campo('fechaNacimiento')}
+                        fullWidth
                     />
                     <TextField label="Mail" type="email" required {...campo('mail')} />
                     <TextField label="Teléfono" required {...campo('telefono')} />

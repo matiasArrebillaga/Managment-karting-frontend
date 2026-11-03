@@ -9,6 +9,7 @@ import type { Circuito, CreateReservaInput, IReserva, Karting, Persona, TipoKart
 import { nombreCircuito, pesos } from '../../utils/formato'
 import { fechaTexto, horaTexto } from '../../utils/fechas'
 import SelectorKartings from '../../components/SelectorKartings'
+import CampoFecha from '../../components/CampoFecha'
 
 export type ReservaFormProps = {
     reserva?: IReserva | null
@@ -175,12 +176,12 @@ function ReservaForm ({ reserva, idPersonaActual, nombrePersonaActual, puedeGest
             ) : (
                 <TextField label="Persona" value={nombrePersonaActual} disabled fullWidth />
             )}
-            <TextField
+            <CampoFecha
                 label="Fecha de reserva"
-                type="date"
-                slotProps={{ htmlInput: { min: fechaTexto(new Date()) }, inputLabel: { shrink: true } }}
                 value={fechaReserva}
-                onChange={(event) => { setFechaReserva(event.target.value); limpiarError('fecha') }}
+                onChange={(valor) => { setFechaReserva(valor); limpiarError('fecha') }}
+                // al editar una reserva pasada el mínimo es su propia fecha, si no no se podría guardar sin cambiarla
+                min={fechaOriginal && fechaOriginal < fechaTexto(new Date()) ? fechaOriginal : fechaTexto(new Date())}
                 error={Boolean(errores.fecha)}
                 helperText={errores.fecha}
                 required

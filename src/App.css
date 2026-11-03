@@ -861,8 +861,11 @@ a {
     font-weight: 500;
 }
 
-.campo input,
-.campo select {
+/* solo los inputs propios del formulario (hijos directos o dentro de .con-ojo):
+   el DatePicker de la fecha de nacimiento tiene inputs internos que no hay que pisar */
+.campo > input,
+.campo > select,
+.con-ojo > input {
     width: 100%;
     min-width: 0;
     padding: 8px 10px;
@@ -937,8 +940,9 @@ a {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .campo input,
-    .campo select {
+    .campo > input,
+    .campo > select,
+    .con-ojo > input {
         font-size: 14px;
         padding: 7px 10px;
     }
@@ -1303,13 +1307,13 @@ a.btn::after { content: "→"; transition: transform .15s ease; }
 /* ---- Formularios ---- */
 .tabs { border-bottom-color: var(--line); }
 .tabs a.active { border-bottom-color: var(--rojo); }
-.campo input, .campo select {
+.campo > input, .campo > select, .con-ojo > input {
     padding: 11px 14px;
     background: rgba(255,255,255,.03);
     border-color: var(--line-fuerte);
     border-radius: 10px;
 }
-.campo :is(input, select):focus { outline: 0; border-color: var(--ciruela-claro); box-shadow: 0 0 0 4px rgba(70,22,74,.6); }
+:is(.campo > input, .campo > select, .con-ojo > input):focus { outline: 0; border-color: var(--ciruela-claro); box-shadow: 0 0 0 4px rgba(70,22,74,.6); }
 /* contraseña con botón de ojo adentro del input, a la derecha */
 .con-ojo { position: relative; }
 .campo .con-ojo input { padding-right: 44px; }

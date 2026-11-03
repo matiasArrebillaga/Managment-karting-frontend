@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Alert, Button, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField } from '@mui/material'
+import { Alert, Button, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
 import { useAuth } from '../../context/AuthContext'
 import { deleteReserva, getMisReservas, getReservas, getReservasPorFechas } from '../../services/reservaService'
 import { getCircuitos } from '../../services/circuitoService'
@@ -14,6 +14,7 @@ import { useConfirmar } from '../../components/useConfirmar'
 import { useAviso } from '../../context/AvisoContext'
 import { fecha, hora, nombreCircuito, pesos } from '../../utils/formato'
 import { fechaLocal } from '../../utils/fechas'
+import CampoFecha from '../../components/CampoFecha'
 
 type Rango = { desde: string; hasta: string }
 
@@ -162,21 +163,19 @@ function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
             {error && <Alert severity="error">{error}</Alert>}
 
             <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap', alignItems: 'center' }} useFlexGap>
-                <TextField
+                <CampoFecha
                     label="Desde"
-                    type="date"
                     size="small"
                     value={desde}
-                    onChange={(e) => setDesde(e.target.value)}
-                    slotProps={{ inputLabel: { shrink: true } }}
+                    onChange={setDesde}
+                    max={hasta || undefined}
                 />
-                <TextField
+                <CampoFecha
                     label="Hasta"
-                    type="date"
                     size="small"
                     value={hasta}
-                    onChange={(e) => setHasta(e.target.value)}
-                    slotProps={{ inputLabel: { shrink: true } }}
+                    onChange={setHasta}
+                    min={desde || undefined}
                 />
                 <Button variant="outlined" onClick={handleFiltrar} disabled={cargando}>{cargando && filtro ? 'Filtrando...' : 'Filtrar'}</Button>
                 {filtro && <Button onClick={handleLimpiarFiltro}>Ver todas</Button>}

@@ -5,6 +5,8 @@ import { useAuth } from "../context/AuthContext"
 import { puede } from "../permisos"
 import { getLocalidadesParaRegistro } from "../services/localidadService"
 import type { DatosRegistro, Localidad } from "../types"
+import CampoFecha from "./CampoFecha"
+import { fechaTexto } from "../utils/fechas"
 
 function AuthPage ({ mode }: { mode: 'login' | 'register' }) {
     const isLogin = mode === 'login'
@@ -112,7 +114,7 @@ function AuthPage ({ mode }: { mode: 'login' | 'register' }) {
                         </div>
                         <div className="campo">
                             <label htmlFor="nacimiento">Fecha de nacimiento</label>
-                            <input id="nacimiento" type="date" autoComplete="bday" value={fechaNacimiento} onChange={(e) => setFechaNacimiento(e.target.value)} required />
+                            <CampoFecha id="nacimiento" value={fechaNacimiento} onChange={setFechaNacimiento} max={fechaTexto(new Date())} required fullWidth />
                         </div>
                     </>}
                     <div className="campo" style={isLogin ? { gridColumn: '1 / -1' } : undefined}>

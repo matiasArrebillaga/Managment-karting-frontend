@@ -3,6 +3,8 @@ import { createKarting, updateKarting } from "../../services/kartingService"
 import { getTiposKarting } from "../../services/tipoKartingService"
 import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Stack, TextField } from "@mui/material"
 import type { Karting, TipoKarting } from "../../types"
+import { fechaTexto } from "../../utils/fechas"
+import CampoFecha from '../../components/CampoFecha'
 
 const ESTADOS = ['Disponible', 'Mantenimiento']
 
@@ -112,12 +114,11 @@ function KartingFormDialog({ karting, onCerrar, onGuardado }: Props) {
                             <MenuItem key={s} value={s}>{s}</MenuItem>
                         ))}
                     </TextField>
-                    <TextField
+                    <CampoFecha
                         label="Fecha de adquisicion"
-                        type="date"
                         value={fechaAdquisicion}
-                        onChange={(e) => setFechaAdquisicion(e.target.value)}
-                        slotProps={{ inputLabel: { shrink: true } }}
+                        onChange={setFechaAdquisicion}
+                        max={fechaTexto(new Date())}
                         required
                         fullWidth
                     />

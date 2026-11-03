@@ -5,6 +5,10 @@ import './index.css'
 import './App.css'
 import CssBaseline from '@mui/material/CssBaseline'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { esES } from '@mui/x-date-pickers/locales'
+import 'dayjs/locale/es'
 import InicioPage from './pages/InicioPage.tsx'
 import MiCuentaPage from './pages/MiCuentaPage.tsx'
 import HistorialTorneosPage from './features/torneos/HistorialTorneosPage.tsx'
@@ -113,6 +117,8 @@ createRoot(document.getElementById('root')!).render(
       <AuthProvider>
         <ThemeProvider theme={theme}>
           <CssBaseline />
+          {/* los DatePicker usan dayjs en español: meses, días (lunes primero) y textos de los botones */}
+          <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="es" localeText={esES.components.MuiLocalizationProvider.defaultProps.localeText}>
           <AvisoProvider>
           <Routes>
             <Route element={<Layout />}>
@@ -155,6 +161,7 @@ createRoot(document.getElementById('root')!).render(
             </Route>
           </Routes>
           </AvisoProvider>
+          </LocalizationProvider>
         </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>

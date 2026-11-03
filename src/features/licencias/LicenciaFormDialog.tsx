@@ -5,6 +5,7 @@ import { getPersonas } from "../../services/personaService"
 import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Stack, TextField } from "@mui/material"
 import type { Licencia, TipoLicencia, Persona } from "../../types"
 import { fechaTexto } from "../../utils/fechas"
+import CampoFecha from '../../components/CampoFecha'
 
 type Props = {
     licencia?: Licencia | null
@@ -95,20 +96,19 @@ function LicenciaFormDialog({ licencia, onCerrar, onGuardado }: Props) {
                             <MenuItem key={t.idTipoLicencia} value={String(t.idTipoLicencia)}>{t.nombre}</MenuItem>
                         ))}
                     </TextField>
-                    <TextField
+                    <CampoFecha
                         label="Fecha de emision"
-                        type="date"
                         value={fechaEmision}
-                        onChange={(e) => setFechaEmision(e.target.value)}
-                        slotProps={{ inputLabel: { shrink: true } }}
+                        onChange={setFechaEmision}
+                        max={fechaTexto(new Date())}
                         fullWidth
                     />
-                    <TextField
+                    <CampoFecha
                         label="Fecha de vencimiento"
-                        type="date"
                         value={fechaVencimiento}
-                        onChange={(e) => setFechaVencimiento(e.target.value)}
-                        slotProps={{ inputLabel: { shrink: true } }}
+                        onChange={setFechaVencimiento}
+                        // el calendario no deja elegir un vencimiento anterior a la emisión
+                        min={fechaEmision || undefined}
                         fullWidth
                     />
                 </Stack>

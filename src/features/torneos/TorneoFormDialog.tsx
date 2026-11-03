@@ -4,6 +4,7 @@ import { createTorneo, updateTorneo } from '../../services/torneoService'
 import { getTiposLicencia } from '../../services/tipoLicenciaService'
 import type { CreateTorneos, ITorneos, TipoLicencia } from '../../types'
 import { fechaLocal, fechaTexto } from '../../utils/fechas'
+import CampoFecha from '../../components/CampoFecha'
 
 type Props = {
     torneo?: ITorneos | null
@@ -112,21 +113,18 @@ function TorneoFormDialog ({ torneo, onCerrar, onGuardado }: Props) {
                             </MenuItem>
                         ))}
                     </TextField>
-                    <TextField
+                    <CampoFecha
                         label="Fecha de inicio"
-                        type="date"
                         value={fechaInicio}
-                        onChange={(event) => setFechaInicio(event.target.value)}
-                        slotProps={{ inputLabel: { shrink: true } }}
+                        onChange={setFechaInicio}
                         required
                         fullWidth
                     />
-                    <TextField
+                    <CampoFecha
                         label="Fecha de fin"
-                        type="date"
                         value={fechaFin}
-                        onChange={(event) => setFechaFin(event.target.value)}
-                        slotProps={{ inputLabel: { shrink: true } }}
+                        onChange={setFechaFin}
+                        min={fechaInicio || undefined}
                         error={fechaFin !== '' && fechaInicio !== '' && fechaFin < fechaInicio}
                         helperText={fechaFin !== '' && fechaInicio !== '' && fechaFin < fechaInicio ? 'La fecha de fin debe ser posterior al inicio' : ''}
                         required

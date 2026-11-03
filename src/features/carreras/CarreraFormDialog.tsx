@@ -9,6 +9,7 @@ import { fechaLocal, fechaTexto, horaTexto } from '../../utils/fechas'
 import { nombreCircuito } from '../../utils/formato'
 import SelectorKartings from '../../components/SelectorKartings'
 import type { Circuito, CreateCarrera, ICarrera, ITorneos, Karting, TipoKarting } from '../../types'
+import CampoFecha from '../../components/CampoFecha'
 
 type Props = {
     carrera?: ICarrera | null
@@ -114,12 +115,10 @@ function CarreraFormDialog ({ carrera, onCerrar, onGuardado }: Props) {
             <DialogTitle>{editando ? 'Editar Carrera' : 'Nueva Carrera'}</DialogTitle>
             <DialogContent>
                 <Stack spacing={2} sx={{ mt: 1 }}>
-                    <TextField
+                    <CampoFecha
                         label="Fecha de la carrera"
-                        type="date"
                         value={fechaCarrera}
-                        onChange={(event) => setFechaCarrera(event.target.value)}
-                        slotProps={{ inputLabel: { shrink: true } }}
+                        onChange={setFechaCarrera}
                         disabled={editando}
                         required
                         fullWidth

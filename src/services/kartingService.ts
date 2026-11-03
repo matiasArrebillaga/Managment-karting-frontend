@@ -54,6 +54,19 @@ export async function getKartings(): Promise<Karting[]> {
     return normalizarLista(await response.json())
 }
 
+// karts libres en esa franja; excluir es la reserva ({ idReserva }) o carrera ({ idTorneo, idCircuito }) que se edita
+export async function getKartingsDisponibles(
+    fecha: string,
+    horaInicio: string,
+    horaFin: string,
+    excluir: Record<string, number> = {},
+): Promise<Karting[]> {
+    const params = new URLSearchParams({ fecha, horaInicio, horaFin })
+    Object.entries(excluir).forEach(([clave, valor]) => params.set(clave, String(valor)))
+    const response = await apiFetch(`/kartings/disponibles?${params.toString()}`)
+    return normalizarLista(await response.json())
+}
+
 export async function getKarting(id: number): Promise<Karting> {
     const response = await apiFetch(`/kartings/${id}`)
     return normalizarKarting(await response.json())

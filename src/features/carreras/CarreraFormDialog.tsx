@@ -3,10 +3,11 @@ import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuI
 import { createCarrera, updateCarrera } from '../../services/carreraService'
 import { getCircuitos } from '../../services/circuitoService'
 import { getTorneos } from '../../services/torneoService'
-import { getKartings } from '../../services/kartingService'
+import { getKartingsDisponibles } from '../../services/kartingService'
 import { getTiposKarting } from '../../services/tipoKartingService'
 import { fechaLocal, fechaTexto, horaTexto } from '../../utils/fechas'
 import { nombreCircuito } from '../../utils/formato'
+import SelectorKartings from '../../components/SelectorKartings'
 import type { Circuito, CreateCarrera, ICarrera, ITorneos, Karting, TipoKarting } from '../../types'
 
 type Props = {
@@ -31,26 +32,48 @@ function CarreraFormDialog ({ carrera, onCerrar, onGuardado }: Props) {
 
     const editando = Boolean(carrera)
     const torneoElegido = torneos.find((torneo) => String(torneo.idTorneos) === torneoId)
-    // Solo se ofrecen los karts de la licencia del torneo y disponibles; el backend lo vuelve a validar.
-    // Al editar se mantienen los ya asignados aunque esten en mantenimiento (el backend solo exige estado a los nuevos)
-    const kartingsDelTorneo = torneoElegido
+    const franjaCompleta = Boolean(fechaCarrera) && Boolean(horaInicio) && horaFin > horaInicio
+    // Solo se ofrecen los karts libres en la franja y de la licencia del torneo; el backend lo vuelve a validar.
+    const kartingsDelTorneo = torneoElegido && franjaCompleta
         ? kartings.filter((karting) => tiposKarting.find((tipo) => tipo.idTiposKarting === karting.TiposKarting_idTiposKarting)
-            ?.TiposLicencias_idTipoLicenciaMinima === torneoElegido.TiposLicencias_idTipoLicencia
-            && (karting.estado.toLowerCase() === 'disponible' || kartingIds.includes(String(karting.idKartings))))
+            ?.TiposLicencias_idTipoLicenciaMinima === torneoElegido.TiposLicencias_idTipoLicencia)
         : []
 
     useEffect(() => {
-        Promise.all([getCircuitos(), getTorneos(), getKartings(), getTiposKarting()])
-            .then(([datosCircuitos, datosTorneos, datosKartings, datosTiposKarting]) => {
+        Promise.all([getCircuitos(), getTorneos(), getTiposKarting()])
+            .then(([datosCircuitos, datosTorneos, datosTiposKarting]) => {
                 setCircuitos(datosCircuitos)
                 setTorneos(datosTorneos)
-                setKartings(datosKartings)
                 setTiposKarting(datosTiposKarting)
             })
             .catch((motivo: unknown) => {
                 setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los datos de la carrera')
             })
     }, [])
+
+    // karts libres en la franja; al editar, la propia carrera no cuenta como ocupación
+    const excluirTorneo = carrera?.Torneos_idTorneos
+    const excluirCircuito = carrera?.Circuitos_idCircuitos
+    useEffect(() => {
+        if (!franjaCompleta) return
+        let cancelado = false
+        const excluir: Record<string, number> = excluirTorneo === undefined || excluirCircuito === undefined
+            ? {}
+            : { idTorneo: excluirTorneo, idCircuito: excluirCircuito }
+        getKartingsDisponibles(fechaCarrera, horaInicio, horaFin, excluir)
+            .then((libres) => {
+                if (cancelado) return
+                setKartings(libres)
+                // se sacan de la selección los karts que quedaron ocupados en la nueva franja
+                setKartingIds((actuales) => actuales.filter((id) => libres.some((karting) => String(karting.idKartings) === id)))
+            })
+            .catch((motivo: unknown) => {
+                if (!cancelado) setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los kartings libres')
+            })
+        return () => {
+            cancelado = true
+        }
+    }, [franjaCompleta, fechaCarrera, horaInicio, horaFin, excluirTorneo, excluirCircuito])
 
     async function handleGuardar () {
         if (!fechaCarrera || !horaInicio || !horaFin || !torneoId || !circuitoId || kartingIds.length === 0) {
@@ -138,28 +161,19 @@ function CarreraFormDialog ({ carrera, onCerrar, onGuardado }: Props) {
                             </MenuItem>
                         ))}
                     </TextField>
-                    <TextField
-                        select
-                        label="Kartings"
-                        value={kartingIds}
-                        slotProps={{ select: { multiple: true } }}
-                        onChange={(event) => {
-                            const seleccion = event.target.value
-                            setKartingIds(typeof seleccion === 'string' ? seleccion.split(',') : seleccion)
-                        }}
-                        disabled={!torneoElegido}
-                        helperText={torneoElegido
-                            ? `Elegí al menos ${torneoElegido.cupoMaximo} (cupo del torneo). Seleccionados: ${kartingIds.length}`
-                            : 'Elegí primero el torneo'}
-                        required
-                        fullWidth
-                    >
-                        {kartingsDelTorneo.map((karting) => (
-                            <MenuItem key={karting.idKartings} value={String(karting.idKartings)}>
-                                {karting.modelo} ({karting.categoria})
-                            </MenuItem>
-                        ))}
-                    </TextField>
+                    <SelectorKartings
+                        multiple
+                        kartings={kartingsDelTorneo}
+                        tiposKarting={tiposKarting}
+                        seleccionados={kartingIds}
+                        onCambiar={setKartingIds}
+                        deshabilitado={!torneoElegido || !franjaCompleta}
+                        ayuda={!franjaCompleta
+                            ? 'Elegí la fecha y el horario para ver los kartings libres'
+                            : torneoElegido
+                                ? `Elegí al menos ${torneoElegido.cupoMaximo} (cupo del torneo). Seleccionados: ${kartingIds.length} / ${torneoElegido.cupoMaximo} · Libres: ${kartingsDelTorneo.length}`
+                                : 'Elegí primero el torneo'}
+                    />
                     <TextField
                         select
                         label="Circuito"

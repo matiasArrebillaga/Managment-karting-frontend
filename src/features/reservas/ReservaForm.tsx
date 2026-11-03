@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react'
 import { Alert, Button, MenuItem, Stack, TextField, Typography } from '@mui/material'
 import { createReserva, updateReserva } from '../../services/reservaService'
 import { getCircuitos } from '../../services/circuitoService'
-import { getKartings } from '../../services/kartingService'
+import { getKartingsDisponibles } from '../../services/kartingService'
 import { getTiposKarting } from '../../services/tipoKartingService'
 import { getPersonas } from '../../services/personaService'
 import type { Circuito, CreateReservaInput, IReserva, Karting, Persona, TipoKarting } from '../../types'
 import { nombreCircuito, pesos } from '../../utils/formato'
 import { fechaTexto, horaTexto } from '../../utils/fechas'
+import SelectorKartings from '../../components/SelectorKartings'
 
 export type ReservaFormProps = {
     reserva?: IReserva | null
@@ -21,6 +22,9 @@ export type ReservaFormProps = {
 type Campo = 'fecha' | 'horaInicio' | 'horaFin' | 'circuito' | 'karting'
 type ErroresCampo = Partial<Record<Campo, string>>
 
+// las reservas son de hora en hora: los selects solo ofrecen 00:00, 01:00 ... 23:00
+const HORAS = Array.from({ length: 24 }, (_, h) => `${String(h).padStart(2, '0')}:00`)
+
 function minutosDeHora (hora: string) {
     return Number(hora.slice(0, 2)) * 60 + Number(hora.slice(3, 5))
 }
@@ -31,14 +35,10 @@ function validar (fechaReserva: string, horaInicio: string, horaFin: string, cir
     if (!fechaReserva) errores.fecha = 'Elegí una fecha'
     else if (fechaReserva < fechaTexto(new Date())) errores.fecha = 'La fecha de reserva no puede ser anterior a hoy'
 
-    const formato = /^\d{2}:\d{2}$/
-    const horaValida = (valor: string) => formato.test(valor) && minutosDeHora(valor) < 24 * 60 && Number(valor.slice(3)) < 60
-    if (!horaValida(horaInicio)) errores.horaInicio = 'Ingresá una hora de inicio válida (HH:MM)'
-    if (!horaValida(horaFin)) errores.horaFin = 'Ingresá una hora de fin válida (HH:MM)'
-    if (!errores.horaInicio && !errores.horaFin) {
-        const duracion = minutosDeHora(horaFin) - minutosDeHora(horaInicio)
-        if (duracion <= 0) errores.horaFin = 'La hora de fin debe ser posterior a la hora de inicio'
-        else if (duracion % 60 !== 0) errores.horaFin = 'La duración debe ser de horas enteras (1 h, 2 h, 3 h...)'
+    if (!HORAS.includes(horaInicio)) errores.horaInicio = 'Elegí una hora de inicio'
+    if (!HORAS.includes(horaFin)) errores.horaFin = 'Elegí una hora de fin'
+    if (!errores.horaInicio && !errores.horaFin && minutosDeHora(horaFin) <= minutosDeHora(horaInicio)) {
+        errores.horaFin = 'La hora de fin debe ser posterior a la hora de inicio'
     }
 
     if (!circuitoId) errores.circuito = 'Elegí un circuito'
@@ -67,17 +67,12 @@ function ReservaForm ({ reserva, idPersonaActual, nombrePersonaActual, puedeGest
         let cancelado = false
         Promise.all([
             getCircuitos(),
-            getKartings(),
             puedeGestionar ? getPersonas() : Promise.resolve([]),
             getTiposKarting(),
         ])
-            .then(([datosCircuitos, datosKartings, datosPersonas, datosTipos]) => {
+            .then(([datosCircuitos, datosPersonas, datosTipos]) => {
                 if (cancelado) return
                 setCircuitos(datosCircuitos)
-                setKartings(datosKartings.filter((karting) => (
-                    karting.estado.toLowerCase() === 'disponible'
-                    || karting.idKartings === reserva?.Kartings_idKartings
-                )))
                 setPersonas(datosPersonas)
                 setTiposKarting(datosTipos)
             })
@@ -94,6 +89,27 @@ function ReservaForm ({ reserva, idPersonaActual, nombrePersonaActual, puedeGest
             cancelado = true
         }
     }, [puedeGestionar, reserva])
+
+    // con dia y horario elegidos se piden los karts libres en esa franja; al editar, la propia reserva no cuenta
+    const franjaCompleta = Boolean(fechaReserva) && HORAS.includes(horaInicio) && horaFin > horaInicio
+    const idReservaEditada = reserva?.idReservas
+    useEffect(() => {
+        if (!franjaCompleta) return
+        let cancelado = false
+        getKartingsDisponibles(fechaReserva, horaInicio, horaFin, idReservaEditada === undefined ? {} : { idReserva: idReservaEditada })
+            .then((libres) => {
+                if (cancelado) return
+                setKartings(libres)
+                // si el kart elegido quedó ocupado en la nueva franja, se deselecciona
+                setKartingId((actual) => (libres.some((karting) => String(karting.idKartings) === actual) ? actual : ''))
+            })
+            .catch((motivo: unknown) => {
+                if (!cancelado) setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los kartings libres')
+            })
+        return () => {
+            cancelado = true
+        }
+    }, [franjaCompleta, fechaReserva, horaInicio, horaFin, idReservaEditada])
 
     // al corregir un campo se borra su error; cambiar el inicio también borra el de fin (ahí va el de duración)
     function limpiarError (...campos: Campo[]) {
@@ -170,27 +186,35 @@ function ReservaForm ({ reserva, idPersonaActual, nombrePersonaActual, puedeGest
             />
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                 <TextField
+                    select
                     label="Hora de inicio"
-                    type="time"
-                    slotProps={{ htmlInput: { step: 3600 }, inputLabel: { shrink: true } }}
                     value={horaInicio}
-                    onChange={(event) => { setHoraInicio(event.target.value); limpiarError('horaInicio', 'horaFin') }}
+                    onChange={(event) => {
+                        const inicio = event.target.value
+                        setHoraInicio(inicio)
+                        // si la hora de fin quedó antes del nuevo inicio, se vacía (ya no está entre las opciones)
+                        setHoraFin((fin) => (fin > inicio ? fin : ''))
+                        limpiarError('horaInicio', 'horaFin')
+                    }}
                     error={Boolean(errores.horaInicio)}
                     helperText={errores.horaInicio}
                     required
                     fullWidth
-                />
+                >
+                    {HORAS.slice(0, -1).map((hora) => <MenuItem key={hora} value={hora}>{hora}</MenuItem>)}
+                </TextField>
                 <TextField
+                    select
                     label="Hora de fin"
-                    type="time"
-                    slotProps={{ htmlInput: { step: 3600 }, inputLabel: { shrink: true } }}
                     value={horaFin}
                     onChange={(event) => { setHoraFin(event.target.value); limpiarError('horaFin') }}
                     error={Boolean(errores.horaFin)}
                     helperText={errores.horaFin}
                     required
                     fullWidth
-                />
+                >
+                    {HORAS.filter((hora) => !horaInicio || hora > horaInicio).map((hora) => <MenuItem key={hora} value={hora}>{hora}</MenuItem>)}
+                </TextField>
             </Stack>
             {cargandoCatalogos ? (
                 <Typography color="text.secondary">Cargando circuitos y kartings...</Typography>
@@ -213,23 +237,17 @@ function ReservaForm ({ reserva, idPersonaActual, nombrePersonaActual, puedeGest
                             </MenuItem>
                         ))}
                     </TextField>
-                    <TextField
-                        select
-                        label="Karting"
-                        value={kartingId}
-                        onChange={(event) => { setKartingId(event.target.value); limpiarError('karting') }}
-                        error={Boolean(errores.karting)}
-                        helperText={errores.karting ?? (kartings.length === 0 ? 'No hay kartings disponibles' : undefined)}
-                        required
-                        fullWidth
-                    >
-                        <MenuItem value="" disabled>Seleccioná un karting</MenuItem>
-                        {kartings.map((karting) => (
-                            <MenuItem key={karting.idKartings} value={String(karting.idKartings)}>
-                                {karting.modelo} ({karting.categoria})
-                            </MenuItem>
-                        ))}
-                    </TextField>
+                    <SelectorKartings
+                        kartings={franjaCompleta ? kartings : []}
+                        tiposKarting={tiposKarting}
+                        seleccionados={kartingId ? [kartingId] : []}
+                        onCambiar={([id]) => { setKartingId(id ?? ''); limpiarError('karting') }}
+                        deshabilitado={!franjaCompleta}
+                        ayuda={!franjaCompleta
+                            ? 'Elegí la fecha y el horario para ver los kartings libres'
+                            : kartings.length === 0 ? 'No hay kartings libres en ese horario' : undefined}
+                        error={errores.karting}
+                    />
                 </>
             )}
             {error && <Alert severity="error">{error}</Alert>}

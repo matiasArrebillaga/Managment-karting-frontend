@@ -38,11 +38,6 @@ export async function getLicencias(): Promise<Licencia[]> {
     return valor.map(normalizarLicencia)
 }
 
-export async function getLicencia(id: number): Promise<Licencia> {
-    const response = await apiFetch(`/licencias/${id}`)
-    return normalizarLicencia(await response.json())
-}
-
 export async function createLicencia(datos: Omit<Licencia, 'idLicencias'>): Promise<Licencia> {
     validarDatos(datos)
     const response = await apiFetch('/licencias', {

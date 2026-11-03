@@ -72,11 +72,6 @@ export async function getCarrerasTorneo(idTorneo: number): Promise<ICarrera[]> {
     return normalizarLista(await response.json())
 }
 
-export async function getCarrera(carrera: ICarrera): Promise<ICarrera> {
-    const response = await apiFetch(rutaCarrera(carrera))
-    return normalizarCarrera(await response.json())
-}
-
 export async function createCarrera(datos: CreateCarrera): Promise<ICarrera> {
     const response = await apiFetch('/carreras', {
         method: 'POST',

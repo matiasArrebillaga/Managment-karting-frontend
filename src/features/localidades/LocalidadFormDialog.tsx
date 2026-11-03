@@ -49,6 +49,7 @@ function LocalidadFormDialog({ localidad, onCerrar, onGuardado }: Props) {
                         label="Nombre"
                         value={nombre}
                         onChange={(e) => setNombre(e.target.value)}
+                        slotProps={{ htmlInput: { maxLength: 45 } }}
                         required
                         fullWidth
                     />

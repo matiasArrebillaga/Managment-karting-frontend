@@ -42,11 +42,6 @@ export async function getTiposKarting(): Promise<TipoKarting[]> {
     return valor.map(normalizarTipo)
 }
 
-export async function getTipoKarting(id: number): Promise<TipoKarting> {
-    const response = await apiFetch(`/tiposKartings/${id}`)
-    return normalizarTipo(await response.json())
-}
-
 export async function createTipoKarting(datos: Omit<TipoKarting, 'idTiposKarting'>): Promise<TipoKarting> {
     const limpios = validarDatos(datos)
     const response = await apiFetch('/tiposKartings', {

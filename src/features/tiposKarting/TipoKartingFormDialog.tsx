@@ -27,13 +27,27 @@ function TipoKartingFormDialog({ tipoKarting, onCerrar, onGuardado }: Props) {
             .catch((motivo) => setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los tipos de licencia'))
     }, [])
 
+    // mismas reglas que el backend; Number('') da 0, por eso se mira el texto vacío aparte
+    function validar() {
+        if (nombre.trim().length === 0) return 'Ingresá el nombre'
+        if (!tipoLicenciaMinimaId) return 'Elegí la licencia mínima'
+        if (precioHora.trim() === '' || !(Number(precioHora) > 0)) return 'El precio por hora debe ser mayor que cero'
+        if (descripcion.trim().length === 0) return 'Ingresá una descripción'
+        return ''
+    }
+
     async function handleGuardar() {
+        const motivo = validar()
+        if (motivo) {
+            setError(motivo)
+            return
+        }
         setGuardando(true)
         setError('')
         try {
             const datos = {
-                nombre,
-                descripcion,
+                nombre: nombre.trim(),
+                descripcion: descripcion.trim(),
                 precioHora: Number(precioHora),
                 TiposLicencias_idTipoLicenciaMinima: Number(tipoLicenciaMinimaId),
             }
@@ -60,6 +74,7 @@ function TipoKartingFormDialog({ tipoKarting, onCerrar, onGuardado }: Props) {
                         label="Nombre"
                         value={nombre}
                         onChange={(e) => setNombre(e.target.value)}
+                        slotProps={{ htmlInput: { maxLength: 45 } }}
                         required
                         fullWidth
                     />
@@ -88,6 +103,7 @@ function TipoKartingFormDialog({ tipoKarting, onCerrar, onGuardado }: Props) {
                         label="Descripcion"
                         value={descripcion}
                         onChange={(e) => setDescripcion(e.target.value)}
+                        slotProps={{ htmlInput: { maxLength: 45 } }}
                         required
                         fullWidth
                         multiline

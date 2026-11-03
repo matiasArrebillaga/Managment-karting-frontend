@@ -1,11 +1,13 @@
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { puede } from '../../permisos'
+import { useAviso } from '../../context/AvisoContext'
 import ReservaForm from './ReservaForm'
 
 function ReservarPage () {
     const { persona } = useAuth()
     const navigate = useNavigate()
+    const avisar = useAviso()
     if (!persona) return null
 
     return (
@@ -23,7 +25,8 @@ function ReservarPage () {
                     idPersonaActual={persona.idPersona}
                     nombrePersonaActual={`${persona.nombre} ${persona.apellido}`}
                     puedeGestionar={puede(persona.rol.nombre, 'reservas.verTodas')}
-                    onGuardado={() => navigate('/mi-cuenta/reservas', { state: { mensaje: 'Reserva confirmada' } })}
+                    // el aviso es global (AvisoProvider): se ve en la página nueva y no queda pegado en el historial
+                    onGuardado={() => { avisar('Reserva confirmada'); navigate('/mi-cuenta/reservas') }}
                 />
             </section>
         </div>

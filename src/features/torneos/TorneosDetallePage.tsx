@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
 import { useAuth } from '../../context/AuthContext'
@@ -30,6 +30,8 @@ function TorneoDetallePage () {
     const [anotando, setAnotando] = useState(false)
     const [carreraAbierta, setCarreraAbierta] = useState<string | null>(null)
     const [clasificacion, setClasificacion] = useState<FilaClasificacion[] | null>(null)
+    // la última carrera clickeada: si la respuesta de una anterior llega tarde, no pisa a la que está abierta
+    const carreraPedida = useRef<string | null>(null)
     const [cargando, setCargando] = useState(true)
     const [error, setError] = useState('')
     const puedeAnotarse = puede(persona?.rol.nombre, 'inscripciones.anotarse')
@@ -59,14 +61,16 @@ function TorneoDetallePage () {
     function handleVerCarrera (carrera: ICarrera) {
         const clave = claveCarrera(carrera)
         if (carreraAbierta === clave) {
+            carreraPedida.current = null
             setCarreraAbierta(null)
             return
         }
+        carreraPedida.current = clave
         setCarreraAbierta(clave)
         setClasificacion(null)
         getClasificacionCarrera(carrera)
-            .then(setClasificacion)
-            .catch(() => setClasificacion([]))
+            .then((filas) => { if (carreraPedida.current === clave) setClasificacion(filas) })
+            .catch(() => { if (carreraPedida.current === clave) setClasificacion([]) })
     }
 
     async function handleAnotarse () {

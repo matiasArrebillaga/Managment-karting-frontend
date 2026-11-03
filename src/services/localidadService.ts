@@ -45,11 +45,6 @@ export async function getLocalidades(): Promise<Localidad[]> {
     return normalizarLista(await response.json())
 }
 
-export async function getLocalidad(id: number): Promise<Localidad> {
-    const response = await apiFetch(`/localidades/${id}`)
-    return normalizarLocalidad(await response.json())
-}
-
 export async function createLocalidad(datos: Omit<Localidad, 'idLocalidades'>): Promise<Localidad> {
     validarNombre(datos.nombre)
     const response = await apiFetch('/localidades', {

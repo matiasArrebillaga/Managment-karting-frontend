@@ -442,16 +442,6 @@ a {
     width: 100%;
 }
 
-.btn-ghost {
-    padding: 4px 10px;
-    color: var(--fg);
-    font: inherit;
-    background: none;
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    cursor: pointer;
-}
-
 .link {
     padding: 0;
     color: var(--muted);
@@ -581,14 +571,6 @@ a {
     border-top: 1px solid var(--line);
 }
 
-/* ---------- Panel del día (staff) ---------- */
-
-.flota-estado {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-
 /* ---------- Formularios ---------- */
 
 .form-panel {
@@ -612,6 +594,45 @@ a {
 .toolbar {
     display: grid;
     gap: 8px;
+}
+
+/* selector de kartings: tarjetas clicables (SelectorKartings) */
+.karts {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(140px, 100%), 1fr));
+    gap: 8px;
+    /* con muchos karts la grilla scrollea adentro y el formulario no se estira */
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 2px;
+}
+
+.kart {
+    display: grid;
+    gap: 2px;
+    padding: 10px 12px;
+    color: var(--fg);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    background: var(--surface-2);
+    border: 1px solid var(--line-fuerte);
+    border-radius: 10px;
+}
+
+.kart small {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.kart:focus-visible {
+    outline: 2px solid var(--ciruela-claro);
+    outline-offset: 2px;
+}
+
+.kart[aria-pressed="true"] {
+    background: var(--info-bg);
+    border-color: var(--ciruela-claro);
 }
 
 .cards {
@@ -840,8 +861,11 @@ a {
     font-weight: 500;
 }
 
-.campo input,
-.campo select {
+/* solo los inputs propios del formulario (hijos directos o dentro de .con-ojo):
+   el DatePicker de la fecha de nacimiento tiene inputs internos que no hay que pisar */
+.campo > input,
+.campo > select,
+.con-ojo > input {
     width: 100%;
     min-width: 0;
     padding: 8px 10px;
@@ -916,8 +940,9 @@ a {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    .campo input,
-    .campo select {
+    .campo > input,
+    .campo > select,
+    .con-ojo > input {
         font-size: 14px;
         padding: 7px 10px;
     }
@@ -1222,16 +1247,16 @@ a.btn::after { content: "→"; transition: transform .15s ease; }
     .panel-head .link:hover { color: var(--fg); border-color: rgba(201,154,205,.35); background: rgba(70,22,74,.25); }
     .panel-head .link:hover i { transform: rotate(-45deg); background: var(--rojo); }
 }
-.btn-ghost, .btn.secundario {
+.btn-ghost {
     padding: 12px 22px;
     color: var(--fg);
+    font: inherit;
+    cursor: pointer;
     background: rgba(255,255,255,.03);
     border: 1px solid var(--line-fuerte);
     border-radius: 999px;
     box-shadow: none;
 }
-.btn.secundario::after { content: none; }
-.btn.secundario:hover { background: rgba(255,255,255,.07); transform: none; box-shadow: none; }
 .link { letter-spacing: .01em; }
 .link:hover { color: var(--rojo-claro); }
 
@@ -1282,13 +1307,13 @@ a.btn::after { content: "→"; transition: transform .15s ease; }
 /* ---- Formularios ---- */
 .tabs { border-bottom-color: var(--line); }
 .tabs a.active { border-bottom-color: var(--rojo); }
-.campo input, .campo select {
+.campo > input, .campo > select, .con-ojo > input {
     padding: 11px 14px;
     background: rgba(255,255,255,.03);
     border-color: var(--line-fuerte);
     border-radius: 10px;
 }
-.campo :is(input, select):focus { outline: 0; border-color: var(--ciruela-claro); box-shadow: 0 0 0 4px rgba(70,22,74,.6); }
+:is(.campo > input, .campo > select, .con-ojo > input):focus { outline: 0; border-color: var(--ciruela-claro); box-shadow: 0 0 0 4px rgba(70,22,74,.6); }
 /* contraseña con botón de ojo adentro del input, a la derecha */
 .con-ojo { position: relative; }
 .campo .con-ojo input { padding-right: 44px; }

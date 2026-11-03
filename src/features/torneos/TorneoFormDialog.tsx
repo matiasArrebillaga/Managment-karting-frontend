@@ -4,6 +4,7 @@ import { createTorneo, updateTorneo } from '../../services/torneoService'
 import { getTiposLicencia } from '../../services/tipoLicenciaService'
 import type { CreateTorneos, ITorneos, TipoLicencia } from '../../types'
 import { fechaLocal, fechaTexto } from '../../utils/fechas'
+import CampoFecha from '../../components/CampoFecha'
 
 type Props = {
     torneo?: ITorneos | null
@@ -53,7 +54,7 @@ function TorneoFormDialog ({ torneo, onCerrar, onGuardado }: Props) {
                 fechaFin: fechaLocal(fechaFin),
                 TiposLicencias_idTipoLicencia: Number(licenciaId),
             }
-            if (editando && torneo?.idTorneos !== undefined) {
+            if (editando && torneo) {
                 await updateTorneo(torneo.idTorneos, datos)
             } else {
                 await createTorneo(datos)
@@ -75,6 +76,7 @@ function TorneoFormDialog ({ torneo, onCerrar, onGuardado }: Props) {
                         label="Nombre"
                         value={nombre}
                         onChange={(event) => setNombre(event.target.value)}
+                        slotProps={{ htmlInput: { maxLength: 45 } }}
                         required
                         fullWidth
                     />
@@ -82,6 +84,7 @@ function TorneoFormDialog ({ torneo, onCerrar, onGuardado }: Props) {
                         label="Descripción"
                         value={descripcion}
                         onChange={(event) => setDescripcion(event.target.value)}
+                        slotProps={{ htmlInput: { maxLength: 45 } }}
                         multiline
                         minRows={2}
                         fullWidth
@@ -110,21 +113,18 @@ function TorneoFormDialog ({ torneo, onCerrar, onGuardado }: Props) {
                             </MenuItem>
                         ))}
                     </TextField>
-                    <TextField
+                    <CampoFecha
                         label="Fecha de inicio"
-                        type="date"
                         value={fechaInicio}
-                        onChange={(event) => setFechaInicio(event.target.value)}
-                        slotProps={{ inputLabel: { shrink: true } }}
+                        onChange={setFechaInicio}
                         required
                         fullWidth
                     />
-                    <TextField
+                    <CampoFecha
                         label="Fecha de fin"
-                        type="date"
                         value={fechaFin}
-                        onChange={(event) => setFechaFin(event.target.value)}
-                        slotProps={{ inputLabel: { shrink: true } }}
+                        onChange={setFechaFin}
+                        min={fechaInicio || undefined}
                         error={fechaFin !== '' && fechaInicio !== '' && fechaFin < fechaInicio}
                         helperText={fechaFin !== '' && fechaInicio !== '' && fechaFin < fechaInicio ? 'La fecha de fin debe ser posterior al inicio' : ''}
                         required

@@ -43,11 +43,6 @@ export async function getCircuitos(): Promise<Circuito[]> {
     return normalizarLista(await response.json())
 }
 
-export async function getCircuito(id: number): Promise<Circuito> {
-    const response = await apiFetch(`/circuitos/${id}`)
-    return normalizarCircuito(await response.json())
-}
-
 export async function createCircuito(datos: Omit<Circuito, 'idCircuitos'>): Promise<Circuito> {
     validarDatos(datos)
     const response = await apiFetch('/circuitos', {

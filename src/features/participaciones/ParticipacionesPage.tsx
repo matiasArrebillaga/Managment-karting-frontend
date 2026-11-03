@@ -39,7 +39,11 @@ function ParticipacionesPage () {
         return torneos.find((item) => item.idTorneos === id)?.nombre ?? `#${id}`
     }
 
-    const ordenadas = [...participaciones].sort((a, b) => a.posicion_final - b.posicion_final)
+    // agrupadas por carrera: la más reciente primero, después torneo y circuito, y adentro por posición
+    const ordenadas = [...participaciones].sort((a, b) => b.Carrera_fecha.getTime() - a.Carrera_fecha.getTime()
+        || nombreTorneo(a.Carrera_Torneos_idTorneos).localeCompare(nombreTorneo(b.Carrera_Torneos_idTorneos))
+        || a.Carrera_Circuitos_idCircuitos - b.Carrera_Circuitos_idCircuitos
+        || a.posicion_final - b.posicion_final)
 
     return (
         <div className="page">

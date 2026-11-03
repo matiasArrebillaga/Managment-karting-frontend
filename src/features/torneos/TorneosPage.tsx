@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Alert, MenuItem, TextField } from '@mui/material'
 import { useAuth } from '../../context/AuthContext'
@@ -43,6 +43,8 @@ function TorneosPage () {
     const [filtroEstado, setFiltroEstado] = useState('')
     const [filtroLicencia, setFiltroLicencia] = useState('')
     const [busqueda, setBusqueda] = useState('')
+    // número del último pedido: si llega la respuesta de un filtro anterior, se descarta
+    const ultimoPedido = useRef(0)
     const puedeGestionar = puede(persona?.rol.nombre, 'torneos.gestionar')
     const puedeVerInscriptos = puede(persona?.rol.nombre, 'inscripciones.verTodas')
     const puedeAnotarse = puede(persona?.rol.nombre, 'inscripciones.anotarse')
@@ -50,6 +52,7 @@ function TorneosPage () {
 
     // se recrea cuando cambian los filtros o la persona, y eso dispara el efecto de recarga
     const cargarTorneos = useCallback(() => {
+        const pedido = ++ultimoPedido.current
         Promise.all([
             getTorneos({
                 estado: filtroEstado || undefined,
@@ -60,15 +63,18 @@ function TorneosPage () {
                 : Promise.resolve({ torneosAnotados: [], inscriptosPorTorneo: {} }),
         ])
             .then(([datosTorneos, resumen]) => {
+                if (pedido !== ultimoPedido.current) return
                 setTorneos(datosTorneos)
                 setTorneosAnotados(resumen.torneosAnotados)
                 setInscriptosPorTorneo(resumen.inscriptosPorTorneo)
                 setError('')
             })
             .catch((motivo: unknown) => {
-                setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los torneos')
+                if (pedido === ultimoPedido.current) setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los torneos')
             })
-            .finally(() => setCargando(false))
+            .finally(() => {
+                if (pedido === ultimoPedido.current) setCargando(false)
+            })
     }, [filtroEstado, filtroLicencia, persona, puedeVerInscriptos])
 
     useEffect(() => {
@@ -206,7 +212,7 @@ function TorneosPage () {
                     size="small"
                     label="Estado"
                     value={filtroEstado}
-                    onChange={(evento) => setFiltroEstado(evento.target.value)}
+                    onChange={(evento) => { setCargando(true); setFiltroEstado(evento.target.value) }}
                     sx={{ minWidth: 180 }}
                 >
                     <MenuItem value="">Todos</MenuItem>
@@ -219,7 +225,7 @@ function TorneosPage () {
                     size="small"
                     label="Licencia requerida"
                     value={filtroLicencia}
-                    onChange={(evento) => setFiltroLicencia(evento.target.value)}
+                    onChange={(evento) => { setCargando(true); setFiltroLicencia(evento.target.value) }}
                     sx={{ minWidth: 220 }}
                 >
                     <MenuItem value="">Todas</MenuItem>
@@ -230,7 +236,7 @@ function TorneosPage () {
             </div>
 
             {cargando ? (
-                <p className="empty">Cargando...</p>
+                <p className="empty">{torneos.length > 0 ? 'Filtrando...' : 'Cargando...'}</p>
             ) : torneosVisibles.length === 0 ? (
                 <p className="empty">No hay torneos que coincidan con la búsqueda.</p>
             ) : (

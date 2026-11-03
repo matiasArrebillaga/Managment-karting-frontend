@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Alert, Button, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField } from '@mui/material'
 import { useAuth } from '../../context/AuthContext'
 import { deleteReserva, getMisReservas, getReservas, getReservasPorFechas } from '../../services/reservaService'
@@ -33,7 +32,6 @@ function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
     const { persona } = useAuth()
     const { confirmar, dialogo } = useConfirmar()
     const avisar = useAviso()
-    const mensaje = (useLocation().state as { mensaje?: string } | null)?.mensaje
     const [reservas, setReservas] = useState<IReserva[]>([])
     const [circuitos, setCircuitos] = useState<Circuito[]>([])
     const [kartings, setKartings] = useState<Karting[]>([])
@@ -47,6 +45,8 @@ function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
     const [hasta, setHasta] = useState('')
     const [filtro, setFiltro] = useState<Rango | null>(null)
     const [errorFiltro, setErrorFiltro] = useState('')
+    // número del último pedido: si llega una respuesta de uno anterior (filtro viejo), se descarta
+    const ultimoPedido = useRef(0)
     // el !! no cambia el valor: le asegura al React Compiler (que no lee tipos) que es un booleano y no un objeto mutable
     const puedeGestionar = !soloPropias && !!puede(persona?.rol.nombre, 'reservas.verTodas')
     const reservasVisibles = reservas.filter((reserva) => (
@@ -55,6 +55,7 @@ function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
 
     // se recrea cuando cambian el filtro o el permiso; el efecto de abajo recarga también si cambia la persona
     const cargarReservas = useCallback(() => {
+        const pedido = ++ultimoPedido.current
         Promise.all([
             buscarReservas(puedeGestionar, filtro),
             getCircuitos(),
@@ -62,6 +63,7 @@ function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
             puedeGestionar ? getPersonas() : Promise.resolve([]),
         ])
             .then(([datosReservas, datosCircuitos, datosKartings, datosPersonas]) => {
+                if (pedido !== ultimoPedido.current) return
                 setReservas(datosReservas)
                 setCircuitos(datosCircuitos)
                 setKartings(datosKartings)
@@ -69,9 +71,11 @@ function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
                 setError('')
             })
             .catch((motivo: unknown) => {
-                setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar las reservas')
+                if (pedido === ultimoPedido.current) setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar las reservas')
             })
-            .finally(() => setCargando(false))
+            .finally(() => {
+                if (pedido === ultimoPedido.current) setCargando(false)
+            })
     }, [filtro, puedeGestionar])
 
     useEffect(() => {
@@ -100,6 +104,8 @@ function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
             return
         }
         setErrorFiltro('')
+        // se marca acá (en el evento) y no en el efecto: así el botón muestra "Filtrando..." mientras llega la respuesta
+        setCargando(true)
         setFiltro({ desde, hasta })
     }
 
@@ -107,6 +113,7 @@ function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
         setDesde('')
         setHasta('')
         setErrorFiltro('')
+        setCargando(true)
         setFiltro(null)
     }
 
@@ -152,7 +159,6 @@ function ReservasPage ({ soloPropias = false }: { soloPropias?: boolean }) {
                 </div>
                 <button className="btn" type="button" onClick={handleNueva}>Nueva reserva</button>
             </div>
-            {mensaje && <Alert severity="success">{mensaje}</Alert>}
             {error && <Alert severity="error">{error}</Alert>}
 
             <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap', alignItems: 'center' }} useFlexGap>

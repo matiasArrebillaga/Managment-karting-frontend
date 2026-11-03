@@ -145,11 +145,14 @@ function CarrerasPage () {
                                             <Button size="small" onClick={() => handleEditar(carrera)}>
                                                 Editar
                                             </Button>
-                                            <Button size="small" onClick={() => setCarreraResultados(carrera)}>
-                                                {conResultados.includes(claveCarrera(carrera.fechaCarrera, carrera.Torneos_idTorneos, carrera.Circuitos_idCircuitos))
-                                                    ? 'Ver clasificación'
-                                                    : 'Cargar resultados'}
-                                            </Button>
+                                            {conResultados.includes(claveCarrera(carrera.fechaCarrera, carrera.Torneos_idTorneos, carrera.Circuitos_idCircuitos)) ? (
+                                                <Button size="small" onClick={() => setCarreraResultados(carrera)}>Ver clasificación</Button>
+                                            ) : (
+                                                // el backend rechaza resultados de una carrera que todavía no terminó
+                                                <Button size="small" onClick={() => setCarreraResultados(carrera)} disabled={carrera.horaFin > new Date()}>
+                                                    Cargar resultados
+                                                </Button>
+                                            )}
                                             {puedeEliminar && (
                                                 <Button size="small" color="error" onClick={() => handleEliminar(carrera)}>
                                                     Eliminar

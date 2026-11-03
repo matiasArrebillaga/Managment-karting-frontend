@@ -3,6 +3,7 @@ import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuI
 import { createPersona, updatePersona } from "../../services/personaService"
 import { getLocalidades } from "../../services/localidadService"
 import type { Localidad, Persona } from "../../types"
+import { fechaTexto } from "../../utils/fechas"
 
 type Props = {
     persona?: Persona | null
@@ -48,6 +49,19 @@ function PersonaFormDialog({ persona, onCerrar, onGuardado }: Props) {
         const obligatorios = [form.nombre, form.apellido, form.dni, form.fechaNacimiento, form.mail, form.telefono, form.localidadId]
         if (obligatorios.some((valor) => !valor.trim()) || (!editando && !form.contraseña)) {
             setError('Completá todos los campos obligatorios')
+            return
+        }
+        // mismas reglas que persona.service del backend
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.mail.trim())) {
+            setError('El mail no tiene un formato válido')
+            return
+        }
+        if (form.contraseña && form.contraseña.length < 8) {
+            setError('La contraseña debe tener al menos 8 caracteres')
+            return
+        }
+        if (form.fechaNacimiento > fechaTexto(new Date())) {
+            setError('La fecha de nacimiento no puede ser futura')
             return
         }
 
@@ -112,6 +126,7 @@ function PersonaFormDialog({ persona, onCerrar, onGuardado }: Props) {
                         required={!editando}
                         helperText={editando ? 'Dejala vacía para no cambiarla' : 'Mínimo 8 caracteres'}
                         {...campo('contraseña')}
+                        slotProps={{ htmlInput: { maxLength: 255 } }}
                     />
                 </Stack>
             </DialogContent>

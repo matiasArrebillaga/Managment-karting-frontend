@@ -9,7 +9,8 @@ import { useAviso } from '../../context/AvisoContext'
 // Una fila sirve para los dos modos: cargar (inscriptos vacíos) o corregir (clasificación guardada)
 type Fila = { idPersona: number; piloto: string; posicion: string; tiempo: string; puntos?: number }
 
-const TIEMPO = /^\d{2}:\d{2}:\d{2}$/
+// minutos y segundos de 00 a 59: el [0-5] evita que pase un 00:99:99
+const TIEMPO = /^\d{2}:[0-5]\d:[0-5]\d$/
 
 // Lo que el backend rechazaría igual, avisado antes de mandar: devuelve '' si está todo bien
 function validarFilas (filas: Fila[]): string {
@@ -18,6 +19,10 @@ function validarFilas (filas: Fila[]): string {
     }
     const posiciones = filas.map((fila) => fila.posicion)
     if (new Set(posiciones).size !== posiciones.length) return 'Hay dos pilotos con la misma posición'
+    // como el backend: con n pilotos, las posiciones son exactamente 1, 2, ..., n (sin saltear ninguna)
+    if (posiciones.some((posicion) => Number(posicion) > filas.length)) {
+        return `Las posiciones tienen que ir de 1 a ${filas.length}, sin saltear ninguna`
+    }
     if (filas.some((fila) => !TIEMPO.test(fila.tiempo))) return 'Los tiempos van en formato HH:MM:SS (por ejemplo 00:12:34)'
     return ''
 }

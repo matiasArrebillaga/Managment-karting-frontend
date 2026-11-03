@@ -75,6 +75,7 @@ function TorneoFormDialog ({ torneo, onCerrar, onGuardado }: Props) {
                         label="Nombre"
                         value={nombre}
                         onChange={(event) => setNombre(event.target.value)}
+                        slotProps={{ htmlInput: { maxLength: 45 } }}
                         required
                         fullWidth
                     />
@@ -82,6 +83,7 @@ function TorneoFormDialog ({ torneo, onCerrar, onGuardado }: Props) {
                         label="Descripción"
                         value={descripcion}
                         onChange={(event) => setDescripcion(event.target.value)}
+                        slotProps={{ htmlInput: { maxLength: 45 } }}
                         multiline
                         minRows={2}
                         fullWidth

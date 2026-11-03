@@ -18,13 +18,27 @@ function TipoLicenciaFormDialog({ tipoLicencia, onCerrar, onGuardado }: Props) {
 
     const editando = Boolean(tipoLicencia)
 
+    // mismas reglas que el backend, con un mensaje claro antes de mandar nada
+    function validar() {
+        if (nombre.trim().length === 0) return 'Ingresá el nombre'
+        const numero = Number(nivel)
+        if (nivel.trim() === '' || !Number.isInteger(numero) || numero <= 0) return 'El nivel debe ser un número entero mayor que cero'
+        if (descripcion.trim().length === 0) return 'Ingresá una descripción'
+        return ''
+    }
+
     async function handleGuardar() {
+        const motivo = validar()
+        if (motivo) {
+            setError(motivo)
+            return
+        }
         setGuardando(true)
         setError('')
         try {
             const datos = {
-                nombre,
-                descripcion,
+                nombre: nombre.trim(),
+                descripcion: descripcion.trim(),
                 nivel: Number(nivel),
             }
             if (editando && tipoLicencia) {
@@ -50,6 +64,8 @@ function TipoLicenciaFormDialog({ tipoLicencia, onCerrar, onGuardado }: Props) {
                         label="Nombre"
                         value={nombre}
                         onChange={(e) => setNombre(e.target.value)}
+                        slotProps={{ htmlInput: { maxLength: 45 } }}
+                        required
                         fullWidth
                     />
                     <TextField
@@ -57,12 +73,16 @@ function TipoLicenciaFormDialog({ tipoLicencia, onCerrar, onGuardado }: Props) {
                         type="number"
                         value={nivel}
                         onChange={(e) => setNivel(e.target.value)}
+                        slotProps={{ htmlInput: { min: 1, step: 1 } }}
+                        required
                         fullWidth
                     />
                     <TextField
                         label="Descripcion"
                         value={descripcion}
                         onChange={(e) => setDescripcion(e.target.value)}
+                        slotProps={{ htmlInput: { maxLength: 45 } }}
+                        required
                         fullWidth
                         multiline
                     />

@@ -70,7 +70,9 @@ function PersonasPage() {
 
     function handleAbrirRol(persona: Persona) {
         setPersonaRol(persona)
-        setRolNuevo(nombreRol(persona.idRol) as Rol)
+        // si el rol guardado no es uno de los conocidos, el select arranca en CLIENTE en vez de quedar vacío
+        const actual = ROLES.find((rol) => rol === nombreRol(persona.idRol))
+        setRolNuevo(actual ?? 'CLIENTE')
         setErrorRol('')
     }
 

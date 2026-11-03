@@ -4,6 +4,7 @@ import { getTiposLicencia } from "../../services/tipoLicenciaService"
 import { getPersonas } from "../../services/personaService"
 import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Stack, TextField } from "@mui/material"
 import type { Licencia, TipoLicencia, Persona } from "../../types"
+import { fechaTexto } from "../../utils/fechas"
 
 type Props = {
     licencia?: Licencia | null
@@ -12,8 +13,8 @@ type Props = {
 }
 
 function LicenciaFormDialog({ licencia, onCerrar, onGuardado }: Props) {
-    const [fechaEmision, setFechaEmision] = useState(licencia?.fechaEmision ?? '')
-    const [fechaVencimiento, setFechaVencimiento] = useState(licencia?.fechaVencimiento ?? '')
+    const [fechaEmision, setFechaEmision] = useState(licencia ? fechaTexto(licencia.fechaEmision) : '')
+    const [fechaVencimiento, setFechaVencimiento] = useState(licencia ? fechaTexto(licencia.fechaVencimiento) : '')
     const [personaId, setPersonaId] = useState(licencia ? String(licencia.Personas_idPersona) : '')
     const [tipoLicenciaId, setTipoLicenciaId] = useState(licencia ? String(licencia.TiposLicencias_idTipoLicencia) : '')
     const [personas, setPersonas] = useState<Persona[]>([])
@@ -30,7 +31,20 @@ function LicenciaFormDialog({ licencia, onCerrar, onGuardado }: Props) {
         }).catch((motivo) => setError(motivo instanceof Error ? motivo.message : 'No se pudieron cargar los titulares y tipos de licencia'))
     }, [])
 
+    // mismas reglas que licencia.service del backend; las fechas 'YYYY-MM-DD' se comparan bien como texto
+    function validar() {
+        if (!personaId || !tipoLicenciaId || !fechaEmision || !fechaVencimiento) return 'Completá todos los campos de la licencia'
+        if (fechaEmision > fechaTexto(new Date())) return 'La fecha de emisión no puede ser futura'
+        if (fechaVencimiento <= fechaEmision) return 'El vencimiento debe ser posterior a la emisión'
+        return ''
+    }
+
     async function handleGuardar() {
+        const motivo = validar()
+        if (motivo) {
+            setError(motivo)
+            return
+        }
         setGuardando(true)
         setError('')
         try {

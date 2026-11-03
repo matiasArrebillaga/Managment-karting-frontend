@@ -23,6 +23,8 @@ function KartingFormDialog({ karting, onCerrar, onGuardado }: Props) {
     const [error, setError] = useState('')
 
     const editando = Boolean(karting)
+    // si la base tiene un estado que no está en la lista, se agrega como opción para que el select no quede vacío
+    const estados = estado && !ESTADOS.includes(estado) ? [...ESTADOS, estado] : ESTADOS
     const puedeGuardar = categoria.trim() !== ''
         && modelo.trim() !== ''
         && estado !== ''
@@ -46,8 +48,8 @@ function KartingFormDialog({ karting, onCerrar, onGuardado }: Props) {
         setError('')
         try {
             const datos = {
-                categoria,
-                modelo,
+                categoria: categoria.trim(),
+                modelo: modelo.trim(),
                 estado,
                 fechaAdquisicion,
                 TiposKarting_idTiposKarting: Number(tipoKartingId),
@@ -74,6 +76,7 @@ function KartingFormDialog({ karting, onCerrar, onGuardado }: Props) {
                         label="Categoria"
                         value={categoria}
                         onChange={(e) => setCategoria(e.target.value)}
+                        slotProps={{ htmlInput: { maxLength: 45 } }}
                         required
                         fullWidth
                     />
@@ -81,6 +84,7 @@ function KartingFormDialog({ karting, onCerrar, onGuardado }: Props) {
                         label="Modelo"
                         value={modelo}
                         onChange={(e) => setModelo(e.target.value)}
+                        slotProps={{ htmlInput: { maxLength: 45 } }}
                         required
                         fullWidth
                     />
@@ -104,7 +108,7 @@ function KartingFormDialog({ karting, onCerrar, onGuardado }: Props) {
                         required
                         fullWidth
                     >
-                        {ESTADOS.map((s) => (
+                        {estados.map((s) => (
                             <MenuItem key={s} value={s}>{s}</MenuItem>
                         ))}
                     </TextField>

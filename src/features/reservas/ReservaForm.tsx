@@ -30,10 +30,11 @@ function minutosDeHora (hora: string) {
 }
 
 // Valida lo que se puede saber sin el backend; cada error va debajo de su campo.
-function validar (fechaReserva: string, horaInicio: string, horaFin: string, circuitoId: string, kartingId: string): ErroresCampo {
+// fechaOriginal: al editar, dejar la misma fecha aunque ya haya pasado es válido (el staff corrige reservas viejas)
+function validar (fechaReserva: string, horaInicio: string, horaFin: string, circuitoId: string, kartingId: string, fechaOriginal?: string): ErroresCampo {
     const errores: ErroresCampo = {}
     if (!fechaReserva) errores.fecha = 'Elegí una fecha'
-    else if (fechaReserva < fechaTexto(new Date())) errores.fecha = 'La fecha de reserva no puede ser anterior a hoy'
+    else if (fechaReserva !== fechaOriginal && fechaReserva < fechaTexto(new Date())) errores.fecha = 'La fecha de reserva no puede ser anterior a hoy'
 
     if (!HORAS.includes(horaInicio)) errores.horaInicio = 'Elegí una hora de inicio'
     if (!HORAS.includes(horaFin)) errores.horaFin = 'Elegí una hora de fin'
@@ -62,6 +63,7 @@ function ReservaForm ({ reserva, idPersonaActual, nombrePersonaActual, puedeGest
     const [guardando, setGuardando] = useState(false)
     const [errores, setErrores] = useState<ErroresCampo>({})
     const [error, setError] = useState('')
+    const fechaOriginal = reserva ? fechaTexto(reserva.fechaReserva) : undefined
 
     useEffect(() => {
         let cancelado = false
@@ -121,9 +123,9 @@ function ReservaForm ({ reserva, idPersonaActual, nombrePersonaActual, puedeGest
     }
 
     async function handleGuardar () {
-        const nuevosErrores = validar(fechaReserva, horaInicio, horaFin, circuitoId, kartingId)
+        const nuevosErrores = validar(fechaReserva, horaInicio, horaFin, circuitoId, kartingId, fechaOriginal)
         setErrores(nuevosErrores)
-        setError('')
+        setError(personaId ? '' : 'Elegí una persona')
         if (Object.keys(nuevosErrores).length > 0 || !personaId) return
 
         setGuardando(true)

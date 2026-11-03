@@ -8,6 +8,7 @@ import PersonaFormDialog from './PersonaFormDialog'
 import FilaVacia from '../../components/FilaVacia'
 import { useConfirmar } from '../../components/useConfirmar'
 import { useAviso } from '../../context/AvisoContext'
+import { coincide } from '../../utils/formato'
 
 const ROLES: Rol[] = ['CLIENTE', 'EMPLEADO', 'ADMIN']
 
@@ -26,6 +27,7 @@ function PersonasPage() {
     const [rolNuevo, setRolNuevo] = useState<Rol>('CLIENTE')
     const [errorRol, setErrorRol] = useState('')
     const [guardandoRol, setGuardandoRol] = useState(false)
+    const [busqueda, setBusqueda] = useState('')
 
     function cargarPersonas() {
         Promise.all([getPersonas(), getRoles(), getLocalidades()])
@@ -47,6 +49,7 @@ function PersonasPage() {
 
     const nombreRol = (id: number) => roles.find((r) => r.idRol === id)?.nombre ?? `#${id}`
     const nombreLocalidad = (id: number) => localidades.find((l) => l.idLocalidades === id)?.nombre ?? `#${id}`
+    const personasVisibles = personas.filter((p) => coincide(busqueda, `${p.nombre} ${p.apellido}`, p.mail, p.dni))
 
     function handleNueva() {
         setPersonaEditando(null)
@@ -107,6 +110,17 @@ function PersonasPage() {
             </div>
             {error && <Alert severity="error">{error}</Alert>}
 
+            <div className="toolbar" role="search">
+                <TextField
+                    size="small"
+                    type="search"
+                    label="Buscar por nombre, mail o DNI"
+                    value={busqueda}
+                    onChange={(evento) => setBusqueda(evento.target.value)}
+                    sx={{ minWidth: 280 }}
+                />
+            </div>
+
             <TableContainer>
                 <Table>
                     <TableHead>
@@ -120,7 +134,7 @@ function PersonasPage() {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {personas.map((persona) => {
+                        {personasVisibles.map((persona) => {
                             // un admin no puede quitarse el rol ni borrarse a sí mismo desde acá
                             const soyYo = persona.idPersona === yo?.idPersona
                             return (
@@ -138,8 +152,8 @@ function PersonasPage() {
                                 </TableRow>
                             )
                         })}
-                        {personas.length === 0 && !error && (
-                            <FilaVacia columnas={6} cargando={cargando} texto="No hay personas para mostrar." />
+                        {personasVisibles.length === 0 && !error && (
+                            <FilaVacia columnas={6} cargando={cargando} texto={busqueda ? 'Ninguna persona coincide con la búsqueda.' : 'No hay personas para mostrar.'} />
                         )}
                     </TableBody>
                 </Table>

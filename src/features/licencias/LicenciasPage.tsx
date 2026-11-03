@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Alert, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material'
+import { Alert, Button, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField } from '@mui/material'
 import { getLicencias, deleteLicencia } from '../../services/licenciaService'
 import { getTiposLicencia } from '../../services/tipoLicenciaService'
 import { getPersonas } from '../../services/personaService'
@@ -10,7 +10,8 @@ import { puede } from '../../permisos'
 import FilaVacia from '../../components/FilaVacia'
 import { useConfirmar } from '../../components/useConfirmar'
 import { useAviso } from '../../context/AvisoContext'
-import { fecha } from '../../utils/formato'
+import { coincide, fecha } from '../../utils/formato'
+import { fechaTexto } from '../../utils/fechas'
 
 function LicenciasPage() {
     const { persona } = useAuth()
@@ -23,6 +24,9 @@ function LicenciasPage() {
     const [error, setError] = useState('')
     const [abierto, setAbierto] = useState(false)
     const [licenciaEditando, setLicenciaEditando] = useState<Licencia | null>(null)
+    const [busqueda, setBusqueda] = useState('')
+    const [filtroTipo, setFiltroTipo] = useState('')
+    const [filtroEstado, setFiltroEstado] = useState('')
 
     function cargarLicencias() {
         Promise.all([getLicencias(), getTiposLicencia(), getPersonas()])
@@ -50,6 +54,17 @@ function LicenciasPage() {
     useEffect(() => {
         cargarLicencias()
     }, [])
+
+    // vigente si vence hoy o despues (mismo criterio que el backend); se compara como 'YYYY-MM-DD'
+    const hoy = fechaTexto(new Date())
+    const estaVigente = (licencia: Licencia) => fechaTexto(licencia.fechaVencimiento) >= hoy
+    const licenciasVisibles = licencias.filter((licencia) => {
+        const titular = personas.find((p) => p.idPersona === licencia.Personas_idPersona)
+        return coincide(busqueda, nombreTitular(licencia.Personas_idPersona), titular?.dni)
+            && (!filtroTipo || licencia.TiposLicencias_idTipoLicencia === Number(filtroTipo))
+            && (!filtroEstado || (filtroEstado === 'vigente') === estaVigente(licencia))
+    })
+    const hayFiltros = Boolean(busqueda || filtroTipo || filtroEstado)
 
     function handleNueva() {
         setLicenciaEditando(null)
@@ -91,6 +106,42 @@ function LicenciasPage() {
             </div>
             {error && <Alert severity="error">{error}</Alert>}
 
+            <div className="toolbar" role="search">
+                <TextField
+                    size="small"
+                    type="search"
+                    label="Buscar por titular o DNI"
+                    value={busqueda}
+                    onChange={(evento) => setBusqueda(evento.target.value)}
+                    sx={{ minWidth: 240 }}
+                />
+                <TextField
+                    select
+                    size="small"
+                    label="Tipo de licencia"
+                    value={filtroTipo}
+                    onChange={(evento) => setFiltroTipo(evento.target.value)}
+                    sx={{ minWidth: 200 }}
+                >
+                    <MenuItem value="">Todos</MenuItem>
+                    {tiposLicencia.map((tipo) => (
+                        <MenuItem key={tipo.idTipoLicencia} value={String(tipo.idTipoLicencia)}>{tipo.nombre}</MenuItem>
+                    ))}
+                </TextField>
+                <TextField
+                    select
+                    size="small"
+                    label="Estado"
+                    value={filtroEstado}
+                    onChange={(evento) => setFiltroEstado(evento.target.value)}
+                    sx={{ minWidth: 160 }}
+                >
+                    <MenuItem value="">Todas</MenuItem>
+                    <MenuItem value="vigente">Vigente</MenuItem>
+                    <MenuItem value="vencida">Vencida</MenuItem>
+                </TextField>
+            </div>
+
             <TableContainer>
                 <Table>
                     <TableHead>
@@ -103,12 +154,15 @@ function LicenciasPage() {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {licencias.map((licencia) => (
+                        {licenciasVisibles.map((licencia) => (
                             <TableRow key={licencia.idLicencias}>
                                 <TableCell>{nombreTitular(licencia.Personas_idPersona)}</TableCell>
                                 <TableCell>{nombreTipoLicencia(licencia.TiposLicencias_idTipoLicencia)}</TableCell>
                                 <TableCell>{fecha(licencia.fechaEmision)}</TableCell>
-                                <TableCell>{fecha(licencia.fechaVencimiento)}</TableCell>
+                                <TableCell>
+                                    {fecha(licencia.fechaVencimiento)}
+                                    {!estaVigente(licencia) && <span className="tag bad" style={{ marginLeft: 8 }}>Vencida</span>}
+                                </TableCell>
                                 <TableCell sx={{ whiteSpace: 'nowrap' }}>
                                     <Button size="small" onClick={() => handleEditar(licencia)}>
                                         Editar
@@ -121,8 +175,8 @@ function LicenciasPage() {
                                 </TableCell>
                             </TableRow>
                         ))}
-                        {licencias.length === 0 && !error && (
-                            <FilaVacia columnas={5} cargando={cargando} texto="No hay licencias cargadas." />
+                        {licenciasVisibles.length === 0 && !error && (
+                            <FilaVacia columnas={5} cargando={cargando} texto={hayFiltros ? 'Ninguna licencia coincide con los filtros.' : 'No hay licencias cargadas.'} />
                         )}
                     </TableBody>
                 </Table>

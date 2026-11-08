@@ -1,0 +1,29 @@
+# npm test (Vitest) - 2026-11-08 18:10
+
+
+ RUN  v5.1.0 C:/Users/Leandro Battocchio/Desktop/proyecto/Managment-karting-frontend
+
+ ✓ src/utils/fechas.test.ts > fechaTexto > convierte un Date a YYYY-MM-DD en hora local, con ceros a la izquierda 3ms
+ ✓ src/utils/fechas.test.ts > fechaTexto > recorta un texto ISO a la parte de la fecha 0ms
+ ✓ src/utils/fechas.test.ts > horaTexto > convierte un Date a HH:MM 0ms
+ ✓ src/utils/fechas.test.ts > horaTexto > acepta HH:MM:SS (horas de reserva) 0ms
+ ✓ src/utils/fechas.test.ts > horaTexto > acepta ISO con T y se queda con la hora 0ms
+ ✓ src/utils/fechas.test.ts > fechaLocal > lee YYYY-MM-DD como medianoche local y no como el día anterior (UTC) 0ms
+ ✓ src/utils/fechas.test.ts > fechaLocal > a un Date le saca la hora 1ms
+ ✓ src/utils/fechas.test.ts > horaLocal > combina un día con una hora HH:MM 0ms
+ ✓ src/utils/fechas.test.ts > horaLocal > combina un día con la hora de un ISO 0ms
+ ✓ src/services/authService.test.ts > login (normalización de la sesión) > toma el rol del token y arma la persona solo con los campos que usa el front 6ms
+ ✓ src/services/authService.test.ts > login (normalización de la sesión) > si el token no trae rol, usa el rol de la persona con su idRol 1ms
+ ✓ src/services/authService.test.ts > login (normalización de la sesión) > rechaza un rol desconocido 2ms
+ ✓ src/services/authService.test.ts > login (normalización de la sesión) > rechaza una respuesta sin datos de persona completos 1ms
+ ✓ src/services/authService.test.ts > login (normalización de la sesión) > muestra el mensaje del backend cuando las credenciales son incorrectas 1ms
+ ✓ src/components/RutaProtegida.test.tsx > RutaProtegida > redirige a /login cuando no hay sesión 62ms
+ ✓ src/components/RutaProtegida.test.tsx > RutaProtegida > muestra "Acceso denegado" cuando el rol no tiene el permiso 10ms
+ ✓ src/components/RutaProtegida.test.tsx > RutaProtegida > muestra el contenido cuando el rol tiene el permiso 3ms
+ ✓ src/components/RutaProtegida.test.tsx > RutaProtegida > sin permiso pedido alcanza con estar logueado, sea cual sea el rol 4ms
+
+ Test Files  3 passed (3)
+      Tests  18 passed (18)
+   Start at  18:10:05
+   Duration  1.54s (environment 73%, setup 18%, transform 4%, tests 3%, import 1%)
+

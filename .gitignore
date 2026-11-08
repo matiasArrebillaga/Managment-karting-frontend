@@ -26,3 +26,7 @@ dist-ssr
 # Variables de entorno locales
 .env
 graphify-out/
+
+# Salidas de Playwright
+playwright-report/
+test-results/

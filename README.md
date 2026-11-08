@@ -36,6 +36,28 @@ Abrir `http://localhost:5173`.
 | `npm run build` | Chequea los tipos con `tsc` y genera la versión de producción en `dist/` |
 | `npm run lint` | Corre oxlint |
 | `npm run gen:api` | Regenera `src/types/api.ts` desde la especificación OpenAPI del backend (necesita el backend corriendo) |
+| `npm test` | Tests unitarios y de componentes (Vitest + Testing Library) |
+| `npm run test:watch` | Lo mismo, re-ejecutando al guardar |
+| `npm run test:e2e` | Test end-to-end con Playwright |
+
+## Tests
+
+**Unitarios y de componentes** (`src/**/*.test.ts(x)`, Vitest + Testing Library con jsdom). No necesitan el backend.
+
+- `components/RutaProtegida.test.tsx`: sin sesión redirige a `/login`, con un rol sin permiso muestra "Acceso denegado" y con permiso muestra el contenido.
+- `utils/fechas.test.ts`: conversiones de fecha y hora en hora local.
+- `services/authService.test.ts`: normalización de la respuesta del login (rol del token, datos incompletos, errores del backend).
+
+**End-to-end** (`e2e/`, Playwright). Necesita el **backend corriendo** con el seed cargado. El front lo levanta Playwright, o reusa el `npm run dev` si ya está abierto. La primera vez hay que bajar el navegador:
+
+```powershell
+npx playwright install chromium
+npm run test:e2e
+```
+
+El test ingresa con el cliente de prueba, llega a su panel (Mi cuenta: `/dashboard` es solo del staff y redirige ahí al cliente) y abre sus reservas. Antes de correr, `e2e/global-setup.ts` crea el cliente de prueba con `/auth/register` si todavía no existe. Por defecto es `cliente.prueba@karting.com` / `ClientePrueba123`, y se puede cambiar con `E2E_CLIENTE_MAIL` y `E2E_CLIENTE_PASSWORD`.
+
+La salida de las dos suites queda guardada como evidencia en `docs/evidencia-tests/`.
 
 ## Estructura
 

@@ -6,10 +6,14 @@ import LocalidadFormDialog from './LocalidadFormDialog'
 import FilaVacia from '../../components/FilaVacia'
 import { useConfirmar } from '../../components/useConfirmar'
 import { useAviso } from '../../context/AvisoContext'
+import { useAuth } from '../../context/AuthContext'
+import { puede } from '../../permisos'
 
 function LocalidadesPage() {
     const { confirmar, dialogo } = useConfirmar()
     const avisar = useAviso()
+    const { persona } = useAuth()
+    const puedeGestionar = puede(persona?.rol.nombre, 'localidades.gestionar')
     const [localidades, setLocalidades] = useState<Localidad[]>([])
     const [cargando, setCargando] = useState(true)
     const [error, setError] = useState('')
@@ -68,7 +72,9 @@ function LocalidadesPage() {
                     <p className="eyebrow">Catálogos</p>
                     <h1>Localidades</h1>
                 </div>
-                <button className="btn" type="button" onClick={handleNueva}>Nueva localidad</button>
+                {puedeGestionar && (
+                    <button className="btn" type="button" onClick={handleNueva}>Nueva localidad</button>
+                )}
             </div>
             {error && <Alert severity="error">{error}</Alert>}
 
@@ -85,12 +91,16 @@ function LocalidadesPage() {
                             <TableRow key={localidad.idLocalidades}>
                                 <TableCell>{localidad.nombre}</TableCell>
                                 <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                                    <Button size="small" onClick={() => handleEditar(localidad)}>
-                                        Editar
-                                    </Button>
-                                    <Button size="small" color="error" onClick={() => handleEliminar(localidad)}>
-                                        Eliminar
-                                    </Button>
+                                    {puedeGestionar && (
+                                        <>
+                                            <Button size="small" onClick={() => handleEditar(localidad)}>
+                                                Editar
+                                            </Button>
+                                            <Button size="small" color="error" onClick={() => handleEliminar(localidad)}>
+                                                Eliminar
+                                            </Button>
+                                        </>
+                                    )}
                                 </TableCell>
                             </TableRow>
                         ))}

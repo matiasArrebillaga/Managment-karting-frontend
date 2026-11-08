@@ -142,7 +142,10 @@ createRoot(document.getElementById('root')!).render(
               path="/personas"
               element={<RutaProtegida permiso="personas.gestionar"><PersonasPage /></RutaProtegida>}
             />
-            <Route path="/localidades" element={<RutaProtegida><LocalidadesPage /></RutaProtegida>} />
+            <Route
+              path="/localidades"
+              element={<RutaProtegida permiso="catalogos.ver"><LocalidadesPage /></RutaProtegida>}
+            />
             <Route path="/circuitos" element={<RutaProtegida><CircuitosPage /></RutaProtegida>} />
             <Route path="/kartings" element={<RutaProtegida><KartingsPage /></RutaProtegida>} />
             <Route
@@ -166,4 +169,5 @@ createRoot(document.getElementById('root')!).render(
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>,
+
 )

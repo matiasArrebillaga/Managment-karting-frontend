@@ -5,6 +5,7 @@ const PERMISOS = {
     'participaciones.ver': ['ADMIN', 'EMPLEADO'],
     'catalogos.ver': ['ADMIN', 'EMPLEADO'],
     'catalogos.eliminar': ['ADMIN'],
+    'localidades.gestionar': ['ADMIN', 'EMPLEADO'],
     'circuitos.crear': ['ADMIN'],
     'circuitos.editar': ['ADMIN', 'EMPLEADO'],
     'circuitos.eliminar': ['ADMIN'],
